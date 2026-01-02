@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Devtools - Dev Mode</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 10px; }
+    p { color: #888; margin-bottom: 20px; }
+    .demo-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-content">
+    <h1>🛠 Theme Devtools - Dev Mode</h1>
+    <p>This page loads the devtools panel for local development with hot reload.</p>
+  </div>
+
+  <!-- Mimic what theme-devtools-bridge.liquid outputs -->
+  <script type="application/json" id="__THEME_DEVTOOLS_CONTEXT__">
+    {
+      "meta": {
+        "theme": { "id": 123456789, "name": "Development", "role": "development" },
+        "template": { "name": "index", "suffix": null, "directory": "templates" },
+        "request": {
+          "host": "localhost:9999",
+          "path": "/",
+          "page_type": "index",
+          "design_mode": false,
+          "visual_preview_mode": false,
+          "locale": { "iso_code": "en", "name": "English", "primary": true },
+          "origin": "http://localhost:9999"
+        },
+        "localization": {
+          "country": { "iso_code": "US", "name": "United States", "currency": { "iso_code": "USD", "symbol": "$" } },
+          "language": { "iso_code": "en", "name": "English" },
+          "market": { "id": 1, "handle": "us" }
+        }
+      },
+      "objects": {
+        "shop": {
+          "id": 1,
+          "name": "Dev Store",
+          "domain": "dev-store.myshopify.com",
+          "permanent_domain": "dev-store.myshopify.com",
+          "url": "https://dev-store.myshopify.com",
+          "secure_url": "https://dev-store.myshopify.com",
+          "email": "dev@example.com",
+          "description": "A development store for testing",
+          "address": {
+            "address1": "123 Main St",
+            "city": "San Francisco",
+            "province": "California",
+            "province_code": "CA",
+            "zip": "94102",
+            "country": "United States",
+            "country_code": "US"
+          }
+        },
+        "customer": null,
+        "product": {
+          "id": 123,
+          "title": "Sample Product",
+          "handle": "sample-product",
+          "type": "Widgets",
+          "vendor": "Acme Inc",
+          "available": true,
+          "published_at": "2024-01-01T00:00:00Z",
+          "created_at": "2024-01-01T00:00:00Z",
+          "tags": ["featured", "sale"],
+          "price": 2999,
+          "price_min": 2999,
+          "price_max": 4999,
+          "price_varies": true,
+          "variants_count": 3,
+          "options_count": 2,
+          "options": [
+            { "name": "Size", "values": ["Small", "Medium", "Large"] },
+            { "name": "Color", "values": ["Red", "Blue"] }
+          ],
+          "images_count": 5,
+          "featured_image": "https://via.placeholder.com/400",
+          "has_only_default_variant": false,
+          "requires_selling_plan": false,
+          "selected_variant": { "id": 456, "title": "Small / Red", "sku": "SAMPLE-SM-RED", "price": 2999, "available": true },
+          "selected_or_first_available_variant": { "id": 456, "title": "Small / Red", "sku": "SAMPLE-SM-RED", "price": 2999, "available": true },
+          "url": "/products/sample-product",
+          "metafields_count": 2
+        },
+        "collection": null,
+        "article": null,
+        "blog": null,
+        "page": null,
+        "cart": null
+      },
+      "metafields": {
+        "shop": {
+          "custom": {
+            "announcement_bar": {
+              "value": "Free shipping on orders over $50!",
+              "type": "single_line_text_field"
+            },
+            "support_email": {
+              "value": "support@example.com",
+              "type": "single_line_text_field"
+            }
+          },
+          "global": {
+            "social_links": {
+              "value": { "facebook": "https://facebook.com/shop", "instagram": "https://instagram.com/shop" },
+              "type": "json"
+            }
+          }
+        },
+        "product": {
+          "custom": {
+            "sizing_chart": {
+              "value": "<table><tr><td>S</td><td>34-36</td></tr><tr><td>M</td><td>38-40</td></tr></table>",
+              "type": "multi_line_text_field"
+            },
+            "care_instructions": {
+              "value": "Machine wash cold. Tumble dry low.",
+              "type": "single_line_text_field"
+            },
+            "material": {
+              "value": "100% Organic Cotton",
+              "type": "single_line_text_field"
+            },
+            "weight_kg": {
+              "value": 0.35,
+              "type": "number_decimal"
+            },
+            "is_bestseller": {
+              "value": true,
+              "type": "boolean"
+            },
+            "launch_date": {
+              "value": "2024-01-15",
+              "type": "date"
+            }
+          },
+          "descriptors": {
+            "subtitle": {
+              "value": "The perfect everyday essential",
+              "type": "single_line_text_field"
+            },
+            "highlights": {
+              "value": ["Sustainable", "Breathable", "Durable"],
+              "type": "list.single_line_text_field"
+            }
+          },
+          "shopify": {
+            "color_swatch": {
+              "value": "#FF5733",
+              "type": "color"
+            }
+          }
+        },
+        "collection": null,
+        "customer": null,
+        "article": null,
+        "page": null,
+        "blog": null
+      },
+      "settings": {
+        "colors": {
+          "colors_accent_1": {
+            "value": "#4F46E5",
+            "type": "color",
+            "label": "Accent 1"
+          },
+          "colors_accent_2": {
+            "value": "#7C3AED",
+            "type": "color",
+            "label": "Accent 2"
+          },
+          "colors_text": {
+            "value": "#1F2937",
+            "type": "color",
+            "label": "Text color"
+          },
+          "colors_background": {
+            "value": "#FFFFFF",
+            "type": "color",
+            "label": "Background"
+          },
+          "colors_background_2": {
+            "value": "#F3F4F6",
+            "type": "color",
+            "label": "Secondary background"
+          }
+        },
+        "typography": {
+          "type_header_font": {
+            "value": "assistant_n4",
+            "type": "font_picker",
+            "label": "Header font"
+          },
+          "type_body_font": {
+            "value": "assistant_n4",
+            "type": "font_picker",
+            "label": "Body font"
+          },
+          "type_header_font_size": {
+            "value": 36,
+            "type": "range",
+            "label": "Header font size"
+          },
+          "type_body_font_size": {
+            "value": 16,
+            "type": "range",
+            "label": "Body font size"
+          }
+        },
+        "layout": {
+          "page_width": {
+            "value": 1200,
+            "type": "range",
+            "label": "Page width"
+          },
+          "spacing_sections": {
+            "value": 50,
+            "type": "range",
+            "label": "Section spacing"
+          }
+        },
+        "cart": {
+          "cart_type": {
+            "value": "drawer",
+            "type": "select",
+            "label": "Cart type"
+          },
+          "cart_drawer_enabled": {
+            "value": true,
+            "type": "checkbox",
+            "label": "Enable cart drawer"
+          }
+        },
+        "product": {
+          "show_vendor": {
+            "value": true,
+            "type": "checkbox",
+            "label": "Show vendor"
+          },
+          "show_secondary_image": {
+            "value": true,
+            "type": "checkbox",
+            "label": "Show secondary image"
+          }
+        },
+        "social": {
+          "social_twitter_link": {
+            "value": "https://twitter.com/shopify",
+            "type": "text",
+            "label": "Twitter link"
+          },
+          "social_facebook_link": {
+            "value": "https://facebook.com/shopify",
+            "type": "text",
+            "label": "Facebook link"
+          },
+          "social_instagram_link": {
+            "value": "https://instagram.com/shopify",
+            "type": "text",
+            "label": "Instagram link"
+          }
+        },
+        "favicon": {
+          "favicon": {
+            "value": "https://cdn.shopify.com/s/files/1/0000/0001/files/favicon.png",
+            "type": "image_picker",
+            "label": "Favicon"
+          }
+        }
+      },
+      "sectionSettings": {
+        "header": {
+          "type": "header",
+          "settings": {
+            "logo_position": "middle-left",
+            "menu": "main-menu",
+            "show_line_separator": true,
+            "enable_sticky_header": true,
+            "color_scheme": "background-1"
+          }
+        },
+        "template--main": {
+          "type": "main-product",
+          "settings": {
+            "enable_sticky_info": true,
+            "gallery_layout": "stacked",
+            "media_size": "large",
+            "mobile_thumbnails": "show",
+            "hide_variants": false
+          }
+        },
+        "related-products": {
+          "type": "related-products",
+          "settings": {
+            "heading": "You may also like",
+            "products_to_show": 4,
+            "columns_desktop": 4,
+            "image_ratio": "square"
+          }
+        },
+        "footer": {
+          "type": "footer",
+          "settings": {
+            "newsletter_enable": true,
+            "show_social": true,
+            "brand_info": "© 2024 Sample Store. All rights reserved.",
+            "show_payment_icons": true
+          }
+        }
+      },
+      "timestamp": "1704067200"
+    }
+  </script>
+
+  <div id="__THEME_DEVTOOLS_ROOT__" style="display:contents;"></div>
+
+  <!-- Load the dev entry point -->
+  <script type="module" src="/src/scripts/main.js"></script>
+</body>
+</html>
+

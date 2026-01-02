@@ -1,0 +1,80 @@
+<footer class="footer" id="shopify-section-{{ section.id }}" data-section-type="footer" {{ section.shopify_attributes }}>
+  <div class="footer__inner">
+    <div class="footer__column">
+      <h4>{{ shop.name }}</h4>
+      <p style="opacity: 0.7; font-size: 0.875rem; line-height: 1.6;">
+        {{ section.settings.description | default: 'Quality products for everyone.' }}
+      </p>
+    </div>
+    
+    <div class="footer__column">
+      <h4>Shop</h4>
+      <ul>
+        <li><a href="{{ routes.collections_url }}">Collections</a></li>
+        <li><a href="{{ routes.all_products_collection_url }}">All Products</a></li>
+        {%- if cart.item_count > 0 -%}
+          <li><a href="{{ routes.cart_url }}">Cart ({{ cart.item_count }})</a></li>
+        {%- endif -%}
+      </ul>
+    </div>
+    
+    <div class="footer__column">
+      <h4>Help</h4>
+      <ul>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">Shipping</a></li>
+        <li><a href="#">Returns</a></li>
+        <li><a href="#">FAQ</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer__column">
+      <h4>Connect</h4>
+      <ul>
+        {%- if section.settings.social_facebook != blank -%}
+          <li><a href="{{ section.settings.social_facebook }}">Facebook</a></li>
+        {%- endif -%}
+        {%- if section.settings.social_instagram != blank -%}
+          <li><a href="{{ section.settings.social_instagram }}">Instagram</a></li>
+        {%- endif -%}
+        {%- if section.settings.social_twitter != blank -%}
+          <li><a href="{{ section.settings.social_twitter }}">Twitter</a></li>
+        {%- endif -%}
+        <li><a href="mailto:{{ shop.email }}">Email Us</a></li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="footer__bottom">
+    <p>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}. All rights reserved.</p>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Quality products for everyone."
+    },
+    {
+      "type": "url",
+      "id": "social_facebook",
+      "label": "Facebook URL"
+    },
+    {
+      "type": "url",
+      "id": "social_instagram",
+      "label": "Instagram URL"
+    },
+    {
+      "type": "url",
+      "id": "social_twitter",
+      "label": "Twitter URL"
+    }
+  ]
+}
+{% endschema %}

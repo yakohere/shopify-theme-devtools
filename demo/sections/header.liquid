@@ -1,0 +1,50 @@
+<header class="header" id="shopify-section-{{ section.id }}" data-section-type="header" {{ section.shopify_attributes }}>
+  <div class="header__inner">
+    <a href="{{ routes.root_url }}" class="header__logo">{{ shop.name }}</a>
+    
+    <nav class="header__nav">
+      {%- for link in linklists[section.settings.menu].links -%}
+        <a href="{{ link.url }}">{{ link.title }}</a>
+      {%- endfor -%}
+      <a href="{{ routes.collections_url }}">Collections</a>
+      <a href="{{ routes.all_products_collection_url }}">Products</a>
+    </nav>
+    
+    <div class="header__actions">
+      {%- if shop.customer_accounts_enabled -%}
+        <a href="{{ routes.account_url }}" class="header__account">
+          {%- if customer -%}
+            Account
+          {%- else -%}
+            Sign in
+          {%- endif -%}
+        </a>
+      {%- endif -%}
+      
+      <a href="{{ routes.cart_url }}" class="header__cart">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 6h15l-1.5 9h-12z"/>
+          <circle cx="9" cy="20" r="1"/>
+          <circle cx="18" cy="20" r="1"/>
+        </svg>
+        {%- if cart.item_count > 0 -%}
+          <span class="header__cart-count">{{ cart.item_count }}</span>
+        {%- endif -%}
+      </a>
+    </div>
+  </div>
+</header>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "default": "main-menu"
+    }
+  ]
+}
+{% endschema %}

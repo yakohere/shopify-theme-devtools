@@ -1,0 +1,85 @@
+<section class="section testimonials-section" id="shopify-section-{{ section.id }}" data-section-type="testimonials" {{ section.shopify_attributes }}>
+  <div class="container">
+    <div class="section__header">
+      <h2 class="section__title">{{ section.settings.title }}</h2>
+      {%- if section.settings.subtitle != blank -%}
+        <p class="section__subtitle">{{ section.settings.subtitle }}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="testimonials-grid">
+      {%- if section.blocks.size > 0 -%}
+        {%- for block in section.blocks -%}
+          <blockquote class="testimonial" {{ block.shopify_attributes }}>
+            <p class="testimonial__content">"{{ block.settings.quote }}"</p>
+            <cite class="testimonial__author">— {{ block.settings.author }}</cite>
+          </blockquote>
+        {%- endfor -%}
+      {%- else -%}
+        <blockquote class="testimonial">
+          <p class="testimonial__content">"Amazing products and fantastic customer service. Will definitely shop here again!"</p>
+          <cite class="testimonial__author">— Sarah M.</cite>
+        </blockquote>
+        <blockquote class="testimonial">
+          <p class="testimonial__content">"Fast shipping and the quality exceeded my expectations. Highly recommend!"</p>
+          <cite class="testimonial__author">— John D.</cite>
+        </blockquote>
+        <blockquote class="testimonial">
+          <p class="testimonial__content">"Best online shopping experience I've had. The team really cares about their customers."</p>
+          <cite class="testimonial__author">— Emily R.</cite>
+        </blockquote>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Testimonials",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "What Our Customers Say"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Testimonial",
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "quote",
+          "label": "Quote"
+        },
+        {
+          "type": "text",
+          "id": "author",
+          "label": "Author"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Testimonials",
+      "blocks": [
+        {
+          "type": "testimonial",
+          "settings": {
+            "quote": "Amazing products and fantastic customer service!",
+            "author": "Happy Customer"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

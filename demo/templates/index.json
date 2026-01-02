@@ -1,0 +1,27 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "title": "Welcome to our store",
+        "subtitle": "Discover our amazing collection of products",
+        "button_text": "Shop Now"
+      }
+    },
+    "featured": {
+      "type": "featured-collection",
+      "settings": {
+        "title": "Featured Collection",
+        "subtitle": "Explore our curated selection of products",
+        "products_to_show": 4,
+        "show_view_all": true
+      }
+    },
+    "testimonials": {
+      "type": "testimonials",
+      "settings": {}
+    }
+  },
+  "order": ["hero", "featured", "testimonials"]
+}
+

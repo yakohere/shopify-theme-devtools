@@ -1,0 +1,141 @@
+<section class="cart-page" id="shopify-section-{{ section.id }}" data-section-type="main-cart" {{ section.shopify_attributes }}>
+  <div class="cart-page__inner">
+    <h1 class="cart-page__title">Your Cart</h1>
+
+    {%- if cart.item_count == 0 -%}
+      <div class="cart-empty">
+        <p>Your cart is empty</p>
+        <a href="{{ routes.all_products_collection_url }}" class="btn btn-primary">Continue Shopping</a>
+      </div>
+    {%- else -%}
+      <form action="{{ routes.cart_url }}" method="post" id="cart-form">
+        <div class="cart-items">
+          {%- for item in cart.items -%}
+            <div class="cart-item" data-variant-id="{{ item.variant_id }}" data-line-index="{{ forloop.index }}">
+              <div class="cart-item__image">
+                {%- if item.image -%}
+                  <img 
+                    src="{{ item.image | image_url: width: 200 }}" 
+                    alt="{{ item.title | escape }}"
+                    loading="lazy"
+                    width="100"
+                    height="100"
+                  >
+                {%- else -%}
+                  {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                {%- endif -%}
+              </div>
+
+              <div class="cart-item__info">
+                <a href="{{ item.url }}" class="cart-item__title">{{ item.product.title }}</a>
+                {%- if item.variant.title != 'Default Title' -%}
+                  <p class="cart-item__variant">{{ item.variant.title }}</p>
+                {%- endif -%}
+                {%- if section.settings.show_vendor and item.vendor != blank -%}
+                  <p class="cart-item__vendor">{{ item.vendor }}</p>
+                {%- endif -%}
+                <p class="cart-item__price">{{ item.final_line_price | money }}</p>
+              </div>
+
+              <div class="cart-item__actions">
+                <div class="cart-item__quantity">
+                  <input 
+                    type="number" 
+                    name="updates[]" 
+                    value="{{ item.quantity }}" 
+                    min="0"
+                    aria-label="Quantity for {{ item.title }}"
+                  >
+                </div>
+                <button 
+                  type="button" 
+                  class="cart-item__remove"
+                  onclick="this.closest('.cart-item').querySelector('input').value = 0; document.getElementById('cart-form').submit();"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- if section.settings.show_note -%}
+          <div class="cart-note">
+            <label for="cart-note">Order Notes</label>
+            <textarea 
+              id="cart-note" 
+              name="note" 
+              placeholder="Add a note to your order..."
+            >{{ cart.note }}</textarea>
+          </div>
+        {%- endif -%}
+
+        <div class="cart-summary">
+          {%- if cart.cart_level_discount_applications.size > 0 -%}
+            {%- for discount in cart.cart_level_discount_applications -%}
+              <div class="cart-summary__row cart-summary__discount">
+                <span>{{ discount.title }}</span>
+                <span>-{{ discount.total_allocated_amount | money }}</span>
+              </div>
+            {%- endfor -%}
+          {%- endif -%}
+          
+          <div class="cart-summary__row">
+            <span>Subtotal ({{ cart.item_count }} {{ cart.item_count | pluralize: 'item', 'items' }})</span>
+            <span>{{ cart.total_price | money }}</span>
+          </div>
+          
+          <p class="cart-summary__note">Shipping & taxes calculated at checkout</p>
+          
+          <div class="cart-summary__row cart-summary__total">
+            <span>Total</span>
+            <span>{{ cart.total_price | money }}</span>
+          </div>
+
+          <div class="cart-summary__actions">
+            <button type="submit" name="update" class="btn btn-secondary">Update Cart</button>
+            <button type="submit" name="checkout" class="btn btn-primary cart-summary__checkout">Checkout</button>
+          </div>
+        </div>
+      </form>
+
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'upsell' -%}
+            <div class="cart-upsell" {{ block.shopify_attributes }}>
+              {% render 'cart-upsell' %}
+            </div>
+        {%- endcase -%}
+      {%- endfor -%}
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Cart",
+  "tag": "section",
+  "class": "section-main-cart",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show vendor",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_note",
+      "label": "Show order notes",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "upsell",
+      "name": "Upsell Products",
+      "limit": 1
+    }
+  ]
+}
+{% endschema %}

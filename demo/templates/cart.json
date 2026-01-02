@@ -1,0 +1,21 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-cart",
+      "settings": {
+        "show_vendor": true,
+        "show_note": true
+      }
+    },
+    "related": {
+      "type": "featured-products",
+      "disabled": false,
+      "settings": {
+        "title": "You might also like",
+        "product_count": 4
+      }
+    }
+  },
+  "order": ["main", "related"]
+}
+

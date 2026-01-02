@@ -1,0 +1,96 @@
+<section class="section featured-collection" id="shopify-section-{{ section.id }}" data-section-type="featured-collection" {{ section.shopify_attributes }}>
+  <div class="container">
+    <div class="section__header">
+      <h2 class="section__title">{{ section.settings.title }}</h2>
+      {%- if section.settings.subtitle != blank -%}
+        <p class="section__subtitle">{{ section.settings.subtitle }}</p>
+      {%- endif -%}
+    </div>
+
+    {%- assign collection = collections[section.settings.collection] -%}
+    
+    {%- if collection != blank and collection.products.size > 0 -%}
+      <div class="product-grid">
+        {%- for product in collection.products limit: section.settings.products_to_show -%}
+          {% render 'product-card', product: product %}
+        {%- endfor -%}
+      </div>
+      
+      {%- if section.settings.show_view_all -%}
+        <div class="text-center" style="margin-top: var(--spacing-lg);">
+          <a href="{{ collection.url }}" class="btn btn-secondary">
+            View All {{ collection.title }}
+          </a>
+        </div>
+      {%- endif -%}
+    {%- else -%}
+      <div class="product-grid">
+        {%- for i in (1..section.settings.products_to_show) -%}
+          <article class="product-card">
+            <div class="product-card__image">
+              {{ 'product-' | append: i | placeholder_svg_tag: 'placeholder-svg' }}
+            </div>
+            <div class="product-card__content">
+              <p class="product-card__vendor">Brand</p>
+              <h3 class="product-card__title">
+                <a href="#">Sample Product {{ i }}</a>
+              </h3>
+              <div class="product-card__price">$99.00</div>
+            </div>
+          </article>
+        {%- endfor -%}
+      </div>
+      
+      <div class="text-center" style="margin-top: var(--spacing-lg);">
+        <a href="{{ routes.all_products_collection_url }}" class="btn btn-secondary">
+          View All Products
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Featured Collection",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Featured Collection"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "Explore our curated selection of products"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 12,
+      "step": 2,
+      "default": 4,
+      "label": "Products to show"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "Show 'View All' button",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured Collection"
+    }
+  ]
+}
+{% endschema %}

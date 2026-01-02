@@ -1,0 +1,21 @@
+{
+  "name": "shopify-theme-devtools",
+  "version": "1.0.0",
+  "description": "In-browser devtools panel for Shopify theme development",
+  "type": "module",
+  "scripts": {
+    "build": "NODE_ENV=production vite build",
+    "build:dev": "vite build",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "terser": "^5.44.1",
+    "vite": "^5.4.11"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "lit": "^3.3.2"
+  }
+}

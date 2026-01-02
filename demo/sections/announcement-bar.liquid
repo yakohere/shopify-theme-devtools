@@ -1,0 +1,28 @@
+<div class="announcement-bar" {{ section.shopify_attributes }}>
+  {% if section.settings.link %}
+    <a href="{{ section.settings.link }}" class="announcement-bar__link">
+      {{ section.settings.text }}
+    </a>
+  {% else %}
+    <p class="announcement-bar__text">{{ section.settings.text }}</p>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Announcement bar",
+  "settings": [
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Announcement text",
+      "default": "Welcome to our store"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link"
+    }
+  ]
+}
+{% endschema %}

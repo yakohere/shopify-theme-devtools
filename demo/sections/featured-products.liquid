@@ -1,0 +1,41 @@
+<section class="featured-products section" {{ section.shopify_attributes }}>
+  <div class="container">
+    {% if section.settings.title %}
+      <h2 class="section-title">{{ section.settings.title }}</h2>
+    {% endif %}
+
+    <div class="product-grid">
+      {% assign product_count = section.settings.product_count | default: 4 %}
+      {% for i in (1..product_count) %}
+        <div class="product-card">
+          {{ 'product-' | append: i | placeholder_svg_tag }}
+          <h3 class="product-card__title">Sample Product {{ i }}</h3>
+          <p class="product-card__price">$29.99</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Featured Products",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Section title",
+      "default": "Featured Products"
+    },
+    {
+      "type": "range",
+      "id": "product_count",
+      "label": "Number of products",
+      "min": 2,
+      "max": 8,
+      "default": 4
+    }
+  ]
+}
+{% endschema %}
+

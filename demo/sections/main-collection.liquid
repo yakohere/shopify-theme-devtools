@@ -1,0 +1,126 @@
+{%- style -%}
+  .collection-grid--{{ section.id }} {
+    --columns: {{ section.settings.columns }};
+  }
+  
+  @media (max-width: 990px) {
+    .collection-grid--{{ section.id }} {
+      --columns: 3;
+    }
+  }
+  
+  @media (max-width: 750px) {
+    .collection-grid--{{ section.id }} {
+      --columns: 2;
+    }
+  }
+{%- endstyle -%}
+
+<div id="shopify-section-{{ section.id }}" class="section collection-section" data-section-type="main-collection">
+  <header class="collection-header">
+    <div class="container">
+      <h1 class="collection-header__title">{{ collection.title }}</h1>
+      {%- if collection.description != blank -%}
+        <div class="collection-header__description">{{ collection.description }}</div>
+      {%- endif -%}
+      <p class="collection-header__count">{{ collection.products_count }} {{ collection.products_count | pluralize: 'product', 'products' }}</p>
+    </div>
+  </header>
+
+  <div class="collection-content">
+    <div class="collection-toolbar">
+      <div class="collection-toolbar__results">
+        Showing {{ collection.products.size }} of {{ collection.products_count }} products
+      </div>
+      
+      <div class="collection-toolbar__sort">
+        <label for="sort-by" class="visually-hidden">Sort by</label>
+        <select id="sort-by" onchange="window.location.href = this.value">
+          {%- for option in collection.sort_options -%}
+            <option value="{{ collection.url }}?sort_by={{ option.value }}" {% if collection.sort_by == option.value %}selected{% endif %}>
+              {{ option.name }}
+            </option>
+          {%- endfor -%}
+        </select>
+      </div>
+    </div>
+
+    <div class="container">
+      {%- paginate collection.products by section.settings.products_per_page -%}
+        {%- if collection.products.size > 0 -%}
+          <div class="product-grid collection-grid--{{ section.id }}" style="grid-template-columns: repeat(var(--columns), 1fr);">
+            {%- for product in collection.products -%}
+              {% render 'product-card', product: product %}
+            {%- endfor -%}
+          </div>
+
+          {%- if paginate.pages > 1 -%}
+            <nav class="pagination" role="navigation" aria-label="Pagination">
+              <ul class="pagination__list">
+                {%- if paginate.previous -%}
+                  <li>
+                    <a href="{{ paginate.previous.url }}" class="pagination__link pagination__link--prev">
+                      &larr; Previous
+                    </a>
+                  </li>
+                {%- endif -%}
+
+                {%- for part in paginate.parts -%}
+                  <li>
+                    {%- if part.is_link -%}
+                      <a href="{{ part.url }}" class="pagination__link">{{ part.title }}</a>
+                    {%- else -%}
+                      <span class="pagination__link pagination__link--current">{{ part.title }}</span>
+                    {%- endif -%}
+                  </li>
+                {%- endfor -%}
+
+                {%- if paginate.next -%}
+                  <li>
+                    <a href="{{ paginate.next.url }}" class="pagination__link pagination__link--next">
+                      Next &rarr;
+                    </a>
+                  </li>
+                {%- endif -%}
+              </ul>
+            </nav>
+          {%- endif -%}
+        {%- else -%}
+          <div class="collection-empty">
+            <p>No products found in this collection.</p>
+            <a href="{{ routes.all_products_collection_url }}" class="btn btn-primary">Browse all products</a>
+          </div>
+        {%- endif -%}
+      {%- endpaginate -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Collection",
+  "tag": "section",
+  "class": "section-main-collection",
+  "settings": [
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 4,
+      "max": 24,
+      "step": 4,
+      "default": 12,
+      "label": "Products per page"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4,
+      "label": "Desktop columns"
+    }
+  ]
+}
+{% endschema %}
+
