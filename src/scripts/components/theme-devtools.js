@@ -21,7 +21,23 @@ export class ThemeDevtools extends LitElement {
     activeTab: { type: String, state: true },
     context: { type: Object, state: true },
     cart: { type: Object, state: true },
+    tabOrder: { type: Array, state: true },
+    draggedTab: { type: String, state: true },
+    dragOverTab: { type: String, state: true },
   };
+
+  static DEFAULT_TABS = [
+    { id: 'objects', label: 'Objects', icon: '📦' },
+    { id: 'metafields', label: 'Metafields', icon: '🏷️' },
+    { id: 'settings', label: 'Settings', icon: '🎨' },
+    { id: 'sections', label: 'Sections', icon: '📐' },
+    { id: 'cart', label: 'Cart', icon: '🛒' },
+    { id: 'locale', label: 'Locale', icon: '🌐' },
+    { id: 'console', label: 'Console', icon: '📋' },
+    { id: 'cookies', label: 'Cookies', icon: '🍪' },
+    { id: 'storage', label: 'Storage', icon: '💾' },
+    { id: 'info', label: 'Info', icon: 'ℹ️' },
+  ];
 
   static styles = [
     baseStyles,
@@ -136,6 +152,7 @@ export class ThemeDevtools extends LitElement {
         cursor: pointer;
         border-bottom: 2px solid transparent;
         transition: all 0.15s ease;
+        user-select: none;
       }
 
       .tab:hover {
@@ -146,6 +163,16 @@ export class ThemeDevtools extends LitElement {
       .tab--active {
         color: var(--tdt-accent);
         border-bottom-color: var(--tdt-accent);
+      }
+
+      .tab--dragging {
+        opacity: 0.5;
+        cursor: grabbing;
+      }
+
+      .tab--drag-over {
+        background: var(--tdt-bg-hover);
+        border-left: 2px solid var(--tdt-accent);
       }
 
       .content {
@@ -173,6 +200,9 @@ export class ThemeDevtools extends LitElement {
     this.context = null;
     this.cart = null;
     this._unsubscribeCart = null;
+    this.tabOrder = null;
+    this.draggedTab = null;
+    this.dragOverTab = null;
   }
 
   connectedCallback() {
@@ -227,6 +257,79 @@ export class ThemeDevtools extends LitElement {
     if (saved === 'true') {
       this.isCollapsed = true;
     }
+
+    const savedOrder = localStorage.getItem('theme-devtools-tab-order');
+    if (savedOrder) {
+      try {
+        const order = JSON.parse(savedOrder);
+        const defaultIds = ThemeDevtools.DEFAULT_TABS.map(t => t.id);
+        const validOrder = order.filter(id => defaultIds.includes(id));
+        const missingIds = defaultIds.filter(id => !validOrder.includes(id));
+        this.tabOrder = [...validOrder, ...missingIds];
+      } catch {
+        this.tabOrder = ThemeDevtools.DEFAULT_TABS.map(t => t.id);
+      }
+    } else {
+      this.tabOrder = ThemeDevtools.DEFAULT_TABS.map(t => t.id);
+    }
+  }
+
+  _getOrderedTabs() {
+    if (!this.tabOrder) return ThemeDevtools.DEFAULT_TABS;
+    return this.tabOrder
+      .map(id => ThemeDevtools.DEFAULT_TABS.find(t => t.id === id))
+      .filter(Boolean);
+  }
+
+  _handleDragStart(tabId, e) {
+    this.draggedTab = tabId;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', tabId);
+  }
+
+  _handleDragOver(tabId, e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (tabId !== this.draggedTab) {
+      this.dragOverTab = tabId;
+    }
+  }
+
+  _handleDragLeave() {
+    this.dragOverTab = null;
+  }
+
+  _handleDrop(tabId, e) {
+    e.preventDefault();
+    if (!this.draggedTab || this.draggedTab === tabId) {
+      this._resetDragState();
+      return;
+    }
+
+    const newOrder = [...this.tabOrder];
+    const draggedIndex = newOrder.indexOf(this.draggedTab);
+    const dropIndex = newOrder.indexOf(tabId);
+
+    newOrder.splice(draggedIndex, 1);
+    newOrder.splice(dropIndex, 0, this.draggedTab);
+
+    this.tabOrder = newOrder;
+    localStorage.setItem('theme-devtools-tab-order', JSON.stringify(newOrder));
+    this._resetDragState();
+  }
+
+  _handleDragEnd() {
+    this._resetDragState();
+  }
+
+  _resetDragState() {
+    this.draggedTab = null;
+    this.dragOverTab = null;
+  }
+
+  _resetTabOrder() {
+    this.tabOrder = ThemeDevtools.DEFAULT_TABS.map(t => t.id);
+    localStorage.removeItem('theme-devtools-tab-order');
   }
 
   _toggleCollapse() {
@@ -259,18 +362,7 @@ export class ThemeDevtools extends LitElement {
       cart: this.cart || objects.cart
     };
 
-    const tabs = [
-      { id: 'objects', label: 'Objects', icon: '📦' },
-      { id: 'metafields', label: 'Metafields', icon: '🏷️' },
-      { id: 'settings', label: 'Settings', icon: '🎨' },
-      { id: 'sections', label: 'Sections', icon: '📐' },
-      { id: 'cart', label: 'Cart', icon: '🛒' },
-      { id: 'locale', label: 'Locale', icon: '🌐' },
-      { id: 'console', label: 'Console', icon: '📋' },
-      { id: 'cookies', label: 'Cookies', icon: '🍪' },
-      { id: 'storage', label: 'Storage', icon: '💾' },
-      { id: 'info', label: 'Info', icon: 'ℹ️' },
-    ];
+    const tabs = this._getOrderedTabs();
 
     return html`
       <div class="dock ${this.isCollapsed ? 'dock--collapsed' : ''}">
@@ -301,8 +393,14 @@ export class ThemeDevtools extends LitElement {
         <div class="tabs">
           ${tabs.map(tab => html`
             <button 
-              class="tab ${this.activeTab === tab.id ? 'tab--active' : ''}"
+              class="tab ${this.activeTab === tab.id ? 'tab--active' : ''} ${this.draggedTab === tab.id ? 'tab--dragging' : ''} ${this.dragOverTab === tab.id ? 'tab--drag-over' : ''}"
+              draggable="true"
               @click=${() => this._setTab(tab.id)}
+              @dragstart=${(e) => this._handleDragStart(tab.id, e)}
+              @dragover=${(e) => this._handleDragOver(tab.id, e)}
+              @dragleave=${() => this._handleDragLeave()}
+              @drop=${(e) => this._handleDrop(tab.id, e)}
+              @dragend=${() => this._handleDragEnd()}
             >
               ${tab.icon} ${tab.label}
             </button>
