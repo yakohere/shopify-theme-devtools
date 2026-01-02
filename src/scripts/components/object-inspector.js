@@ -108,10 +108,24 @@ export class ObjectInspector extends LitElement {
   }
 
   _isExpandable(value) {
+    if (value === null || value === undefined) return false;
     const type = this._getType(value);
-    return (type === 'object' || type === 'array') && 
-           value !== null && 
-           Object.keys(value).length > 0;
+    if (type !== 'object' && type !== 'array') return false;
+    
+    try {
+      const keys = Object.keys(value);
+      return keys.length > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  _getKeys(value) {
+    try {
+      return Object.keys(value);
+    } catch {
+      return [];
+    }
   }
 
   _toggleExpand(path, e) {
@@ -154,13 +168,21 @@ export class ObjectInspector extends LitElement {
         return html`<span class="value value--null">null</span>`;
       case 'undefined':
         return html`<span class="value value--undefined">undefined</span>`;
+      case 'object':
+      case 'array':
+        return html`<span class="preview">{}</span>`;
       default:
         return html`<span class="value">${String(value)}</span>`;
     }
   }
 
   _renderPreview(value, type) {
-    const count = Object.keys(value).length;
+    let count;
+    try {
+      count = Object.keys(value).length;
+    } catch {
+      count = 0;
+    }
     const preview = type === 'array' 
       ? `Array(${count})` 
       : `{${count} ${count === 1 ? 'key' : 'keys'}}`;
@@ -207,7 +229,13 @@ export class ObjectInspector extends LitElement {
     }
 
     const type = this._getType(obj);
-    const entries = Object.entries(obj);
+    
+    let entries;
+    try {
+      entries = Object.entries(obj);
+    } catch {
+      return html`<span class="preview">[Object]</span>`;
+    }
 
     if (entries.length === 0) {
       return html`<span class="preview">${type === 'array' ? '[]' : '{}'}</span>`;
