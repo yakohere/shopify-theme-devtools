@@ -486,12 +486,12 @@ export class ThemeDevtools extends LitElement {
     }
   }
 
-  _getShopHandle() {
-    return window.location.host;
+  _getShopURL() {
+    return window.location.origin;
   }
 
   _getAdminBaseUrl() {
-    return `https://admin.shopify.com/store/${this._getShopHandle()}`;
+    return `${this._getShopURL()}/admin`;
   }
 
   _toggleAdminDropdown(e) {
