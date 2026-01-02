@@ -38,8 +38,32 @@
 }
 {%- endcapture -%}
 
-{%- comment -%} Configure your metafield namespaces here (used as fallback if schema is empty) {%- endcomment -%}
-{%- assign devtools_metafield_namespaces = 'custom,global,my_fields,shopify,descriptors' | split: ',' -%}
+{%- comment -%} 
+  Auto-extract namespaces from schema, or use fallback list if schema is empty
+{%- endcomment -%}
+{%- assign devtools_extracted_namespaces = '' -%}
+{%- assign devtools_schema_parts = devtools_metafields_schema | split: '"namespace": "' -%}
+{%- for part in devtools_schema_parts -%}
+  {%- unless forloop.first -%}
+    {%- assign ns_end = part | split: '"' | first -%}
+    {%- if ns_end != blank -%}
+      {%- unless devtools_extracted_namespaces contains ns_end -%}
+        {%- if devtools_extracted_namespaces == '' -%}
+          {%- assign devtools_extracted_namespaces = ns_end -%}
+        {%- else -%}
+          {%- assign devtools_extracted_namespaces = devtools_extracted_namespaces | append: ',' | append: ns_end -%}
+        {%- endif -%}
+      {%- endunless -%}
+    {%- endif -%}
+  {%- endunless -%}
+{%- endfor -%}
+
+{%- comment -%} Use extracted namespaces if found, otherwise use fallback {%- endcomment -%}
+{%- if devtools_extracted_namespaces != '' -%}
+  {%- assign devtools_metafield_namespaces = devtools_extracted_namespaces | split: ',' -%}
+{%- else -%}
+  {%- assign devtools_metafield_namespaces = 'custom,global,shopify' | split: ',' -%}
+{%- endif -%}
 
 {%- comment -%}
   Configure your theme settings to expose here.

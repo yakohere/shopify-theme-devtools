@@ -5,11 +5,11 @@ import { cartAPI } from '../services/cart.js';
 import { sectionHighlighter } from '../services/sections.js';
 
 import './panels/objects-panel.js';
-import './panels/sections-panel.js';
+// import './panels/sections-panel.js';  // Hidden for now
 import './panels/cart-panel.js';
 import './panels/info-panel.js';
 import './panels/metafields-panel.js';
-import './panels/settings-panel.js';
+// import './panels/settings-panel.js';  // Hidden for now
 import './panels/cookies-panel.js';
 import './panels/storage-panel.js';
 import './panels/console-panel.js';
@@ -33,8 +33,6 @@ export class ThemeDevtools extends LitElement {
   static DEFAULT_TABS = [
     { id: 'objects', label: 'Objects', icon: '📦' },
     { id: 'metafields', label: 'Metafields', icon: '🏷️' },
-    { id: 'settings', label: 'Settings', icon: '🎨' },
-    { id: 'sections', label: 'Sections', icon: '📐' },
     { id: 'cart', label: 'Cart', icon: '🛒' },
     { id: 'locale', label: 'Locale', icon: '🌐' },
     { id: 'analytics', label: 'Analytics', icon: '📊' },
@@ -758,6 +756,7 @@ export class ThemeDevtools extends LitElement {
             .metafieldsSchema=${metafieldsSchema}
           ></tdt-metafields-panel>
           
+          <!-- Settings and Sections panels hidden for now
           <tdt-settings-panel 
             class="panel ${this.activeTab === 'settings' ? 'panel--active' : ''}"
             .settings=${settings}
@@ -767,6 +766,7 @@ export class ThemeDevtools extends LitElement {
           <tdt-sections-panel 
             class="panel ${this.activeTab === 'sections' ? 'panel--active' : ''}"
           ></tdt-sections-panel>
+          -->
           
           <tdt-cart-panel 
             class="panel ${this.activeTab === 'cart' ? 'panel--active' : ''}"
