@@ -330,6 +330,124 @@
           }
         }
       },
+      "metafieldsSchema": {
+        "product": [
+          {
+            "key": "sizing_chart",
+            "namespace": "custom",
+            "name": "Sizing Chart",
+            "description": "Product sizing information displayed in a table format",
+            "type": { "name": "multi_line_text_field", "category": "TEXT" }
+          },
+          {
+            "key": "care_instructions",
+            "namespace": "custom",
+            "name": "Care Instructions",
+            "description": "How to care for this product",
+            "type": { "name": "single_line_text_field", "category": "TEXT" }
+          },
+          {
+            "key": "material",
+            "namespace": "custom",
+            "name": "Material",
+            "description": "Product material composition",
+            "type": { "name": "single_line_text_field", "category": "TEXT" }
+          },
+          {
+            "key": "weight_kg",
+            "namespace": "custom",
+            "name": "Weight (kg)",
+            "description": "Product weight in kilograms",
+            "type": { "name": "number_decimal", "category": "NUMBER" }
+          },
+          {
+            "key": "is_bestseller",
+            "namespace": "custom",
+            "name": "Is Bestseller",
+            "description": "Mark product as a bestseller",
+            "type": { "name": "boolean", "category": "TRUE_FALSE" }
+          },
+          {
+            "key": "launch_date",
+            "namespace": "custom",
+            "name": "Launch Date",
+            "description": "When this product was launched",
+            "type": { "name": "date", "category": "DATE_TIME" }
+          },
+          {
+            "key": "related_products",
+            "namespace": "custom",
+            "name": "Related Products",
+            "description": "Products to show as related",
+            "type": { "name": "list.product_reference", "category": "REFERENCE" }
+          },
+          {
+            "key": "video_url",
+            "namespace": "custom",
+            "name": "Product Video URL",
+            "description": "URL to a product video (empty in demo)",
+            "type": { "name": "url", "category": "URL" }
+          },
+          {
+            "key": "subtitle",
+            "namespace": "descriptors",
+            "name": "Product Subtitle",
+            "description": "A short tagline for the product",
+            "type": { "name": "single_line_text_field", "category": "TEXT" }
+          },
+          {
+            "key": "highlights",
+            "namespace": "descriptors",
+            "name": "Product Highlights",
+            "description": "Key features of the product",
+            "type": { "name": "list.single_line_text_field", "category": "TEXT" }
+          },
+          {
+            "key": "color_swatch",
+            "namespace": "shopify",
+            "name": "Color Swatch",
+            "description": "Color for swatch display",
+            "type": { "name": "color", "category": "COLOR" }
+          }
+        ],
+        "shop": [
+          {
+            "key": "announcement_bar",
+            "namespace": "custom",
+            "name": "Announcement Bar Message",
+            "description": "Message displayed in the site-wide announcement bar",
+            "type": { "name": "single_line_text_field", "category": "TEXT" }
+          },
+          {
+            "key": "support_email",
+            "namespace": "custom",
+            "name": "Support Email",
+            "description": "Customer support email address",
+            "type": { "name": "single_line_text_field", "category": "TEXT" }
+          },
+          {
+            "key": "social_links",
+            "namespace": "global",
+            "name": "Social Media Links",
+            "description": "JSON object with social media URLs",
+            "type": { "name": "json", "category": "JSON" }
+          },
+          {
+            "key": "delivery_settings",
+            "namespace": "shipping",
+            "name": "Delivery Settings",
+            "description": "Shipping and delivery configuration (empty in demo)",
+            "type": { "name": "json", "category": "JSON" }
+          }
+        ],
+        "collection": [],
+        "customer": [],
+        "article": [],
+        "page": [],
+        "blog": [],
+        "variant": [],
+        "order": []
+      },
       "timestamp": "1704067200"
     }
   </script>

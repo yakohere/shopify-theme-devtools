@@ -4,9 +4,12 @@ import { baseStyles } from '../../styles/theme.js';
 export class MetafieldsPanel extends LitElement {
   static properties = {
     metafields: { type: Object },
+    metafieldsSchema: { type: Object },
     searchQuery: { type: String, state: true },
     expandedPaths: { type: Object, state: true },
     copiedPath: { type: String, state: true },
+    showEmptyFields: { type: Boolean, state: true },
+    activeResource: { type: String, state: true },
   };
 
   static styles = [
@@ -29,7 +32,7 @@ export class MetafieldsPanel extends LitElement {
 
       .search-input {
         flex: 1;
-        min-width: 200px;
+        min-width: 150px;
         padding: 6px 10px;
         background: var(--tdt-bg-secondary);
         border: 1px solid var(--tdt-border);
@@ -48,8 +51,32 @@ export class MetafieldsPanel extends LitElement {
         color: var(--tdt-text-muted);
       }
 
+      .toggle-btn {
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        padding: 4px 8px;
+        color: var(--tdt-text-muted);
+        font-family: var(--tdt-font);
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+      }
+
+      .toggle-btn:hover {
+        background: var(--tdt-bg-hover);
+        color: var(--tdt-text);
+      }
+
+      .toggle-btn--active {
+        background: var(--tdt-accent);
+        border-color: var(--tdt-accent);
+        color: white;
+      }
+
       .stats {
-        font-size: 11px;
+        font-size: 10px;
         color: var(--tdt-text-muted);
       }
 
@@ -57,15 +84,70 @@ export class MetafieldsPanel extends LitElement {
         color: var(--tdt-text);
       }
 
-      .resource-group {
-        margin-bottom: 16px;
+      .resource-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--tdt-border);
       }
 
-      .resource-header {
+      .resource-tab {
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        padding: 4px 8px;
+        color: var(--tdt-text-muted);
+        font-family: var(--tdt-font);
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .resource-tab:hover {
+        background: var(--tdt-bg-hover);
+        color: var(--tdt-text);
+      }
+
+      .resource-tab--active {
+        background: var(--tdt-accent);
+        border-color: var(--tdt-accent);
+        color: white;
+      }
+
+      .resource-tab--empty {
+        opacity: 0.5;
+      }
+
+      .resource-tab__count {
+        font-size: 9px;
+        background: rgba(255,255,255,0.15);
+        padding: 1px 4px;
+        border-radius: 6px;
+      }
+
+      .resource-tab__filled {
+        font-size: 9px;
+        color: var(--tdt-success);
+      }
+
+      .resource-tab--active .resource-tab__filled {
+        color: rgba(255,255,255,0.8);
+      }
+
+      .namespace-group {
+        margin-bottom: 12px;
+      }
+
+      .namespace-header {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 8px 10px;
+        padding: 6px 10px;
         background: var(--tdt-bg-secondary);
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
@@ -73,27 +155,27 @@ export class MetafieldsPanel extends LitElement {
         user-select: none;
       }
 
-      .resource-header:hover {
+      .namespace-header:hover {
         background: var(--tdt-bg-hover);
       }
 
-      .resource-icon {
-        font-size: 14px;
-      }
-
-      .resource-name {
+      .namespace-name {
         font-weight: 600;
-        font-size: 12px;
-        color: var(--tdt-text);
+        font-size: 11px;
+        color: var(--tdt-accent);
+        font-family: var(--tdt-font-mono);
         flex: 1;
       }
 
-      .resource-count {
-        font-size: 10px;
+      .namespace-stats {
+        font-size: 9px;
         color: var(--tdt-text-muted);
-        background: var(--tdt-bg);
-        padding: 2px 6px;
-        border-radius: 10px;
+        display: flex;
+        gap: 6px;
+      }
+
+      .namespace-stats__filled {
+        color: var(--tdt-success);
       }
 
       .expand-icon {
@@ -106,111 +188,116 @@ export class MetafieldsPanel extends LitElement {
         transform: rotate(90deg);
       }
 
-      .namespace-list {
-        margin-top: 4px;
-        margin-left: 12px;
-        border-left: 1px solid var(--tdt-border);
-        padding-left: 12px;
-      }
-
-      .namespace {
-        margin-bottom: 8px;
-      }
-
-      .namespace-header {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 8px;
-        cursor: pointer;
-        border-radius: var(--tdt-radius);
-        font-size: 11px;
-      }
-
-      .namespace-header:hover {
-        background: var(--tdt-bg-hover);
-      }
-
-      .namespace-name {
-        color: var(--tdt-accent);
-        font-family: var(--tdt-font-mono);
-        font-weight: 500;
-      }
-
       .metafield-list {
-        margin-left: 16px;
         margin-top: 4px;
+        margin-left: 8px;
+        border-left: 2px solid var(--tdt-border);
+        padding-left: 8px;
       }
 
       .metafield {
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
         padding: 6px 8px;
         border-radius: var(--tdt-radius);
         font-size: 11px;
-        border-bottom: 1px solid var(--tdt-border);
-      }
-
-      .metafield:last-child {
-        border-bottom: none;
+        margin-bottom: 2px;
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-border);
       }
 
       .metafield:hover {
         background: var(--tdt-bg-hover);
       }
 
-      .metafield__key {
+      .metafield--empty {
+        opacity: 0.6;
+        border-style: dashed;
+      }
+
+      .metafield__header {
         display: flex;
         align-items: center;
         gap: 6px;
-        min-width: 140px;
-        flex-shrink: 0;
+        margin-bottom: 4px;
       }
 
-      .metafield__name {
+      .metafield__key {
         color: var(--tdt-key);
         font-family: var(--tdt-font-mono);
+        font-weight: 600;
         cursor: pointer;
         padding: 1px 4px;
         border-radius: 2px;
       }
 
-      .metafield__name:hover {
+      .metafield__key:hover {
         background: rgba(199, 146, 234, 0.2);
       }
 
-      .metafield__name--copied {
+      .metafield__key--copied {
         background: rgba(34, 197, 94, 0.3) !important;
       }
 
       .metafield__type {
-        font-size: 9px;
+        font-size: 8px;
         padding: 2px 5px;
         border-radius: 3px;
         text-transform: uppercase;
         letter-spacing: 0.3px;
-        font-weight: 500;
+        font-weight: 600;
         white-space: nowrap;
+        font-family: var(--tdt-font);
       }
 
-      .type--string { background: #2d4a3e; color: #98c379; }
-      .type--number, .type--integer { background: #3d3a2d; color: #d19a66; }
+      .metafield__category {
+        font-size: 8px;
+        padding: 2px 4px;
+        border-radius: 3px;
+        background: var(--tdt-bg);
+        color: var(--tdt-text-muted);
+        font-family: var(--tdt-font);
+      }
+
+      .type--text, .type--single_line_text_field { background: #2d4a3e; color: #98c379; }
+      .type--multi_line_text_field, .type--rich_text_field { background: #2d3d3d; color: #abb2bf; }
+      .type--number_integer, .type--number_decimal { background: #3d3a2d; color: #d19a66; }
       .type--boolean { background: #2d3a4a; color: #61afef; }
       .type--json { background: #4a2d4a; color: #c678dd; }
       .type--date, .type--date_time { background: #2d4a4a; color: #56b6c2; }
-      .type--url, .type--link { background: #3d2d2d; color: #e06c75; }
+      .type--url { background: #3d2d2d; color: #e06c75; }
       .type--color { background: #4a3d2d; color: #e5c07b; }
-      .type--rich_text, .type--multi_line_text { background: #2d3d3d; color: #abb2bf; }
-      .type--file, .type--file_reference { background: #3a3d2d; color: #98c379; }
-      .type--list { background: #3d2d4a; color: #c678dd; }
+      .type--file_reference { background: #3a3d2d; color: #98c379; }
+      .type--product_reference, .type--collection_reference, .type--metaobject_reference { background: #3d2d4a; color: #c678dd; }
       .type--rating { background: #4a4a2d; color: #e5c07b; }
+      .type--money { background: #2d4a3e; color: #98c379; }
+      .type--dimension, .type--volume, .type--weight { background: #3d3a2d; color: #d19a66; }
+      .type--list { background: #3d2d4a; color: #c678dd; }
       .type--unknown { background: var(--tdt-bg); color: var(--tdt-text-muted); }
 
+      .metafield__name {
+        font-size: 10px;
+        color: var(--tdt-text);
+        font-weight: 500;
+      }
+
+      .metafield__description {
+        font-size: 9px;
+        color: var(--tdt-text-muted);
+        margin-top: 2px;
+        line-height: 1.4;
+      }
+
       .metafield__value {
-        flex: 1;
-        min-width: 0;
+        margin-top: 4px;
+        padding: 4px 6px;
+        background: var(--tdt-bg);
+        border-radius: 3px;
         word-break: break-word;
+      }
+
+      .metafield__value--empty {
+        color: var(--tdt-text-muted);
+        font-style: italic;
+        font-size: 10px;
       }
 
       .value--string { color: var(--tdt-string); }
@@ -221,31 +308,33 @@ export class MetafieldsPanel extends LitElement {
         color: var(--tdt-text-muted); 
         font-family: var(--tdt-font-mono);
         font-size: 10px;
-      }
-      .value--truncated {
-        cursor: pointer;
-      }
-      .value--truncated:hover {
-        text-decoration: underline;
+        white-space: pre-wrap;
       }
 
-      .copy-btn {
+      .metafield__actions {
+        display: flex;
+        gap: 4px;
+        margin-left: auto;
+      }
+
+      .action-btn {
         opacity: 0;
         padding: 2px 6px;
-        font-size: 10px;
+        font-size: 9px;
         background: var(--tdt-bg);
         border: 1px solid var(--tdt-border);
         border-radius: 3px;
         color: var(--tdt-text-muted);
         cursor: pointer;
         transition: opacity 0.15s;
+        font-family: var(--tdt-font);
       }
 
-      .metafield:hover .copy-btn {
+      .metafield:hover .action-btn {
         opacity: 1;
       }
 
-      .copy-btn:hover {
+      .action-btn:hover {
         background: var(--tdt-accent);
         border-color: var(--tdt-accent);
         color: white;
@@ -283,51 +372,146 @@ export class MetafieldsPanel extends LitElement {
         color: var(--tdt-text-muted);
         font-size: 12px;
       }
+
+      .schema-notice {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid var(--tdt-accent);
+        border-radius: var(--tdt-radius);
+        padding: 8px 12px;
+        margin-bottom: 12px;
+        font-size: 10px;
+        color: var(--tdt-text);
+      }
+
+      .schema-notice__title {
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--tdt-accent);
+      }
     `
   ];
+
+  static RESOURCE_ICONS = {
+    shop: '🏪',
+    product: '📦',
+    variant: '🏷️',
+    collection: '📂',
+    customer: '👤',
+    article: '📝',
+    blog: '📰',
+    page: '📄',
+    order: '🧾',
+    company: '🏢',
+    company_location: '📍',
+    location: '📍',
+    market: '🌍',
+  };
 
   constructor() {
     super();
     this.metafields = null;
+    this.metafieldsSchema = null;
     this.searchQuery = '';
-    this.expandedPaths = new Set(['shop', 'product', 'collection', 'customer']);
+    this.expandedPaths = new Set();
     this.copiedPath = null;
+    this.showEmptyFields = true;
+    this.activeResource = null;
   }
 
-  _getResourceIcon(resource) {
-    const icons = {
-      shop: '🏪',
-      product: '📦',
-      collection: '📂',
-      customer: '👤',
-      article: '📝',
-      blog: '📰',
-      page: '📄',
-    };
-    return icons[resource] || '📋';
-  }
+  _getMergedData() {
+    const merged = {};
+    const schema = this.metafieldsSchema || {};
+    const values = this.metafields || {};
 
-  _getTypeClass(type) {
-    if (!type) return 'unknown';
-    const normalizedType = type.toLowerCase().replace(/\s+/g, '_');
-    const knownTypes = [
-      'string', 'number', 'integer', 'boolean', 'json', 
-      'date', 'date_time', 'url', 'link', 'color',
-      'rich_text', 'multi_line_text', 'file', 'file_reference',
-      'list', 'rating'
-    ];
-    const match = knownTypes.find(t => normalizedType.includes(t));
-    return match || 'unknown';
-  }
+    for (const [resource, definitions] of Object.entries(schema)) {
+      if (!Array.isArray(definitions) || definitions.length === 0) continue;
+      
+      merged[resource] = {
+        schema: definitions,
+        values: values[resource] || {},
+        byNamespace: {}
+      };
 
-  _toggleResource(resource) {
-    const newExpanded = new Set(this.expandedPaths);
-    if (newExpanded.has(resource)) {
-      newExpanded.delete(resource);
-    } else {
-      newExpanded.add(resource);
+      for (const def of definitions) {
+        const ns = def.namespace;
+        if (!merged[resource].byNamespace[ns]) {
+          merged[resource].byNamespace[ns] = [];
+        }
+        
+        const value = values[resource]?.[ns]?.[def.key];
+        merged[resource].byNamespace[ns].push({
+          ...def,
+          hasValue: value !== undefined && value !== null,
+          actualValue: value?.value,
+          actualType: value?.type
+        });
+      }
     }
-    this.expandedPaths = newExpanded;
+
+    for (const [resource, namespaces] of Object.entries(values)) {
+      if (!namespaces || typeof namespaces !== 'object') continue;
+      if (!merged[resource]) {
+        merged[resource] = { schema: [], values: namespaces, byNamespace: {} };
+      }
+      
+      for (const [ns, fields] of Object.entries(namespaces)) {
+        if (!fields || typeof fields !== 'object') continue;
+        
+        if (!merged[resource].byNamespace[ns]) {
+          merged[resource].byNamespace[ns] = [];
+        }
+
+        for (const [key, data] of Object.entries(fields)) {
+          const existingDef = merged[resource].byNamespace[ns]?.find(d => d.key === key);
+          if (!existingDef) {
+            merged[resource].byNamespace[ns].push({
+              key,
+              namespace: ns,
+              name: key,
+              description: '',
+              type: { name: data?.type || 'unknown', category: 'UNKNOWN' },
+              hasValue: true,
+              actualValue: data?.value,
+              actualType: data?.type
+            });
+          }
+        }
+      }
+    }
+
+    return merged;
+  }
+
+  _getResourceStats(resourceData) {
+    let total = 0;
+    let filled = 0;
+    
+    for (const fields of Object.values(resourceData.byNamespace)) {
+      total += fields.length;
+      filled += fields.filter(f => f.hasValue).length;
+    }
+    
+    return { total, filled };
+  }
+
+  _getTypeClass(typeName) {
+    if (!typeName) return 'unknown';
+    const normalized = typeName.toLowerCase().replace(/\./g, '_');
+    
+    if (normalized.startsWith('list_')) return 'list';
+    if (normalized.includes('text')) return normalized.includes('multi') || normalized.includes('rich') ? 'multi_line_text_field' : 'single_line_text_field';
+    if (normalized.includes('number') || normalized.includes('integer') || normalized.includes('decimal')) return 'number_integer';
+    if (normalized.includes('boolean')) return 'boolean';
+    if (normalized.includes('json')) return 'json';
+    if (normalized.includes('date')) return 'date';
+    if (normalized.includes('url')) return 'url';
+    if (normalized.includes('color')) return 'color';
+    if (normalized.includes('file')) return 'file_reference';
+    if (normalized.includes('product') || normalized.includes('collection') || normalized.includes('metaobject')) return 'product_reference';
+    if (normalized.includes('rating')) return 'rating';
+    if (normalized.includes('money')) return 'money';
+    
+    return 'unknown';
   }
 
   _toggleNamespace(path) {
@@ -341,7 +525,7 @@ export class MetafieldsPanel extends LitElement {
   }
 
   async _copyLiquidPath(resource, namespace, key, e) {
-    e.stopPropagation();
+    e?.stopPropagation();
     const liquidPath = `{{ ${resource}.metafields.${namespace}.${key} }}`;
     
     try {
@@ -355,30 +539,28 @@ export class MetafieldsPanel extends LitElement {
     }
   }
 
-  _formatValue(value, type) {
+  async _copyValue(value, e) {
+    e?.stopPropagation();
+    const text = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.error('Failed to copy value:', err);
+    }
+  }
+
+  _formatValue(value) {
     if (value === null || value === undefined) {
       return html`<span class="value--null">null</span>`;
     }
     
     if (typeof value === 'object') {
       const json = JSON.stringify(value, null, 2);
-      const truncated = json.length > 100;
-      return html`
-        <span class="value--json ${truncated ? 'value--truncated' : ''}" 
-              title="${truncated ? 'Click to expand' : ''}"
-              @click=${truncated ? () => alert(json) : null}>
-          ${truncated ? json.slice(0, 100) + '...' : json}
-        </span>
-      `;
+      return html`<span class="value--json">${json}</span>`;
     }
     
     if (typeof value === 'string') {
-      const truncated = value.length > 80;
-      return html`
-        <span class="value--string" title="${truncated ? value : ''}">
-          "${truncated ? value.slice(0, 80) + '...' : value}"
-        </span>
-      `;
+      return html`<span class="value--string">"${value}"</span>`;
     }
     
     if (typeof value === 'number') {
@@ -392,98 +574,85 @@ export class MetafieldsPanel extends LitElement {
     return html`<span>${String(value)}</span>`;
   }
 
-  _filterMetafields(metafields) {
-    if (!this.searchQuery.trim()) return metafields;
+  _filterData(merged) {
+    if (!this.searchQuery.trim()) return merged;
     
     const query = this.searchQuery.toLowerCase();
     const filtered = {};
     
-    for (const [resource, namespaces] of Object.entries(metafields)) {
-      if (!namespaces || typeof namespaces !== 'object') continue;
-      
+    for (const [resource, data] of Object.entries(merged)) {
       const filteredNamespaces = {};
-      for (const [namespace, fields] of Object.entries(namespaces)) {
-        if (!fields || typeof fields !== 'object') continue;
-        
-        const filteredFields = {};
-        for (const [key, data] of Object.entries(fields)) {
-          const matchesKey = key.toLowerCase().includes(query);
-          const matchesNamespace = namespace.toLowerCase().includes(query);
-          const matchesValue = data?.value && String(data.value).toLowerCase().includes(query);
+      
+      for (const [ns, fields] of Object.entries(data.byNamespace)) {
+        const filteredFields = fields.filter(field => {
+          const matchesKey = field.key.toLowerCase().includes(query);
+          const matchesNamespace = ns.toLowerCase().includes(query);
+          const matchesName = field.name?.toLowerCase().includes(query);
+          const matchesDesc = field.description?.toLowerCase().includes(query);
+          const matchesValue = field.actualValue && String(field.actualValue).toLowerCase().includes(query);
           
-          if (matchesKey || matchesNamespace || matchesValue) {
-            filteredFields[key] = data;
-          }
-        }
+          return matchesKey || matchesNamespace || matchesName || matchesDesc || matchesValue;
+        });
         
-        if (Object.keys(filteredFields).length > 0) {
-          filteredNamespaces[namespace] = filteredFields;
+        if (filteredFields.length > 0) {
+          filteredNamespaces[ns] = filteredFields;
         }
       }
       
       if (Object.keys(filteredNamespaces).length > 0) {
-        filtered[resource] = filteredNamespaces;
+        filtered[resource] = { ...data, byNamespace: filteredNamespaces };
       }
     }
     
     return filtered;
   }
 
-  _countMetafields(metafields) {
-    let count = 0;
-    if (!metafields) return count;
-    
-    for (const namespaces of Object.values(metafields)) {
-      if (!namespaces || typeof namespaces !== 'object') continue;
-      for (const fields of Object.values(namespaces)) {
-        if (fields && typeof fields === 'object') {
-          count += Object.keys(fields).length;
-        }
-      }
-    }
-    return count;
-  }
-
-  _countResourceMetafields(namespaces) {
-    let count = 0;
-    if (!namespaces || typeof namespaces !== 'object') return count;
-    
-    for (const fields of Object.values(namespaces)) {
-      if (fields && typeof fields === 'object') {
-        count += Object.keys(fields).length;
-      }
-    }
-    return count;
-  }
-
-  _renderMetafield(resource, namespace, key, data) {
-    const fullPath = `${resource}.${namespace}.${key}`;
+  _renderMetafield(resource, field) {
+    const fullPath = `${resource}.${field.namespace}.${field.key}`;
     const isCopied = this.copiedPath === fullPath;
+    const typeName = field.type?.name || field.actualType || 'unknown';
+    
+    if (!this.showEmptyFields && !field.hasValue) return '';
     
     return html`
-      <div class="metafield">
-        <div class="metafield__key">
+      <div class="metafield ${field.hasValue ? '' : 'metafield--empty'}">
+        <div class="metafield__header">
           <span 
-            class="metafield__name ${isCopied ? 'metafield__name--copied' : ''}"
-            @click=${(e) => this._copyLiquidPath(resource, namespace, key, e)}
+            class="metafield__key ${isCopied ? 'metafield__key--copied' : ''}"
+            @click=${(e) => this._copyLiquidPath(resource, field.namespace, field.key, e)}
             title="Click to copy Liquid path"
-          >${key}</span>
-          ${data?.type ? html`
-            <span class="metafield__type type--${this._getTypeClass(data.type)}">
-              ${data.type}
-            </span>
+          >${field.key}</span>
+          <span class="metafield__type type--${this._getTypeClass(typeName)}">${typeName}</span>
+          ${field.type?.category ? html`
+            <span class="metafield__category">${field.type.category}</span>
           ` : ''}
+          <div class="metafield__actions">
+            <button 
+              class="action-btn" 
+              @click=${(e) => this._copyLiquidPath(resource, field.namespace, field.key, e)}
+              title="Copy Liquid path"
+            >${isCopied ? '✓' : '📋'}</button>
+            ${field.hasValue ? html`
+              <button 
+                class="action-btn" 
+                @click=${(e) => this._copyValue(field.actualValue, e)}
+                title="Copy value"
+              >📄</button>
+            ` : ''}
+          </div>
         </div>
-        <div class="metafield__value">
-          ${this._formatValue(data?.value, data?.type)}
+        ${field.name && field.name !== field.key ? html`
+          <div class="metafield__name">${field.name}</div>
+        ` : ''}
+        ${field.description ? html`
+          <div class="metafield__description">${field.description}</div>
+        ` : ''}
+        <div class="metafield__value ${field.hasValue ? '' : 'metafield__value--empty'}">
+          ${field.hasValue 
+            ? this._formatValue(field.actualValue)
+            : html`No value set`
+          }
         </div>
-        <button 
-          class="copy-btn" 
-          @click=${(e) => this._copyLiquidPath(resource, namespace, key, e)}
-          title="Copy Liquid path"
-        >
-          ${isCopied ? '✓' : 'Copy'}
-        </button>
       </div>
     `;
   }
@@ -491,45 +660,25 @@ export class MetafieldsPanel extends LitElement {
   _renderNamespace(resource, namespace, fields) {
     const path = `${resource}.${namespace}`;
     const isExpanded = this.expandedPaths.has(path);
-    const fieldCount = Object.keys(fields).length;
+    const filled = fields.filter(f => f.hasValue).length;
+    const total = fields.length;
+    
+    const visibleFields = this.showEmptyFields ? fields : fields.filter(f => f.hasValue);
+    if (visibleFields.length === 0) return '';
     
     return html`
-      <div class="namespace">
+      <div class="namespace-group">
         <div class="namespace-header" @click=${() => this._toggleNamespace(path)}>
           <span class="expand-icon ${isExpanded ? 'expand-icon--open' : ''}">▶</span>
           <span class="namespace-name">${namespace}</span>
-          <span class="resource-count">${fieldCount}</span>
+          <span class="namespace-stats">
+            <span class="namespace-stats__filled">${filled} filled</span>
+            <span>/ ${total} total</span>
+          </span>
         </div>
         ${isExpanded ? html`
           <div class="metafield-list">
-            ${Object.entries(fields).map(([key, data]) => 
-              this._renderMetafield(resource, namespace, key, data)
-            )}
-          </div>
-        ` : ''}
-      </div>
-    `;
-  }
-
-  _renderResource(resource, namespaces) {
-    const isExpanded = this.expandedPaths.has(resource);
-    const count = this._countResourceMetafields(namespaces);
-    
-    if (count === 0) return '';
-    
-    return html`
-      <div class="resource-group">
-        <div class="resource-header" @click=${() => this._toggleResource(resource)}>
-          <span class="resource-icon">${this._getResourceIcon(resource)}</span>
-          <span class="resource-name">${resource}</span>
-          <span class="resource-count">${count} metafield${count !== 1 ? 's' : ''}</span>
-          <span class="expand-icon ${isExpanded ? 'expand-icon--open' : ''}">▶</span>
-        </div>
-        ${isExpanded ? html`
-          <div class="namespace-list">
-            ${Object.entries(namespaces).map(([namespace, fields]) => 
-              this._renderNamespace(resource, namespace, fields)
-            )}
+            ${visibleFields.map(field => this._renderMetafield(resource, field))}
           </div>
         ` : ''}
       </div>
@@ -537,44 +686,87 @@ export class MetafieldsPanel extends LitElement {
   }
 
   render() {
-    if (!this.metafields || Object.keys(this.metafields).length === 0) {
+    const merged = this._getMergedData();
+    const hasSchema = this.metafieldsSchema && Object.keys(this.metafieldsSchema).length > 0;
+    const hasData = Object.keys(merged).length > 0;
+
+    if (!hasData) {
       return html`
         <div class="empty-state">
           <div class="empty-state__icon">🏷️</div>
           <div class="empty-state__title">No Metafields Found</div>
           <div class="empty-state__hint">
-            Metafields will appear here when available. Make sure your theme-devtools-bridge.liquid 
-            is configured with your metafield namespaces.
+            ${hasSchema 
+              ? 'No metafields are defined in your metafields.json schema.'
+              : 'Paste your metafields.json content into the devtools bridge snippet to see all defined metafields.'
+            }
           </div>
         </div>
       `;
     }
 
-    const filtered = this._filterMetafields(this.metafields);
-    const totalCount = this._countMetafields(this.metafields);
-    const filteredCount = this._countMetafields(filtered);
-    const hasResults = Object.keys(filtered).length > 0;
+    const filtered = this._filterData(merged);
+    const resources = Object.keys(filtered);
+    
+    if (!this.activeResource || !filtered[this.activeResource]) {
+      this.activeResource = resources[0];
+    }
+
+    const activeData = filtered[this.activeResource];
+    const hasResults = activeData && Object.keys(activeData.byNamespace).length > 0;
+
+    let totalDefined = 0;
+    let totalFilled = 0;
+    for (const data of Object.values(merged)) {
+      const stats = this._getResourceStats(data);
+      totalDefined += stats.total;
+      totalFilled += stats.filled;
+    }
 
     return html`
+      ${hasSchema ? html`
+        <div class="schema-notice">
+          <div class="schema-notice__title">📋 Schema Loaded</div>
+          Showing all ${totalDefined} defined metafields. ${totalFilled} have values.
+        </div>
+      ` : ''}
+
       <div class="toolbar">
         <input 
           type="text" 
           class="search-input" 
-          placeholder="Search metafields by namespace, key, or value..."
+          placeholder="Search metafields..."
           .value=${this.searchQuery}
           @input=${(e) => this.searchQuery = e.target.value}
         >
-        <div class="stats">
-          ${this.searchQuery 
-            ? html`<strong>${filteredCount}</strong> of ${totalCount} metafields`
-            : html`<strong>${totalCount}</strong> metafields`
-          }
-        </div>
+        <button 
+          class="toggle-btn ${this.showEmptyFields ? 'toggle-btn--active' : ''}"
+          @click=${() => this.showEmptyFields = !this.showEmptyFields}
+        >
+          ${this.showEmptyFields ? '👁️ Show Empty' : '👁️ Hide Empty'}
+        </button>
+      </div>
+
+      <div class="resource-tabs">
+        ${resources.map(resource => {
+          const stats = this._getResourceStats(filtered[resource]);
+          const isEmpty = stats.total === 0;
+          return html`
+            <button 
+              class="resource-tab ${this.activeResource === resource ? 'resource-tab--active' : ''} ${isEmpty ? 'resource-tab--empty' : ''}"
+              @click=${() => this.activeResource = resource}
+            >
+              ${MetafieldsPanel.RESOURCE_ICONS[resource] || '📋'} ${resource}
+              <span class="resource-tab__count">${stats.total}</span>
+              ${stats.filled > 0 ? html`<span class="resource-tab__filled">✓${stats.filled}</span>` : ''}
+            </button>
+          `;
+        })}
       </div>
 
       ${hasResults 
-        ? Object.entries(filtered).map(([resource, namespaces]) => 
-            this._renderResource(resource, namespaces)
+        ? Object.entries(activeData.byNamespace).map(([ns, fields]) => 
+            this._renderNamespace(this.activeResource, ns, fields)
           )
         : html`<div class="no-results">No metafields match "${this.searchQuery}"</div>`
       }
@@ -583,4 +775,3 @@ export class MetafieldsPanel extends LitElement {
 }
 
 customElements.define('tdt-metafields-panel', MetafieldsPanel);
-
