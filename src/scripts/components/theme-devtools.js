@@ -487,7 +487,7 @@ export class ThemeDevtools extends LitElement {
   }
 
   _getShopHandle() {
-    return window.location.hostname.replace('.myshopify.com', '');
+    return window.location.host;
   }
 
   _getAdminBaseUrl() {
