@@ -1,0 +1,445 @@
+{%- comment -%}
+  Theme Devtools Bridge
+  Renders devtools context and loads JS/CSS only on development/preview themes.
+  
+  Usage: {% render 'theme-devtools-bridge' %}
+  
+  Development: Set devtools_local to true and run `npm run dev`
+  Production:  Set devtools_local to false and update devtools_cdn_base
+  
+  Metafields: Add your custom namespaces to devtools_metafield_namespaces below
+{%- endcomment -%}
+
+{%- assign devtools_local = true -%}
+{%- assign devtools_localhost = 'http://localhost:9999' -%}
+{%- assign devtools_cdn_base = 'https://cdn.example.com/theme-devtools/v1.0.0' -%}
+
+{%- comment -%} Configure your metafield namespaces here {%- endcomment -%}
+{%- assign devtools_metafield_namespaces = 'custom,global,my_fields,shopify,descriptors' | split: ',' -%}
+
+{%- comment -%} 
+  Configure your theme settings to expose here.
+  Format: setting_id|type|label|group
+  Common types: color, text, checkbox, number, range, select, image_picker, font_picker
+{%- endcomment -%}
+{%- capture devtools_settings_config -%}
+colors_accent_1|color|Accent 1|colors
+colors_accent_2|color|Accent 2|colors
+colors_text|color|Text color|colors
+colors_background|color|Background|colors
+colors_background_2|color|Secondary background|colors
+colors_outline_button_labels|color|Outline button labels|colors
+colors_solid_button_labels|color|Solid button labels|colors
+type_header_font|font_picker|Header font|typography
+type_body_font|font_picker|Body font|typography
+type_header_font_size|range|Header font size|typography
+type_body_font_size|range|Body font size|typography
+page_width|range|Page width|layout
+spacing_sections|range|Section spacing|layout
+cart_type|select|Cart type|cart
+cart_drawer_enabled|checkbox|Enable cart drawer|cart
+show_vendor|checkbox|Show vendor|product
+show_secondary_image|checkbox|Show secondary image|product
+predictive_search_enabled|checkbox|Predictive search|search
+social_twitter_link|text|Twitter link|social
+social_facebook_link|text|Facebook link|social
+social_instagram_link|text|Instagram link|social
+favicon|image_picker|Favicon|favicon
+checkout_logo|image_picker|Checkout logo|checkout
+{%- endcapture -%}
+
+{%- if theme.role == 'development' or theme.role == 'unpublished' -%}
+  {%- capture devtools_context -%}
+    {
+      "meta": {
+        "theme": {
+          "id": {{ theme.id | json }},
+          "name": {{ theme.name | json }},
+          "role": {{ theme.role | json }}
+        },
+        "template": {
+          "name": {{ template.name | json }},
+          "suffix": {{ template.suffix | json }},
+          "directory": {{ template.directory | json }}
+        },
+        "request": {
+          "host": {{ request.host | json }},
+          "path": {{ request.path | json }},
+          "page_type": {{ request.page_type | json }},
+          "design_mode": {{ request.design_mode | json }},
+          "visual_preview_mode": {{ request.visual_preview_mode | json }},
+          "locale": {
+            "iso_code": {{ request.locale.iso_code | json }},
+            "name": {{ request.locale.name | json }},
+            "primary": {{ request.locale.primary | json }}
+          },
+          "origin": {{ request.origin | json }}
+        },
+        "localization": {
+          "country": {
+            "iso_code": {{ localization.country.iso_code | json }},
+            "name": {{ localization.country.name | json }},
+            "currency": {
+              "iso_code": {{ localization.country.currency.iso_code | json }},
+              "symbol": {{ localization.country.currency.symbol | json }}
+            }
+          },
+          "language": {
+            "iso_code": {{ localization.language.iso_code | json }},
+            "name": {{ localization.language.name | json }}
+          },
+          "market": {
+            "id": {{ localization.market.id | json }},
+            "handle": {{ localization.market.handle | json }}
+          }
+        }
+      },
+      "objects": {
+        "shop": {
+          "id": {{ shop.id | json }},
+          "name": {{ shop.name | json }},
+          "domain": {{ shop.domain | json }},
+          "permanent_domain": {{ shop.permanent_domain | json }},
+          "url": {{ shop.url | json }},
+          "secure_url": {{ shop.secure_url | json }},
+          "email": {{ shop.email | json }},
+          "description": {{ shop.description | json }},
+          "address": {
+            "address1": {{ shop.address.address1 | json }},
+            "city": {{ shop.address.city | json }},
+            "province": {{ shop.address.province | json }},
+            "province_code": {{ shop.address.province_code | json }},
+            "zip": {{ shop.address.zip | json }},
+            "country": {{ shop.address.country | json }},
+            "country_code": {{ shop.address.country_code | json }}
+          },
+          "currency": {{ shop.currency | json }},
+          "money_format": {{ shop.money_format | json }},
+          "money_with_currency_format": {{ shop.money_with_currency_format | json }},
+          "enabled_currencies": {{ shop.enabled_currencies | map: 'iso_code' | json }},
+          "enabled_locales": {{ shop.enabled_locales | map: 'iso_code' | json }},
+          "metafields_count": {{ shop.metafields | size | json }}
+        },
+        {%- if customer -%}
+        "customer": {
+          "id": {{ customer.id | json }},
+          "email": "***@{{ customer.email | split: '@' | last }}",
+          "first_name": {{ customer.first_name | json }},
+          "last_name": {{ customer.last_name | json }},
+          "has_account": {{ customer.has_account | json }},
+          "accepts_marketing": {{ customer.accepts_marketing | json }},
+          "orders_count": {{ customer.orders_count | json }},
+          "total_spent": {{ customer.total_spent | json }},
+          "tags": {{ customer.tags | json }},
+          "default_address": {
+            "city": {{ customer.default_address.city | json }},
+            "province": {{ customer.default_address.province | json }},
+            "country": {{ customer.default_address.country | json }}
+          }
+        },
+        {%- else -%}
+        "customer": null,
+        {%- endif -%}
+        {%- if product -%}
+        "product": {
+          "id": {{ product.id | json }},
+          "title": {{ product.title | json }},
+          "handle": {{ product.handle | json }},
+          "type": {{ product.type | json }},
+          "vendor": {{ product.vendor | json }},
+          "available": {{ product.available | json }},
+          "published_at": {{ product.published_at | json }},
+          "created_at": {{ product.created_at | json }},
+          "tags": {{ product.tags | json }},
+          "price": {{ product.price | json }},
+          "price_min": {{ product.price_min | json }},
+          "price_max": {{ product.price_max | json }},
+          "price_varies": {{ product.price_varies | json }},
+          "compare_at_price": {{ product.compare_at_price | json }},
+          "compare_at_price_min": {{ product.compare_at_price_min | json }},
+          "compare_at_price_max": {{ product.compare_at_price_max | json }},
+          "compare_at_price_varies": {{ product.compare_at_price_varies | json }},
+          "variants_count": {{ product.variants | size | json }},
+          "options_count": {{ product.options | size | json }},
+          "options": {{ product.options_with_values | json }},
+          "images_count": {{ product.images | size | json }},
+          "featured_image": {{ product.featured_image | json }},
+          "has_only_default_variant": {{ product.has_only_default_variant | json }},
+          "requires_selling_plan": {{ product.requires_selling_plan | json }},
+          "selected_variant": {
+            "id": {{ product.selected_variant.id | json }},
+            "title": {{ product.selected_variant.title | json }},
+            "sku": {{ product.selected_variant.sku | json }},
+            "price": {{ product.selected_variant.price | json }},
+            "available": {{ product.selected_variant.available | json }}
+          },
+          "selected_or_first_available_variant": {
+            "id": {{ product.selected_or_first_available_variant.id | json }},
+            "title": {{ product.selected_or_first_available_variant.title | json }},
+            "sku": {{ product.selected_or_first_available_variant.sku | json }},
+            "price": {{ product.selected_or_first_available_variant.price | json }},
+            "available": {{ product.selected_or_first_available_variant.available | json }}
+          },
+          "url": {{ product.url | json }},
+          "metafields_count": {{ product.metafields | size | json }}
+        },
+        {%- else -%}
+        "product": null,
+        {%- endif -%}
+        {%- if collection -%}
+        "collection": {
+          "id": {{ collection.id | json }},
+          "title": {{ collection.title | json }},
+          "handle": {{ collection.handle | json }},
+          "description": {{ collection.description | truncate: 200 | json }},
+          "products_count": {{ collection.products_count | json }},
+          "all_products_count": {{ collection.all_products_count | json }},
+          "all_tags": {{ collection.all_tags | json }},
+          "all_vendors": {{ collection.all_vendors | json }},
+          "sort_by": {{ collection.sort_by | json }},
+          "default_sort_by": {{ collection.default_sort_by | json }},
+          "url": {{ collection.url | json }},
+          "image": {{ collection.image | json }}
+        },
+        {%- else -%}
+        "collection": null,
+        {%- endif -%}
+        {%- if article -%}
+        "article": {
+          "id": {{ article.id | json }},
+          "title": {{ article.title | json }},
+          "handle": {{ article.handle | json }},
+          "author": {{ article.author | json }},
+          "created_at": {{ article.created_at | json }},
+          "published_at": {{ article.published_at | json }},
+          "tags": {{ article.tags | json }},
+          "comments_count": {{ article.comments_count | json }},
+          "comments_enabled": {{ article.comments_enabled | json }},
+          "url": {{ article.url | json }},
+          "excerpt": {{ article.excerpt | truncate: 200 | json }}
+        },
+        {%- else -%}
+        "article": null,
+        {%- endif -%}
+        {%- if blog -%}
+        "blog": {
+          "id": {{ blog.id | json }},
+          "title": {{ blog.title | json }},
+          "handle": {{ blog.handle | json }},
+          "articles_count": {{ blog.articles_count | json }},
+          "all_tags": {{ blog.all_tags | json }},
+          "comments_enabled": {{ blog.comments_enabled | json }},
+          "url": {{ blog.url | json }}
+        },
+        {%- else -%}
+        "blog": null,
+        {%- endif -%}
+        {%- if page -%}
+        "page": {
+          "id": {{ page.id | json }},
+          "title": {{ page.title | json }},
+          "handle": {{ page.handle | json }},
+          "author": {{ page.author | json }},
+          "template_suffix": {{ page.template_suffix | json }},
+          "url": {{ page.url | json }}
+        },
+        {%- else -%}
+        "page": null,
+        {%- endif -%}
+        "cart": {{ cart | json }}
+      },
+      "metafields": {
+        {%- comment -%} Shop Metafields {%- endcomment -%}
+        "shop": {
+          {%- for ns in devtools_metafield_namespaces -%}
+            {%- assign shop_ns = shop.metafields[ns] -%}
+            {%- if shop_ns != blank -%}
+              "{{ ns }}": {
+                {%- for field in shop_ns -%}
+                  "{{ field.first }}": {
+                    "value": {{ field.last.value | json }},
+                    "type": {{ field.last.type | json }}
+                  }{%- unless forloop.last -%},{%- endunless -%}
+                {%- endfor -%}
+              }{%- unless forloop.last -%},{%- endunless -%}
+            {%- endif -%}
+          {%- endfor -%}
+        },
+        {%- comment -%} Product Metafields {%- endcomment -%}
+        {%- if product -%}
+        "product": {
+          {%- for ns in devtools_metafield_namespaces -%}
+            {%- assign product_ns = product.metafields[ns] -%}
+            {%- if product_ns != blank -%}
+              "{{ ns }}": {
+                {%- for field in product_ns -%}
+                  "{{ field.first }}": {
+                    "value": {{ field.last.value | json }},
+                    "type": {{ field.last.type | json }}
+                  }{%- unless forloop.last -%},{%- endunless -%}
+                {%- endfor -%}
+              }{%- unless forloop.last -%},{%- endunless -%}
+            {%- endif -%}
+          {%- endfor -%}
+        },
+        {%- else -%}
+        "product": null,
+        {%- endif -%}
+        {%- comment -%} Collection Metafields {%- endcomment -%}
+        {%- if collection -%}
+        "collection": {
+          {%- for ns in devtools_metafield_namespaces -%}
+            {%- assign collection_ns = collection.metafields[ns] -%}
+            {%- if collection_ns != blank -%}
+              "{{ ns }}": {
+                {%- for field in collection_ns -%}
+                  "{{ field.first }}": {
+                    "value": {{ field.last.value | json }},
+                    "type": {{ field.last.type | json }}
+                  }{%- unless forloop.last -%},{%- endunless -%}
+                {%- endfor -%}
+              }{%- unless forloop.last -%},{%- endunless -%}
+            {%- endif -%}
+          {%- endfor -%}
+        },
+        {%- else -%}
+        "collection": null,
+        {%- endif -%}
+        {%- comment -%} Customer Metafields {%- endcomment -%}
+        {%- if customer -%}
+        "customer": {
+          {%- for ns in devtools_metafield_namespaces -%}
+            {%- assign customer_ns = customer.metafields[ns] -%}
+            {%- if customer_ns != blank -%}
+              "{{ ns }}": {
+                {%- for field in customer_ns -%}
+                  "{{ field.first }}": {
+                    "value": {{ field.last.value | json }},
+                    "type": {{ field.last.type | json }}
+                  }{%- unless forloop.last -%},{%- endunless -%}
+                {%- endfor -%}
+              }{%- unless forloop.last -%},{%- endunless -%}
+            {%- endif -%}
+          {%- endfor -%}
+        },
+        {%- else -%}
+        "customer": null,
+        {%- endif -%}
+        {%- comment -%} Article Metafields {%- endcomment -%}
+        {%- if article -%}
+        "article": {
+          {%- for ns in devtools_metafield_namespaces -%}
+            {%- assign article_ns = article.metafields[ns] -%}
+            {%- if article_ns != blank -%}
+              "{{ ns }}": {
+                {%- for field in article_ns -%}
+                  "{{ field.first }}": {
+                    "value": {{ field.last.value | json }},
+                    "type": {{ field.last.type | json }}
+                  }{%- unless forloop.last -%},{%- endunless -%}
+                {%- endfor -%}
+              }{%- unless forloop.last -%},{%- endunless -%}
+            {%- endif -%}
+          {%- endfor -%}
+        },
+        {%- else -%}
+        "article": null,
+        {%- endif -%}
+        {%- comment -%} Page Metafields {%- endcomment -%}
+        {%- if page -%}
+        "page": {
+          {%- for ns in devtools_metafield_namespaces -%}
+            {%- assign page_ns = page.metafields[ns] -%}
+            {%- if page_ns != blank -%}
+              "{{ ns }}": {
+                {%- for field in page_ns -%}
+                  "{{ field.first }}": {
+                    "value": {{ field.last.value | json }},
+                    "type": {{ field.last.type | json }}
+                  }{%- unless forloop.last -%},{%- endunless -%}
+                {%- endfor -%}
+              }{%- unless forloop.last -%},{%- endunless -%}
+            {%- endif -%}
+          {%- endfor -%}
+        },
+        {%- else -%}
+        "page": null,
+        {%- endif -%}
+        {%- comment -%} Blog Metafields {%- endcomment -%}
+        {%- if blog -%}
+        "blog": {
+          {%- for ns in devtools_metafield_namespaces -%}
+            {%- assign blog_ns = blog.metafields[ns] -%}
+            {%- if blog_ns != blank -%}
+              "{{ ns }}": {
+                {%- for field in blog_ns -%}
+                  "{{ field.first }}": {
+                    "value": {{ field.last.value | json }},
+                    "type": {{ field.last.type | json }}
+                  }{%- unless forloop.last -%},{%- endunless -%}
+                {%- endfor -%}
+              }{%- unless forloop.last -%},{%- endunless -%}
+            {%- endif -%}
+          {%- endfor -%}
+        }
+        {%- else -%}
+        "blog": null
+        {%- endif -%}
+      },
+      "settings": {
+        {%- assign devtools_settings_lines = devtools_settings_config | strip | newline_to_br | split: '<br />' -%}
+        {%- assign devtools_current_group = '' -%}
+        {%- assign devtools_group_started = false -%}
+        {%- for line in devtools_settings_lines -%}
+          {%- assign line_stripped = line | strip -%}
+          {%- if line_stripped != blank -%}
+            {%- assign parts = line_stripped | split: '|' -%}
+            {%- assign setting_id = parts[0] -%}
+            {%- assign setting_type = parts[1] -%}
+            {%- assign setting_label = parts[2] -%}
+            {%- assign setting_group = parts[3] | default: 'theme' -%}
+            {%- if setting_group != devtools_current_group -%}
+              {%- if devtools_group_started -%}
+                },
+              {%- endif -%}
+              "{{ setting_group }}": {
+              {%- assign devtools_current_group = setting_group -%}
+              {%- assign devtools_group_started = true -%}
+              {%- assign devtools_first_in_group = true -%}
+            {%- endif -%}
+            {%- unless devtools_first_in_group -%},{%- endunless -%}
+            "{{ setting_id }}": {
+              "value": {{ settings[setting_id] | json }},
+              "type": {{ setting_type | json }},
+              "label": {{ setting_label | json }}
+            }
+            {%- assign devtools_first_in_group = false -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- if devtools_group_started -%}
+          }
+        {%- endif -%}
+      },
+      "sectionSettings": {
+        {%- comment -%} Section settings are injected via JS from data attributes {%- endcomment -%}
+      },
+      "timestamp": {{ 'now' | date: '%s' | json }}
+    }
+  {%- endcapture -%}
+
+  <script type="application/json" id="__THEME_DEVTOOLS_CONTEXT__">
+    {{ devtools_context }}
+  </script>
+
+  <div id="__THEME_DEVTOOLS_ROOT__" style="display:contents;"></div>
+
+  {% comment %} theme-check-disable RemoteAsset {% endcomment %}
+  {%- if devtools_local -%}
+    <script type="module" src="{{ devtools_localhost }}/src/scripts/main.js"></script>
+  {%- else -%}
+    <script>window.__THEME_DEVTOOLS_CSS_URL__ = '{{ devtools_cdn_base }}/theme-devtools.css';</script>
+    <script src="{{ devtools_cdn_base }}/theme-devtools.js" defer></script>
+  {%- endif -%}
+  {% comment %} theme-check-enable RemoteAsset {% endcomment %}
+{%- endif -%}
+

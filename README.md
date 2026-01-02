@@ -1,83 +1,64 @@
 # Shopify Theme Devtools
 
-In-browser devtools panel for Shopify theme development. Inspect Liquid context, cart state, and sections while working on storefront previews.
+[![npm version](https://img.shields.io/npm/v/shopify-theme-devtools.svg)](https://www.npmjs.com/package/shopify-theme-devtools)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+In-browser devtools panel for Shopify theme development. Inspect Liquid context, metafields, theme settings, cart state, and sections while working on storefront previews.
+
+![Theme Devtools Screenshot](https://via.placeholder.com/800x400?text=Theme+Devtools+Screenshot)
 
 ## Features
 
-- **Object Inspector** — Tree-based viewer for Liquid objects (`cart`, `product`, `customer`, `shop`, etc.)
-- **Liquid Path Copying** — Click any property to copy its Liquid access path
-- **Section Highlighter** — List all sections, click to highlight and scroll into view
-- **Cart Toolkit** — Live cart state, change tracking, diff visualization, and actions
-- **Context Summary** — Template name, page type, theme info, locale, currency, design mode
+- 📦 **Object Inspector** — Tree-based viewer for Liquid objects (`cart`, `product`, `customer`, `shop`, etc.)
+- 🏷️ **Metafields Explorer** — Browse product, collection, shop metafields with type indicators
+- 🎨 **Theme Settings** — View all theme settings organized by group with validation
+- 📐 **Section Highlighter** — List all sections, click to highlight and scroll into view
+- 🛒 **Cart Toolkit** — Live cart state, change tracking, diff visualization, and actions
+- 📋 **Copy as Liquid** — Click any property to copy its Liquid access path
+- ⌨️ **Keyboard Shortcut** — `Cmd+Shift+D` to toggle panel
 
-## Project Structure
+## Installation
 
-```
-src/
-├── scripts/
-│   ├── utils/           # DOM helpers, clipboard, formatting
-│   ├── services/        # Context parser, Cart API, Section highlighter
-│   ├── components/      # UI components (panels, inspector, tabs)
-│   └── main.js          # Entry point
-├── styles/
-│   └── main.css         # Styles (embedded in Shadow DOM)
-└── liquid/
-    └── theme-devtools-bridge.liquid   # Shopify snippet
-```
-
-## Development
-
-### Prerequisites
-
-- Node.js 18+
-- npm or pnpm
-
-### Setup
+### Option 1: npm + CDN (Recommended)
 
 ```bash
-npm install
+npm install shopify-theme-devtools
 ```
 
-### Commands
+After building, the JS bundle is available at:
+- jsDelivr: `https://cdn.jsdelivr.net/npm/shopify-theme-devtools@latest/dist/theme-devtools.js`
+- unpkg: `https://unpkg.com/shopify-theme-devtools@latest/dist/theme-devtools.js`
+
+### Option 2: Manual Download
+
+Download the latest release from [GitHub Releases](https://github.com/yourusername/shopify-theme-devtools/releases) and upload to your CDN.
+
+## Setup in Shopify Theme
+
+### 1. Add the Liquid Snippet
+
+Copy the snippet to your theme's `snippets/` folder:
 
 ```bash
-# Development server with HMR
-npm run dev
-
-# Production build
-npm run build
-
-# Preview production build
-npm run preview
+# From npm package
+cp node_modules/shopify-theme-devtools/src/liquid/theme-devtools-bridge.liquid snippets/
 ```
 
-### Build Output
+Or copy manually from `src/liquid/theme-devtools-bridge.liquid`.
 
-After running `npm run build`, the `dist/` folder will contain:
+### 2. Configure the Snippet
 
-```
-dist/
-└── theme-devtools.js    # Single bundled IIFE (~25KB minified)
-```
-
-## Installation in Shopify Theme
-
-### 1. Upload JS to CDN
-
-After building, upload `dist/theme-devtools.js` to your CDN of choice:
-- jsDelivr (via npm package)
-- Cloudflare R2
-- AWS S3 + CloudFront
-- Shopify Files (via Storefront API)
-
-### 2. Add Liquid Snippet
-
-Copy `src/liquid/theme-devtools-bridge.liquid` to your theme's `snippets/` folder.
-
-Update the CDN URL in the snippet:
+Edit `snippets/theme-devtools-bridge.liquid`:
 
 ```liquid
-<script src="https://your-cdn.com/theme-devtools/v1.0.0/theme-devtools.js" defer></script>
+{%- assign devtools_local = false -%}  {# Set to true for local development #}
+{%- assign devtools_cdn_base = 'https://cdn.jsdelivr.net/npm/shopify-theme-devtools@latest/dist' -%}
+```
+
+**Optional:** Configure metafield namespaces and theme settings to expose:
+
+```liquid
+{%- assign devtools_metafield_namespaces = 'custom,global,my_fields' | split: ',' -%}
 ```
 
 ### 3. Render in Theme
@@ -88,112 +69,106 @@ Add to `layout/theme.liquid` before `</body>`:
 {% render 'theme-devtools-bridge' %}
 ```
 
-The devtools only render on **development/preview themes** (`theme.role == 'development'` or `theme.role == 'unpublished'`).
+The devtools **only render on development/preview themes** (`theme.role == 'development'` or `theme.role == 'unpublished'`), so it's safe to leave in production code.
 
 ## Usage
 
 ### Keyboard Shortcut
 
-`Cmd+Shift+D` (Mac) / `Ctrl+Shift+D` (Windows) — Toggle panel
+`Cmd+Shift+D` (Mac) / `Ctrl+Shift+D` (Windows) — Toggle panel visibility
 
-### Object Inspector
+### Tabs
 
-1. Select an object tab (shop, product, customer, etc.)
-2. Expand nested properties by clicking
-3. Click any **property key** to copy its Liquid path
-4. Use search to filter properties
+| Tab | Description |
+|-----|-------------|
+| 📦 **Objects** | Inspect Liquid objects (shop, product, collection, customer, etc.) |
+| 🏷️ **Metafields** | Browse metafields by resource → namespace → key |
+| 🎨 **Settings** | View theme settings and section settings |
+| 📐 **Sections** | List and highlight rendered sections |
+| 🛒 **Cart** | Live cart state with edit capabilities |
+| ℹ️ **Info** | Theme, template, request, and localization info |
 
-### Section Highlighter
+### Copying Liquid Paths
 
-1. Click "Sections" tab
-2. Click any section to highlight on page
-3. Section is outlined and scrolled into view
+Click any property key to copy its Liquid path:
+- Object property → `{{ product.title }}`
+- Metafield → `{{ product.metafields.custom.sizing_chart }}`
+- Setting → `{{ settings.colors_accent_1 }}`
 
-### Cart Toolkit
+## Local Development
 
-1. Click "Cart" tab
-2. View live cart summary
-3. See change diffs (added/removed/modified)
-4. Adjust quantities or remove items
+### Prerequisites
 
-## Architecture
+- Node.js 18+
+- npm
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                 theme-devtools-bridge.liquid                     │
-│  • Gates rendering (theme.role == 'development')                │
-│  • Outputs JSON context                                         │
-│  • Loads JS bundle from CDN                                     │
-└─────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      theme-devtools.js                           │
-├─────────────────────────────────────────────────────────────────┤
-│  Services          │  Components        │  Utils                │
-│  ─────────────     │  ──────────────    │  ──────               │
-│  • contextParser   │  • ObjectInspector │  • DOM helpers        │
-│  • cartAPI         │  • Panels          │  • Clipboard          │
-│  • sectionLight.   │  • Tabs            │  • Format money       │
-├─────────────────────────────────────────────────────────────────┤
-│                      ThemeDevtools                               │
-│  • Shadow DOM mounting                                          │
-│  • State management                                             │
-│  • Event handling                                               │
-└─────────────────────────────────────────────────────────────────┘
+### Setup
+
+```bash
+git clone https://github.com/yourusername/shopify-theme-devtools.git
+cd shopify-theme-devtools
+npm install
 ```
 
-## Data Schemas
+### Commands
 
-### Context JSON
+```bash
+# Development server with HMR (http://localhost:9999)
+npm run dev
 
-```typescript
-interface DevtoolsContext {
-  meta: {
-    theme: { id: number; name: string; role: string };
-    template: { name: string; suffix: string | null };
-    request: { page_type: string; design_mode: boolean; locale: {...} };
-    localization: { country: {...}; language: {...}; market: {...} };
-  };
-  objects: {
-    shop: ShopObject;
-    customer: CustomerObject | null;
-    product: ProductObject | null;
-    collection: CollectionObject | null;
-    article: ArticleObject | null;
-    blog: BlogObject | null;
-    page: PageObject | null;
-    cart: null; // Fetched via /cart.js
-  };
-  timestamp: number;
-}
+# Production build
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-### Cart Diff
+### Local Development Workflow
 
-```typescript
-interface CartDiff {
-  itemCount: { old: number; new: number };
-  totalPrice: { old: number; new: number };
-  items: {
-    added: CartItem[];
-    removed: CartItem[];
-    modified: { item: CartItem; oldQuantity: number; newQuantity: number }[];
-  };
-}
+1. Run `npm run dev` to start Vite dev server
+2. Set `devtools_local = true` in your theme's snippet
+3. Run `shopify theme dev` in your theme directory
+4. Changes to JS files hot-reload automatically
+
+## Project Structure
+
+```
+src/
+├── scripts/
+│   ├── components/      # Lit web components
+│   │   ├── panels/      # Panel components (objects, metafields, settings, etc.)
+│   │   ├── object-inspector.js
+│   │   └── theme-devtools.js
+│   ├── services/        # Context parser, Cart API, Section highlighter
+│   └── main.js          # Entry point
+├── styles/
+│   └── main.css
+└── liquid/
+    └── theme-devtools-bridge.liquid
 ```
 
 ## Technical Details
 
+- **Lit Web Components** — Modern, reactive UI components
 - **Shadow DOM** — Isolates devtools CSS from theme styles
 - **Cart Tracking** — Ajax interception + polling fallback
 - **Section Detection** — `[id^="shopify-section-"]` + `[data-section-id]`
-- **No Dependencies** — Vanilla JS, ~25KB minified
+- **~50KB** — Minified bundle size
 
 ## Browser Support
 
 Chrome 80+, Firefox 78+, Safari 14+, Edge 80+
 
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
+
 ## License
 
-MIT
+[MIT](LICENSE) © Your Name
+
+## Related
+
+- [Shopify Theme Development](https://shopify.dev/themes)
+- [Liquid Reference](https://shopify.dev/docs/api/liquid)
+- [Theme Check](https://github.com/Shopify/theme-check)

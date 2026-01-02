@@ -1,0 +1,37 @@
+# Source files (dist is included)
+src/scripts/
+src/styles/
+
+# Development files
+demo/
+index.html
+vite.config.js
+.gitignore
+.git/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test
+test/
+tests/
+__tests__/
+coverage/
+
+# Misc
+*.md
+!README.md
+CONTRIBUTING.md
+CHANGELOG.md
+

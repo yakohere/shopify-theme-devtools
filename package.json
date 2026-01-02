@@ -1,21 +1,61 @@
 {
   "name": "shopify-theme-devtools",
   "version": "1.0.0",
-  "description": "In-browser devtools panel for Shopify theme development",
+  "description": "In-browser devtools panel for Shopify theme development - inspect Liquid context, metafields, settings, sections, and cart state",
   "type": "module",
+  "main": "dist/theme-devtools.js",
+  "module": "dist/theme-devtools.js",
+  "exports": {
+    ".": {
+      "import": "./dist/theme-devtools.js",
+      "require": "./dist/theme-devtools.js"
+    },
+    "./liquid": "./src/liquid/theme-devtools-bridge.liquid",
+    "./dist/*": "./dist/*"
+  },
+  "files": [
+    "dist",
+    "src/liquid",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "NODE_ENV=production vite build",
     "build:dev": "vite build",
     "dev": "vite",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build"
   },
+  "keywords": [
+    "shopify",
+    "theme",
+    "devtools",
+    "developer-tools",
+    "liquid",
+    "debugging",
+    "metafields",
+    "shopify-theme",
+    "shopify-development",
+    "theme-development"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
   "devDependencies": {
     "terser": "^5.44.1",
     "vite": "^5.4.11"
   },
-  "author": "",
-  "license": "MIT",
   "dependencies": {
     "lit": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
