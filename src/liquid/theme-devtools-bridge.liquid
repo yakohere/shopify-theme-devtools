@@ -257,9 +257,11 @@ checkout_logo|image_picker|Checkout logo|checkout
       "metafields": {
         {%- comment -%} Shop Metafields {%- endcomment -%}
         "shop": {
+          {%- assign mf_first = true -%}
           {%- for ns in devtools_metafield_namespaces -%}
             {%- assign shop_ns = shop.metafields[ns] -%}
             {%- if shop_ns != blank -%}
+              {%- unless mf_first -%},{%- endunless -%}{%- assign mf_first = false -%}
               "{{ ns }}": {
                 {%- for field in shop_ns -%}
                   "{{ field.first }}": {
@@ -267,16 +269,18 @@ checkout_logo|image_picker|Checkout logo|checkout
                     "type": {{ field.last.type | json }}
                   }{%- unless forloop.last -%},{%- endunless -%}
                 {%- endfor -%}
-              }{%- unless forloop.last -%},{%- endunless -%}
+              }
             {%- endif -%}
           {%- endfor -%}
         },
         {%- comment -%} Product Metafields {%- endcomment -%}
         {%- if product -%}
         "product": {
+          {%- assign mf_first = true -%}
           {%- for ns in devtools_metafield_namespaces -%}
             {%- assign product_ns = product.metafields[ns] -%}
             {%- if product_ns != blank -%}
+              {%- unless mf_first -%},{%- endunless -%}{%- assign mf_first = false -%}
               "{{ ns }}": {
                 {%- for field in product_ns -%}
                   "{{ field.first }}": {
@@ -284,7 +288,7 @@ checkout_logo|image_picker|Checkout logo|checkout
                     "type": {{ field.last.type | json }}
                   }{%- unless forloop.last -%},{%- endunless -%}
                 {%- endfor -%}
-              }{%- unless forloop.last -%},{%- endunless -%}
+              }
             {%- endif -%}
           {%- endfor -%}
         },
@@ -294,9 +298,11 @@ checkout_logo|image_picker|Checkout logo|checkout
         {%- comment -%} Collection Metafields {%- endcomment -%}
         {%- if collection -%}
         "collection": {
+          {%- assign mf_first = true -%}
           {%- for ns in devtools_metafield_namespaces -%}
             {%- assign collection_ns = collection.metafields[ns] -%}
             {%- if collection_ns != blank -%}
+              {%- unless mf_first -%},{%- endunless -%}{%- assign mf_first = false -%}
               "{{ ns }}": {
                 {%- for field in collection_ns -%}
                   "{{ field.first }}": {
@@ -304,7 +310,7 @@ checkout_logo|image_picker|Checkout logo|checkout
                     "type": {{ field.last.type | json }}
                   }{%- unless forloop.last -%},{%- endunless -%}
                 {%- endfor -%}
-              }{%- unless forloop.last -%},{%- endunless -%}
+              }
             {%- endif -%}
           {%- endfor -%}
         },
@@ -314,9 +320,11 @@ checkout_logo|image_picker|Checkout logo|checkout
         {%- comment -%} Customer Metafields {%- endcomment -%}
         {%- if customer -%}
         "customer": {
+          {%- assign mf_first = true -%}
           {%- for ns in devtools_metafield_namespaces -%}
             {%- assign customer_ns = customer.metafields[ns] -%}
             {%- if customer_ns != blank -%}
+              {%- unless mf_first -%},{%- endunless -%}{%- assign mf_first = false -%}
               "{{ ns }}": {
                 {%- for field in customer_ns -%}
                   "{{ field.first }}": {
@@ -324,7 +332,7 @@ checkout_logo|image_picker|Checkout logo|checkout
                     "type": {{ field.last.type | json }}
                   }{%- unless forloop.last -%},{%- endunless -%}
                 {%- endfor -%}
-              }{%- unless forloop.last -%},{%- endunless -%}
+              }
             {%- endif -%}
           {%- endfor -%}
         },
@@ -334,9 +342,11 @@ checkout_logo|image_picker|Checkout logo|checkout
         {%- comment -%} Article Metafields {%- endcomment -%}
         {%- if article -%}
         "article": {
+          {%- assign mf_first = true -%}
           {%- for ns in devtools_metafield_namespaces -%}
             {%- assign article_ns = article.metafields[ns] -%}
             {%- if article_ns != blank -%}
+              {%- unless mf_first -%},{%- endunless -%}{%- assign mf_first = false -%}
               "{{ ns }}": {
                 {%- for field in article_ns -%}
                   "{{ field.first }}": {
@@ -344,7 +354,7 @@ checkout_logo|image_picker|Checkout logo|checkout
                     "type": {{ field.last.type | json }}
                   }{%- unless forloop.last -%},{%- endunless -%}
                 {%- endfor -%}
-              }{%- unless forloop.last -%},{%- endunless -%}
+              }
             {%- endif -%}
           {%- endfor -%}
         },
@@ -354,9 +364,11 @@ checkout_logo|image_picker|Checkout logo|checkout
         {%- comment -%} Page Metafields {%- endcomment -%}
         {%- if page -%}
         "page": {
+          {%- assign mf_first = true -%}
           {%- for ns in devtools_metafield_namespaces -%}
             {%- assign page_ns = page.metafields[ns] -%}
             {%- if page_ns != blank -%}
+              {%- unless mf_first -%},{%- endunless -%}{%- assign mf_first = false -%}
               "{{ ns }}": {
                 {%- for field in page_ns -%}
                   "{{ field.first }}": {
@@ -364,7 +376,7 @@ checkout_logo|image_picker|Checkout logo|checkout
                     "type": {{ field.last.type | json }}
                   }{%- unless forloop.last -%},{%- endunless -%}
                 {%- endfor -%}
-              }{%- unless forloop.last -%},{%- endunless -%}
+              }
             {%- endif -%}
           {%- endfor -%}
         },
@@ -374,9 +386,11 @@ checkout_logo|image_picker|Checkout logo|checkout
         {%- comment -%} Blog Metafields {%- endcomment -%}
         {%- if blog -%}
         "blog": {
+          {%- assign mf_first = true -%}
           {%- for ns in devtools_metafield_namespaces -%}
             {%- assign blog_ns = blog.metafields[ns] -%}
             {%- if blog_ns != blank -%}
+              {%- unless mf_first -%},{%- endunless -%}{%- assign mf_first = false -%}
               "{{ ns }}": {
                 {%- for field in blog_ns -%}
                   "{{ field.first }}": {
@@ -384,7 +398,7 @@ checkout_logo|image_picker|Checkout logo|checkout
                     "type": {{ field.last.type | json }}
                   }{%- unless forloop.last -%},{%- endunless -%}
                 {%- endfor -%}
-              }{%- unless forloop.last -%},{%- endunless -%}
+              }
             {%- endif -%}
           {%- endfor -%}
         }
