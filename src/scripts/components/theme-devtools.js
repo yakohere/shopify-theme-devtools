@@ -14,6 +14,7 @@ import './panels/cookies-panel.js';
 import './panels/storage-panel.js';
 import './panels/console-panel.js';
 import './panels/localization-panel.js';
+import './panels/analytics-panel.js';
 
 export class ThemeDevtools extends LitElement {
   static properties = {
@@ -34,6 +35,7 @@ export class ThemeDevtools extends LitElement {
     { id: 'sections', label: 'Sections', icon: '📐' },
     { id: 'cart', label: 'Cart', icon: '🛒' },
     { id: 'locale', label: 'Locale', icon: '🌐' },
+    { id: 'analytics', label: 'Analytics', icon: '📊' },
     { id: 'console', label: 'Console', icon: '📋' },
     { id: 'cookies', label: 'Cookies', icon: '🍪' },
     { id: 'storage', label: 'Storage', icon: '💾' },
@@ -770,6 +772,10 @@ export class ThemeDevtools extends LitElement {
             class="panel ${this.activeTab === 'locale' ? 'panel--active' : ''}"
             .meta=${meta}
           ></tdt-localization-panel>
+          
+          <tdt-analytics-panel 
+            class="panel ${this.activeTab === 'analytics' ? 'panel--active' : ''}"
+          ></tdt-analytics-panel>
           
           <tdt-console-panel 
             class="panel ${this.activeTab === 'console' ? 'panel--active' : ''}"
