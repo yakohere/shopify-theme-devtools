@@ -38,11 +38,11 @@
     "shopify-development",
     "theme-development"
   ],
-  "author": "",
+  "author": "yakohere",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/yakohere/shopify-theme-devtools"
   },
   "bugs": {
     "url": ""
