@@ -11,26 +11,28 @@
   <a href="{{ product.url }}" class="product-card__link">
     <div class="product-card__image">
       {%- if product.featured_image -%}
-        <img src="{{ product.featured_image | image_url: width: 400 }}" 
-             alt="{{ product.featured_image.alt | escape | default: product.title }}"
-             loading="lazy"
-             width="400"
-             height="400">
+        <img
+          src="{{ product.featured_image | image_url: width: 400 }}"
+          alt="{{ product.featured_image.alt | escape | default: product.title }}"
+          loading="lazy"
+          width="400"
+          height="400"
+        >
       {%- else -%}
         {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
       {%- endif -%}
     </div>
   </a>
-  
+
   <div class="product-card__content">
     {%- if show_vendor and product.vendor != blank -%}
       <p class="product-card__vendor">{{ product.vendor }}</p>
     {%- endif -%}
-    
+
     <h3 class="product-card__title">
       <a href="{{ product.url }}">{{ product.title }}</a>
     </h3>
-    
+
     <div class="product-card__price">
       {%- if product.compare_at_price > product.price -%}
         <span class="product-card__price-sale">{{ product.price | money }}</span>
@@ -41,7 +43,7 @@
         {{ product.price | money }}
       {%- endif -%}
     </div>
-    
+
     {%- unless product.available -%}
       <span class="product-card__badge product-card__badge--sold-out">Sold Out</span>
     {%- endunless -%}

@@ -1,12 +1,12 @@
 {%- comment -%}
   Theme Devtools Bridge
   Renders devtools context and loads JS/CSS only on development/preview themes.
-  
+
   Usage: {% render 'theme-devtools-bridge' %}
-  
+
   Development: Set devtools_local to true and run `npm run dev`
   Production:  Set devtools_local to false and update devtools_cdn_base
-  
+
   Metafields: Add your custom namespaces to devtools_metafield_namespaces below
 {%- endcomment -%}
 
@@ -17,7 +17,7 @@
 {%- comment -%} Configure your metafield namespaces here {%- endcomment -%}
 {%- assign devtools_metafield_namespaces = 'custom,global,my_fields,shopify,descriptors' | split: ',' -%}
 
-{%- comment -%} 
+{%- comment -%}
   Configure your theme settings to expose here.
   Format: setting_id|type|label|group
   Common types: color, text, checkbox, number, range, select, image_picker, font_picker
@@ -246,7 +246,13 @@ checkout_logo|image_picker|Checkout logo|checkout
         {%- else -%}
         "page": null,
         {%- endif -%}
-        "cart": {{ cart | json }}
+        "cart": {
+          "item_count": {{ cart.item_count | json }},
+          "total_price": {{ cart.total_price | json }},
+          "currency": {{ cart.currency.iso_code | json }},
+          "items_count": {{ cart.items | size | json }},
+          "_note": "Full cart data fetched via /cart.js"
+        }
       },
       "metafields": {
         {%- comment -%} Shop Metafields {%- endcomment -%}
@@ -437,9 +443,10 @@ checkout_logo|image_picker|Checkout logo|checkout
   {%- if devtools_local -%}
     <script type="module" src="{{ devtools_localhost }}/src/scripts/main.js"></script>
   {%- else -%}
-    <script>window.__THEME_DEVTOOLS_CSS_URL__ = '{{ devtools_cdn_base }}/theme-devtools.css';</script>
+    <script>
+      window.__THEME_DEVTOOLS_CSS_URL__ = '{{ devtools_cdn_base }}/theme-devtools.css';
+    </script>
     <script src="{{ devtools_cdn_base }}/theme-devtools.js" defer></script>
   {%- endif -%}
   {% comment %} theme-check-enable RemoteAsset {% endcomment %}
 {%- endif -%}
-

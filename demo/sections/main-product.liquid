@@ -1,10 +1,15 @@
-<section class="product-page" id="shopify-section-{{ section.id }}" data-section-type="main-product" {{ section.shopify_attributes }}>
+<section
+  class="product-page"
+  id="shopify-section-{{ section.id }}"
+  data-section-type="main-product"
+  {{ section.shopify_attributes }}
+>
   <div class="product-page__inner">
     {%- if product -%}
       <div class="product-page__gallery">
         {%- if product.featured_image -%}
-          <img 
-            src="{{ product.featured_image | image_url: width: 800 }}" 
+          <img
+            src="{{ product.featured_image | image_url: width: 800 }}"
             alt="{{ product.featured_image.alt | escape | default: product.title }}"
             width="800"
             height="800"
@@ -50,7 +55,12 @@
                       <label for="option-{{ option.name | handleize }}">{{ option.name }}</label>
                       <select id="option-{{ option.name | handleize }}" name="options[{{ option.name }}]">
                         {%- for value in option.values -%}
-                          <option value="{{ value }}" {% if option.selected_value == value %}selected{% endif %}>
+                          <option
+                            value="{{ value }}"
+                            {% if option.selected_value == value %}
+                              selected
+                            {% endif %}
+                          >
                             {{ value }}
                           </option>
                         {%- endfor -%}
@@ -61,20 +71,27 @@
               {%- endunless -%}
 
             {%- when 'buy_button' -%}
-              <form action="{{ routes.cart_add_url }}" method="post" class="product-form" {{ block.shopify_attributes }}>
+              <form
+                action="{{ routes.cart_add_url }}"
+                method="post"
+                class="product-form"
+                {{ block.shopify_attributes }}
+              >
                 <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-                
+
                 {%- if block.settings.show_quantity -%}
                   <div class="product-form__quantity">
                     <label for="quantity">Quantity</label>
                     <input type="number" id="quantity" name="quantity" value="1" min="1">
                   </div>
                 {%- endif -%}
-                
-                <button 
-                  type="submit" 
+
+                <button
+                  type="submit"
                   class="btn btn-primary product-form__submit"
-                  {% unless product.available %}disabled{% endunless %}
+                  {% unless product.available %}
+                    disabled
+                  {% endunless %}
                 >
                   {%- if product.available -%}
                     Add to Cart — {{ product.price | money }}
@@ -89,7 +106,6 @@
                   </div>
                 {%- endif -%}
               </form>
-
           {%- endcase -%}
         {%- endfor -%}
 
@@ -97,7 +113,7 @@
           <div class="product-page__metafields">
             {%- for metafield in product.metafields.custom -%}
               <p>
-                <strong>{{ metafield.first | handleize | replace: '-', ' ' | capitalize }}:</strong> 
+                <strong>{{ metafield.first | handleize | replace: '-', ' ' | capitalize }}:</strong>
                 {{ metafield.last }}
               </p>
             {%- endfor -%}

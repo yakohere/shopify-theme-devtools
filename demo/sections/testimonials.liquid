@@ -1,4 +1,9 @@
-<section class="section testimonials-section" id="shopify-section-{{ section.id }}" data-section-type="testimonials" {{ section.shopify_attributes }}>
+<section
+  class="section testimonials-section"
+  id="shopify-section-{{ section.id }}"
+  data-section-type="testimonials"
+  {{ section.shopify_attributes }}
+>
   <div class="container">
     <div class="section__header">
       <h2 class="section__title">{{ section.settings.title }}</h2>
@@ -17,15 +22,21 @@
         {%- endfor -%}
       {%- else -%}
         <blockquote class="testimonial">
-          <p class="testimonial__content">"Amazing products and fantastic customer service. Will definitely shop here again!"</p>
+          <p class="testimonial__content">
+            "Amazing products and fantastic customer service. Will definitely shop here again!"
+          </p>
           <cite class="testimonial__author">— Sarah M.</cite>
         </blockquote>
         <blockquote class="testimonial">
-          <p class="testimonial__content">"Fast shipping and the quality exceeded my expectations. Highly recommend!"</p>
+          <p class="testimonial__content">
+            "Fast shipping and the quality exceeded my expectations. Highly recommend!"
+          </p>
           <cite class="testimonial__author">— John D.</cite>
         </blockquote>
         <blockquote class="testimonial">
-          <p class="testimonial__content">"Best online shopping experience I've had. The team really cares about their customers."</p>
+          <p class="testimonial__content">
+            "Best online shopping experience I've had. The team really cares about their customers."
+          </p>
           <cite class="testimonial__author">— Emily R.</cite>
         </blockquote>
       {%- endif -%}

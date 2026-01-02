@@ -1,4 +1,9 @@
-<section class="hero" id="shopify-section-{{ section.id }}" data-section-type="hero-banner" {{ section.shopify_attributes }}>
+<section
+  class="hero"
+  id="shopify-section-{{ section.id }}"
+  data-section-type="hero-banner"
+  {{ section.shopify_attributes }}
+>
   <div class="container">
     <h1 class="hero__title">{{ section.settings.title | default: shop.name }}</h1>
     {%- if section.settings.subtitle != blank -%}

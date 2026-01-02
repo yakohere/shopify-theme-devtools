@@ -1,4 +1,9 @@
-<section class="cart-page" id="shopify-section-{{ section.id }}" data-section-type="main-cart" {{ section.shopify_attributes }}>
+<section
+  class="cart-page"
+  id="shopify-section-{{ section.id }}"
+  data-section-type="main-cart"
+  {{ section.shopify_attributes }}
+>
   <div class="cart-page__inner">
     <h1 class="cart-page__title">Your Cart</h1>
 
@@ -14,8 +19,8 @@
             <div class="cart-item" data-variant-id="{{ item.variant_id }}" data-line-index="{{ forloop.index }}">
               <div class="cart-item__image">
                 {%- if item.image -%}
-                  <img 
-                    src="{{ item.image | image_url: width: 200 }}" 
+                  <img
+                    src="{{ item.image | image_url: width: 200 }}"
                     alt="{{ item.title | escape }}"
                     loading="lazy"
                     width="100"
@@ -39,16 +44,16 @@
 
               <div class="cart-item__actions">
                 <div class="cart-item__quantity">
-                  <input 
-                    type="number" 
-                    name="updates[]" 
-                    value="{{ item.quantity }}" 
+                  <input
+                    type="number"
+                    name="updates[]"
+                    value="{{ item.quantity }}"
                     min="0"
                     aria-label="Quantity for {{ item.title }}"
                   >
                 </div>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   class="cart-item__remove"
                   onclick="this.closest('.cart-item').querySelector('input').value = 0; document.getElementById('cart-form').submit();"
                 >
@@ -62,9 +67,9 @@
         {%- if section.settings.show_note -%}
           <div class="cart-note">
             <label for="cart-note">Order Notes</label>
-            <textarea 
-              id="cart-note" 
-              name="note" 
+            <textarea
+              id="cart-note"
+              name="note"
               placeholder="Add a note to your order..."
             >{{ cart.note }}</textarea>
           </div>
@@ -79,14 +84,17 @@
               </div>
             {%- endfor -%}
           {%- endif -%}
-          
+
           <div class="cart-summary__row">
-            <span>Subtotal ({{ cart.item_count }} {{ cart.item_count | pluralize: 'item', 'items' }})</span>
+            <span
+              >Subtotal ({{ cart.item_count }}
+              {{ cart.item_count | pluralize: 'item', 'items' }})</span
+            >
             <span>{{ cart.total_price | money }}</span>
           </div>
-          
+
           <p class="cart-summary__note">Shipping & taxes calculated at checkout</p>
-          
+
           <div class="cart-summary__row cart-summary__total">
             <span>Total</span>
             <span>{{ cart.total_price | money }}</span>

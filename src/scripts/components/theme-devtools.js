@@ -249,6 +249,12 @@ export class ThemeDevtools extends LitElement {
     }
 
     const { meta, objects, metafields, settings, sectionSettings } = this.context;
+
+    const objectsWithLiveCart = {
+      ...objects,
+      cart: this.cart || objects.cart
+    };
+
     const tabs = [
       { id: 'objects', label: 'Objects', icon: '📦' },
       { id: 'metafields', label: 'Metafields', icon: '🏷️' },
@@ -298,7 +304,7 @@ export class ThemeDevtools extends LitElement {
         <div class="content">
           <tdt-objects-panel 
             class="panel ${this.activeTab === 'objects' ? 'panel--active' : ''}"
-            .objects=${objects}
+            .objects=${objectsWithLiveCart}
           ></tdt-objects-panel>
           
           <tdt-metafields-panel 
