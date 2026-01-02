@@ -24,6 +24,7 @@ export class ThemeDevtools extends LitElement {
     tabOrder: { type: Array, state: true },
     draggedTab: { type: String, state: true },
     dragOverTab: { type: String, state: true },
+    showAdminDropdown: { type: Boolean, state: true },
   };
 
   static DEFAULT_TABS = [
@@ -175,6 +176,120 @@ export class ThemeDevtools extends LitElement {
         border-left: 2px solid var(--tdt-accent);
       }
 
+      .actions-bar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: var(--tdt-bg);
+        border-bottom: 1px solid var(--tdt-border);
+        flex-shrink: 0;
+        flex-wrap: wrap;
+      }
+
+      .actions-bar__label {
+        font-size: 10px;
+        color: var(--tdt-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-right: 4px;
+      }
+
+      .action-btn {
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        padding: 4px 8px;
+        font-size: 10px;
+        font-family: var(--tdt-font);
+        color: var(--tdt-text-muted);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+      }
+
+      .action-btn:hover {
+        background: var(--tdt-bg-hover);
+        color: var(--tdt-text);
+        border-color: var(--tdt-accent);
+      }
+
+      .action-btn--danger:hover {
+        background: rgba(255, 77, 77, 0.15);
+        border-color: var(--tdt-error);
+        color: var(--tdt-error);
+      }
+
+      .action-btn--success {
+        background: rgba(34, 197, 94, 0.15);
+        border-color: var(--tdt-success);
+        color: var(--tdt-success);
+      }
+
+      .action-btn__icon {
+        font-size: 12px;
+      }
+
+      .actions-divider {
+        width: 1px;
+        height: 16px;
+        background: var(--tdt-border);
+        margin: 0 4px;
+      }
+
+      .action-dropdown {
+        position: relative;
+      }
+
+      .action-dropdown__menu {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        background: var(--tdt-bg);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        padding: 4px 0;
+        min-width: 180px;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+        z-index: 100;
+        margin-bottom: 4px;
+      }
+
+      .action-dropdown__item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        font-size: 11px;
+        color: var(--tdt-text);
+        cursor: pointer;
+        transition: background 0.1s ease;
+        text-decoration: none;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        font-family: var(--tdt-font);
+      }
+
+      .action-dropdown__item:hover {
+        background: var(--tdt-bg-hover);
+      }
+
+      .action-dropdown__item--highlight {
+        background: rgba(147, 130, 255, 0.1);
+        border-left: 2px solid var(--tdt-accent);
+      }
+
+      .action-dropdown__divider {
+        height: 1px;
+        background: var(--tdt-border);
+        margin: 4px 0;
+      }
+
       .content {
         flex: 1;
         overflow: hidden;
@@ -203,6 +318,7 @@ export class ThemeDevtools extends LitElement {
     this.tabOrder = null;
     this.draggedTab = null;
     this.dragOverTab = null;
+    this.showAdminDropdown = false;
   }
 
   connectedCallback() {
@@ -332,6 +448,153 @@ export class ThemeDevtools extends LitElement {
     localStorage.removeItem('theme-devtools-tab-order');
   }
 
+  async _clearCart() {
+    try {
+      await fetch('/cart/clear.js', { method: 'POST' });
+      this.cart = { items: [], item_count: 0, total_price: 0 };
+      this._showActionFeedback('Cart cleared');
+    } catch (e) {
+      console.error('Failed to clear cart:', e);
+    }
+  }
+
+  _forceRefresh() {
+    location.reload(true);
+  }
+
+  _toggleDesignMode() {
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('design_mode')) {
+      url.searchParams.delete('design_mode');
+    } else {
+      url.searchParams.set('design_mode', 'true');
+    }
+    window.location.href = url.toString();
+  }
+
+  async _copyPageJSON() {
+    try {
+      const json = JSON.stringify(this.context, null, 2);
+      await navigator.clipboard.writeText(json);
+      this._showActionFeedback('JSON copied');
+    } catch (e) {
+      console.error('Failed to copy:', e);
+    }
+  }
+
+  _getShopHandle() {
+    return window.location.hostname.replace('.myshopify.com', '');
+  }
+
+  _getAdminBaseUrl() {
+    return `https://admin.shopify.com/store/${this._getShopHandle()}`;
+  }
+
+  _toggleAdminDropdown(e) {
+    e?.stopPropagation();
+    this.showAdminDropdown = !this.showAdminDropdown;
+    
+    if (this.showAdminDropdown) {
+      const closeDropdown = () => {
+        this.showAdminDropdown = false;
+        document.removeEventListener('click', closeDropdown);
+      };
+      setTimeout(() => document.addEventListener('click', closeDropdown), 0);
+    }
+  }
+
+  _openAdminPage(path) {
+    window.open(`${this._getAdminBaseUrl()}${path}`, '_blank');
+    this.showAdminDropdown = false;
+  }
+
+  _openThemeEditor() {
+    const { meta } = this.context || {};
+    const themeId = meta?.theme?.id;
+    
+    if (!themeId) {
+      window.open(this._getAdminBaseUrl() + '/themes', '_blank');
+      return;
+    }
+    
+    const path = window.location.pathname + window.location.search;
+    const editorUrl = `${this._getAdminBaseUrl()}/themes/${themeId}/editor?previewPath=${encodeURIComponent(path)}`;
+    
+    window.open(editorUrl, '_blank');
+  }
+
+  _openResourceInAdmin() {
+    const { meta, objects } = this.context || {};
+    const pageType = meta?.request?.page_type;
+    
+    if (pageType === 'product' && objects?.product?.id) {
+      this._openAdminPage(`/products/${objects.product.id}`);
+    } else if (pageType === 'collection' && objects?.collection?.id) {
+      this._openAdminPage(`/collections/${objects.collection.id}`);
+    } else if (pageType === 'article' && objects?.article?.id) {
+      this._openAdminPage(`/articles/${objects.article.id}`);
+    } else if (pageType === 'page' && objects?.page?.id) {
+      this._openAdminPage(`/pages/${objects.page.id}`);
+    } else if (pageType === 'blog' && objects?.blog?.id) {
+      this._openAdminPage(`/blogs/${objects.blog.id}`);
+    }
+  }
+
+  _getResourceLabel() {
+    const pageType = this.context?.meta?.request?.page_type;
+    const labels = {
+      product: 'Product',
+      collection: 'Collection',
+      article: 'Article',
+      page: 'Page',
+      blog: 'Blog'
+    };
+    return labels[pageType] || null;
+  }
+
+  _clearLocalStorage() {
+    if (confirm('Clear all localStorage? This may log you out or reset preferences.')) {
+      localStorage.clear();
+      this._showActionFeedback('Storage cleared');
+    }
+  }
+
+  _clearSessionStorage() {
+    sessionStorage.clear();
+    this._showActionFeedback('Session cleared');
+  }
+
+  _showActionFeedback(message) {
+    const el = document.createElement('div');
+    el.textContent = message;
+    el.style.cssText = `
+      position: fixed;
+      bottom: calc(60vh + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--tdt-success, #22c55e);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: system-ui, sans-serif;
+      z-index: 2147483647;
+      animation: fadeOut 2s forwards;
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeOut {
+        0%, 70% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+    `;
+    el.appendChild(style);
+    document.body.appendChild(el);
+    
+    setTimeout(() => el.remove(), 2000);
+  }
+
   _toggleCollapse() {
     this.isCollapsed = !this.isCollapsed;
     localStorage.setItem('theme-devtools-collapsed', this.isCollapsed);
@@ -405,6 +668,76 @@ export class ThemeDevtools extends LitElement {
               ${tab.icon} ${tab.label}
             </button>
           `)}
+        </div>
+
+        <div class="actions-bar">
+          <span class="actions-bar__label">⚡ Quick</span>
+          
+          <button class="action-btn action-btn--danger" @click=${this._clearCart} title="Clear shopping cart">
+            <span class="action-btn__icon">🗑️</span> Clear Cart
+          </button>
+          
+          <button class="action-btn" @click=${this._forceRefresh} title="Hard refresh page">
+            <span class="action-btn__icon">🔄</span> Refresh
+          </button>
+          
+          <div class="actions-divider"></div>
+          
+          <button class="action-btn" @click=${this._copyPageJSON} title="Copy full page context as JSON">
+            <span class="action-btn__icon">📋</span> Copy JSON
+          </button>
+          
+          <button class="action-btn" @click=${this._openThemeEditor} title="Open current page in theme editor">
+            <span class="action-btn__icon">🎨</span> Theme Editor
+          </button>
+          
+          <div class="action-dropdown">
+            <button class="action-btn" @click=${this._toggleAdminDropdown} title="Open Shopify admin pages">
+              <span class="action-btn__icon">⚙️</span> Admin ▾
+            </button>
+            ${this.showAdminDropdown ? html`
+              <div class="action-dropdown__menu" @click=${(e) => e.stopPropagation()}>
+                ${this._getResourceLabel() ? html`
+                  <button class="action-dropdown__item action-dropdown__item--highlight" @click=${this._openResourceInAdmin}>
+                    📄 Open ${this._getResourceLabel()} in Admin
+                  </button>
+                  <div class="action-dropdown__divider"></div>
+                ` : ''}
+                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/products?selectedView=all')}>
+                  📦 Products
+                </button>
+                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/collections?selectedView=all')}>
+                  📁 Collections
+                </button>
+                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/orders')}>
+                  🛒 Orders
+                </button>
+                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/discounts')}>
+                  🏷️ Discounts
+                </button>
+                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/content/metaobjects')}>
+                  🗃️ Metaobjects
+                </button>
+                <div class="action-dropdown__divider"></div>
+                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/customers')}>
+                  👥 Customers
+                </button>
+                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/settings')}>
+                  ⚙️ Settings
+                </button>
+              </div>
+            ` : ''}
+          </div>
+          
+          <div class="actions-divider"></div>
+          
+          <button class="action-btn action-btn--danger" @click=${this._clearLocalStorage} title="Clear localStorage">
+            <span class="action-btn__icon">💾</span> Clear Storage
+          </button>
+          
+          <button class="action-btn action-btn--danger" @click=${this._clearSessionStorage} title="Clear sessionStorage">
+            <span class="action-btn__icon">⏱️</span> Clear Session
+          </button>
         </div>
 
         <div class="content">
