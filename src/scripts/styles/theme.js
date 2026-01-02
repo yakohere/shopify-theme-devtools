@@ -32,6 +32,11 @@ export const baseStyles = css`
 
   *, *::before, *::after {
     box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  button {
+    font-family: var(--tdt-font);
   }
 
   .btn {

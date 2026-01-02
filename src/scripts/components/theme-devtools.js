@@ -15,6 +15,7 @@ import './panels/storage-panel.js';
 import './panels/console-panel.js';
 import './panels/localization-panel.js';
 import './panels/analytics-panel.js';
+import './panels/seo-panel.js';
 
 export class ThemeDevtools extends LitElement {
   static properties = {
@@ -36,6 +37,7 @@ export class ThemeDevtools extends LitElement {
     { id: 'cart', label: 'Cart', icon: '🛒' },
     { id: 'locale', label: 'Locale', icon: '🌐' },
     { id: 'analytics', label: 'Analytics', icon: '📊' },
+    { id: 'seo', label: 'SEO', icon: '🔍' },
     { id: 'console', label: 'Console', icon: '📋' },
     { id: 'cookies', label: 'Cookies', icon: '🍪' },
     { id: 'storage', label: 'Storage', icon: '💾' },
@@ -579,7 +581,7 @@ export class ThemeDevtools extends LitElement {
       padding: 8px 16px;
       border-radius: 4px;
       font-size: 12px;
-      font-family: system-ui, sans-serif;
+      font-family: ui-monospace, 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
       z-index: 2147483647;
       animation: fadeOut 2s forwards;
     `;
@@ -776,6 +778,10 @@ export class ThemeDevtools extends LitElement {
           <tdt-analytics-panel 
             class="panel ${this.activeTab === 'analytics' ? 'panel--active' : ''}"
           ></tdt-analytics-panel>
+          
+          <tdt-seo-panel 
+            class="panel ${this.activeTab === 'seo' ? 'panel--active' : ''}"
+          ></tdt-seo-panel>
           
           <tdt-console-panel 
             class="panel ${this.activeTab === 'console' ? 'panel--active' : ''}"
