@@ -16,6 +16,7 @@ import './panels/console-panel.js';
 import './panels/localization-panel.js';
 import './panels/analytics-panel.js';
 import './panels/seo-panel.js';
+import './panels/apps-panel.js';
 
 export class ThemeDevtools extends LitElement {
   static properties = {
@@ -38,6 +39,7 @@ export class ThemeDevtools extends LitElement {
     { id: 'locale', label: 'Locale', icon: '🌐' },
     { id: 'analytics', label: 'Analytics', icon: '📊' },
     { id: 'seo', label: 'SEO', icon: '🔍' },
+    { id: 'apps', label: 'Apps', icon: '🔌' },
     { id: 'console', label: 'Console', icon: '📋' },
     { id: 'cookies', label: 'Cookies', icon: '🍪' },
     { id: 'storage', label: 'Storage', icon: '💾' },
@@ -782,6 +784,10 @@ export class ThemeDevtools extends LitElement {
           <tdt-seo-panel 
             class="panel ${this.activeTab === 'seo' ? 'panel--active' : ''}"
           ></tdt-seo-panel>
+          
+          <tdt-apps-panel 
+            class="panel ${this.activeTab === 'apps' ? 'panel--active' : ''}"
+          ></tdt-apps-panel>
           
           <tdt-console-panel 
             class="panel ${this.activeTab === 'console' ? 'panel--active' : ''}"
