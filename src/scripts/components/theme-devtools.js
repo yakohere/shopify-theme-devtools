@@ -12,6 +12,7 @@ import './panels/metafields-panel.js';
 import './panels/settings-panel.js';
 import './panels/cookies-panel.js';
 import './panels/storage-panel.js';
+import './panels/console-panel.js';
 
 export class ThemeDevtools extends LitElement {
   static properties = {
@@ -263,6 +264,7 @@ export class ThemeDevtools extends LitElement {
       { id: 'settings', label: 'Settings', icon: '🎨' },
       { id: 'sections', label: 'Sections', icon: '📐' },
       { id: 'cart', label: 'Cart', icon: '🛒' },
+      { id: 'console', label: 'Console', icon: '📋' },
       { id: 'cookies', label: 'Cookies', icon: '🍪' },
       { id: 'storage', label: 'Storage', icon: '💾' },
       { id: 'info', label: 'Info', icon: 'ℹ️' },
@@ -330,6 +332,10 @@ export class ThemeDevtools extends LitElement {
             class="panel ${this.activeTab === 'cart' ? 'panel--active' : ''}"
             .cart=${this.cart}
           ></tdt-cart-panel>
+          
+          <tdt-console-panel 
+            class="panel ${this.activeTab === 'console' ? 'panel--active' : ''}"
+          ></tdt-console-panel>
           
           <tdt-cookies-panel 
             class="panel ${this.activeTab === 'cookies' ? 'panel--active' : ''}"
