@@ -7,11 +7,102 @@ function deepClone(obj) {
 }
 
 class CartAPI {
+  static STORAGE_KEY = 'tdt-cart-history';
+
   constructor() {
     this.listeners = new Set();
     this.currentCart = null;
     this.cartHistory = [];
     this.pollInterval = null;
+    this._isRestoring = false;
+    this._restoreEndTime = 0;
+    this._loadPersistedHistory();
+  }
+
+  /**
+   * Start a restore operation - all cart changes will be ignored for history
+   */
+  startRestore() {
+    this._isRestoring = true;
+  }
+
+  /**
+   * End a restore operation
+   * @param {Object} finalCart - The final cart state after restore
+   */
+  endRestore(finalCart = null) {
+    this._isRestoring = false;
+    // Set a grace period - ignore history for the next 500ms to let pending callbacks settle
+    this._restoreEndTime = Date.now() + 500;
+    // Update currentCart to the final restored state
+    if (finalCart) {
+      this.currentCart = finalCart;
+    }
+  }
+
+  /**
+   * Check if we're currently in a restore operation or in the grace period after restore
+   */
+  isRestoring() {
+    return this._isRestoring || Date.now() < this._restoreEndTime;
+  }
+
+  _loadPersistedHistory() {
+    try {
+      const stored = sessionStorage.getItem(CartAPI.STORAGE_KEY);
+      if (stored) {
+        this.cartHistory = JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn('[Theme Devtools] Failed to load cart history:', e);
+    }
+  }
+
+  _persistHistory() {
+    try {
+      // Keep last 50 entries
+      const toStore = this.cartHistory.slice(-50);
+      sessionStorage.setItem(CartAPI.STORAGE_KEY, JSON.stringify(toStore));
+    } catch (e) {
+      // Storage full or unavailable
+    }
+  }
+
+  /**
+   * Compare two cart snapshots for equality (items, attributes, note)
+   */
+  cartsEqual(cart1, cart2) {
+    if (!cart1 || !cart2) return false;
+
+    // Compare item count first (quick check)
+    if (cart1.item_count !== cart2.item_count) return false;
+    if (cart1.total_price !== cart2.total_price) return false;
+
+    // Compare note
+    if ((cart1.note || '') !== (cart2.note || '')) return false;
+
+    // Compare attributes
+    const attrs1 = JSON.stringify(cart1.attributes || {});
+    const attrs2 = JSON.stringify(cart2.attributes || {});
+    if (attrs1 !== attrs2) return false;
+
+    // Compare items (including properties and selling plans)
+    const items1 = cart1.items || [];
+    const items2 = cart2.items || [];
+    if (items1.length !== items2.length) return false;
+
+    for (let i = 0; i < items1.length; i++) {
+      const a = items1[i];
+      const b = items2[i];
+      if (a.variant_id !== b.variant_id) return false;
+      if (a.quantity !== b.quantity) return false;
+      if (JSON.stringify(a.properties || {}) !== JSON.stringify(b.properties || {})) return false;
+      const aPlan = a.selling_plan_allocation?.selling_plan?.id;
+      const bPlan = b.selling_plan_allocation?.selling_plan?.id;
+      if (aPlan !== bPlan) return false;
+    }
+
+    return true;
   }
 
   async fetch() {
@@ -82,18 +173,37 @@ class CartAPI {
   setCart(cart) {
     const oldCart = this.currentCart;
     this.currentCart = cart;
-    
+
+    // Skip history recording during restore operations or grace period
+    if (this.isRestoring()) {
+      this.notify(cart, oldCart);
+      return;
+    }
+
+    // Also skip if old and new cart are identical
+    if (oldCart && this.cartsEqual(oldCart, cart)) {
+      this.notify(cart, oldCart);
+      return;
+    }
+
     if (oldCart) {
-      this.cartHistory.push({
-        timestamp: Date.now(),
-        diff: this.diffCart(oldCart, cart),
-        snapshot: deepClone(oldCart)
-      });
-      if (this.cartHistory.length > 50) {
-        this.cartHistory.shift();
+      // Check if last history entry has identical snapshot - skip if duplicate
+      const lastEntry = this.cartHistory[this.cartHistory.length - 1];
+      const isDuplicate = lastEntry && this.cartsEqual(lastEntry.snapshot, oldCart);
+
+      if (!isDuplicate) {
+        this.cartHistory.push({
+          timestamp: Date.now(),
+          diff: this.diffCart(oldCart, cart),
+          snapshot: deepClone(oldCart)
+        });
+        if (this.cartHistory.length > 50) {
+          this.cartHistory.shift();
+        }
+        this._persistHistory();
       }
     }
-    
+
     this.notify(cart, oldCart);
   }
 
@@ -101,7 +211,10 @@ class CartAPI {
     const diff = {
       itemCount: { old: oldCart?.item_count || 0, new: newCart?.item_count || 0 },
       totalPrice: { old: oldCart?.total_price || 0, new: newCart?.total_price || 0 },
-      items: { added: [], removed: [], modified: [] }
+      items: { added: [], removed: [], modified: [] },
+      noteChanged: (oldCart?.note || '') !== (newCart?.note || ''),
+      attributesChanged: JSON.stringify(oldCart?.attributes || {}) !== JSON.stringify(newCart?.attributes || {}),
+      discountChanged: JSON.stringify(oldCart?.discount_codes || []) !== JSON.stringify(newCart?.discount_codes || [])
     };
 
     const oldItems = new Map((oldCart?.items || []).map(item => [item.key, item]));
@@ -112,10 +225,10 @@ class CartAPI {
       if (!oldItem) {
         diff.items.added.push(item);
       } else if (oldItem.quantity !== item.quantity) {
-        diff.items.modified.push({ 
-          item, 
-          oldQuantity: oldItem.quantity, 
-          newQuantity: item.quantity 
+        diff.items.modified.push({
+          item,
+          oldQuantity: oldItem.quantity,
+          newQuantity: item.quantity
         });
       }
     });
@@ -168,20 +281,27 @@ class CartAPI {
   interceptAjax() {
     const self = this;
     const originalFetch = window.fetch;
-    
+
     window.fetch = async function(url, options) {
       const response = await originalFetch.apply(this, arguments);
-      
+
       if (typeof url === 'string' && url.includes('/cart')) {
         try {
           const clone = response.clone();
           const data = await clone.json();
           if (data && typeof data.item_count !== 'undefined') {
-            setTimeout(() => self.setCart(data), 0);
+            // During restore or grace period, update cart directly without history
+            if (self.isRestoring()) {
+              self.currentCart = data;
+              self.notify(data, null);
+            } else {
+              // Use setTimeout to let the original caller finish first
+              setTimeout(() => self.setCart(data), 0);
+            }
           }
         } catch {}
       }
-      
+
       return response;
     };
 
@@ -192,7 +312,13 @@ class CartAPI {
           try {
             const data = JSON.parse(this.responseText);
             if (data && typeof data.item_count !== 'undefined') {
-              setTimeout(() => self.setCart(data), 0);
+              // During restore or grace period, update cart directly without history
+              if (self.isRestoring()) {
+                self.currentCart = data;
+                self.notify(data, null);
+              } else {
+                setTimeout(() => self.setCart(data), 0);
+              }
             }
           } catch {}
         });
