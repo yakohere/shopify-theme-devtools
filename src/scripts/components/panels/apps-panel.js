@@ -369,6 +369,28 @@ export class AppsPanel extends LitElement {
         color: var(--tdt-accent);
       }
 
+      .btn-export {
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-border);
+        color: var(--tdt-text-muted);
+        border-radius: var(--tdt-radius);
+        padding: 4px 10px;
+        font-size: 11px;
+        cursor: pointer;
+        font-family: var(--tdt-font);
+      }
+
+      .btn-export:hover {
+        background: var(--tdt-accent);
+        border-color: var(--tdt-accent);
+        color: white;
+      }
+
+      .item__badge--version {
+        background: rgba(168, 85, 247, 0.2);
+        color: #a855f7;
+      }
+
       .vendor-icon {
         width: 16px;
         height: 16px;
@@ -397,19 +419,57 @@ export class AppsPanel extends LitElement {
   ];
 
   static KNOWN_APPS = {
+    // Reviews & UGC
     'klaviyo': { name: 'Klaviyo', icon: 'K', patterns: ['klaviyo', 'klviyo'] },
     'judgeme': { name: 'Judge.me', icon: 'J', patterns: ['judge.me', 'judgeme'] },
-    'recharge': { name: 'ReCharge', icon: 'R', patterns: ['recharge', 'rechargepayments'] },
-    'privy': { name: 'Privy', icon: 'P', patterns: ['privy'] },
-    'omnisend': { name: 'Omnisend', icon: 'O', patterns: ['omnisend'] },
     'yotpo': { name: 'Yotpo', icon: 'Y', patterns: ['yotpo'] },
     'loox': { name: 'Loox', icon: 'L', patterns: ['loox'] },
     'stamped': { name: 'Stamped', icon: 'S', patterns: ['stamped'] },
+    'okendo': { name: 'Okendo', icon: 'O', patterns: ['okendo'] },
+    'reviews-io': { name: 'Reviews.io', icon: 'R', patterns: ['reviews.io', 'reviewsio'] },
+    'trustpilot': { name: 'Trustpilot', icon: 'T', patterns: ['trustpilot'] },
+    'bazaarvoice': { name: 'Bazaarvoice', icon: 'B', patterns: ['bazaarvoice', 'bvapi'] },
+
+    // Subscriptions & Payments
+    'recharge': { name: 'ReCharge', icon: 'R', patterns: ['recharge', 'rechargepayments'] },
+    'bold': { name: 'Bold', icon: 'B', patterns: ['boldapps', 'boldcommerce'] },
+    'afterpay': { name: 'Afterpay', icon: 'A', patterns: ['afterpay', 'portal.afterpay'] },
+    'klarna': { name: 'Klarna', icon: 'K', patterns: ['klarna'] },
+    'affirm': { name: 'Affirm', icon: 'A', patterns: ['affirm'] },
+    'sezzle': { name: 'Sezzle', icon: 'S', patterns: ['sezzle'] },
+    'clearpay': { name: 'Clearpay', icon: 'C', patterns: ['clearpay'] },
+    'zip': { name: 'Zip', icon: 'Z', patterns: ['quadpay', 'zip.co'] },
+    'paypal': { name: 'PayPal', icon: 'P', patterns: ['paypal', 'paypalobjects'] },
+    'stripe': { name: 'Stripe', icon: 'S', patterns: ['stripe.com', 'js.stripe'] },
+
+    // Email & Marketing
+    'privy': { name: 'Privy', icon: 'P', patterns: ['privy'] },
+    'omnisend': { name: 'Omnisend', icon: 'O', patterns: ['omnisend'] },
+    'mailchimp': { name: 'Mailchimp', icon: 'M', patterns: ['mailchimp', 'chimpstatic'] },
+    'drip': { name: 'Drip', icon: 'D', patterns: ['getdrip', 'drip.com'] },
+    'attentive': { name: 'Attentive', icon: 'A', patterns: ['attentive', 'attn.tv'] },
+    'postscript': { name: 'Postscript', icon: 'P', patterns: ['postscript'] },
+    'sendlane': { name: 'Sendlane', icon: 'S', patterns: ['sendlane'] },
+    'retention': { name: 'Retention.com', icon: 'R', patterns: ['retention.com'] },
+
+    // Loyalty & Rewards
     'smile': { name: 'Smile.io', icon: 'S', patterns: ['smile.io', 'smileio'] },
+    'loyaltylion': { name: 'LoyaltyLion', icon: 'L', patterns: ['loyaltylion'] },
+    'yotpo-loyalty': { name: 'Yotpo Loyalty', icon: 'Y', patterns: ['yotpo-loyalty', 'swell.is'] },
+    'rise-ai': { name: 'Rise.ai', icon: 'R', patterns: ['rise.ai', 'riseai'] },
+
+    // Customer Support
     'gorgias': { name: 'Gorgias', icon: 'G', patterns: ['gorgias'] },
     'zendesk': { name: 'Zendesk', icon: 'Z', patterns: ['zendesk', 'zopim'] },
     'tidio': { name: 'Tidio', icon: 'T', patterns: ['tidio'] },
     'intercom': { name: 'Intercom', icon: 'I', patterns: ['intercom'] },
+    'freshdesk': { name: 'Freshdesk', icon: 'F', patterns: ['freshdesk', 'freshchat'] },
+    'livechat': { name: 'LiveChat', icon: 'L', patterns: ['livechat', 'livechatinc'] },
+    'crisp': { name: 'Crisp', icon: 'C', patterns: ['crisp.chat'] },
+    'drift': { name: 'Drift', icon: 'D', patterns: ['drift.com', 'driftt'] },
+    'reamaze': { name: 'Reamaze', icon: 'R', patterns: ['reamaze'] },
+
+    // Analytics & Tracking
     'hotjar': { name: 'Hotjar', icon: 'H', patterns: ['hotjar'] },
     'facebook': { name: 'Meta Pixel', icon: 'M', patterns: ['facebook', 'fbevents', 'connect.facebook'] },
     'google': { name: 'Google', icon: 'G', patterns: ['googletagmanager', 'google-analytics', 'gtag', 'gtm.js'] },
@@ -417,13 +477,64 @@ export class AppsPanel extends LitElement {
     'pinterest': { name: 'Pinterest', icon: 'P', patterns: ['pintrk', 'pinterest'] },
     'snapchat': { name: 'Snapchat', icon: 'S', patterns: ['snapchat', 'sc-static'] },
     'shopify': { name: 'Shopify', icon: 'S', patterns: ['shopify', 'cdn.shopify', 'monorail-edge'] },
-    'afterpay': { name: 'Afterpay', icon: 'A', patterns: ['afterpay', 'portal.afterpay'] },
-    'klarna': { name: 'Klarna', icon: 'K', patterns: ['klarna'] },
-    'affirm': { name: 'Affirm', icon: 'A', patterns: ['affirm'] },
-    'sezzle': { name: 'Sezzle', icon: 'S', patterns: ['sezzle'] },
-    'bold': { name: 'Bold', icon: 'B', patterns: ['boldapps', 'boldcommerce'] },
+    'segment': { name: 'Segment', icon: 'S', patterns: ['segment.com', 'segment.io'] },
+    'heap': { name: 'Heap', icon: 'H', patterns: ['heap-analytics', 'heapanalytics'] },
+    'mixpanel': { name: 'Mixpanel', icon: 'M', patterns: ['mixpanel'] },
+    'fullstory': { name: 'FullStory', icon: 'F', patterns: ['fullstory'] },
+    'lucky-orange': { name: 'Lucky Orange', icon: 'L', patterns: ['luckyorange'] },
+    'clarity': { name: 'Microsoft Clarity', icon: 'C', patterns: ['clarity.ms'] },
+    'reddit': { name: 'Reddit Pixel', icon: 'R', patterns: ['redditmedia', 'reddit.com/pixel'] },
+    'twitter': { name: 'Twitter Pixel', icon: 'T', patterns: ['static.ads-twitter', 'analytics.twitter'] },
+    'criteo': { name: 'Criteo', icon: 'C', patterns: ['criteo'] },
+    'taboola': { name: 'Taboola', icon: 'T', patterns: ['taboola'] },
+
+    // Page Builders
     'pagefly': { name: 'PageFly', icon: 'P', patterns: ['pagefly'] },
     'shogun': { name: 'Shogun', icon: 'S', patterns: ['getshogun', 'shogun'] },
+    'gempage': { name: 'GemPages', icon: 'G', patterns: ['gempages'] },
+    'zipify': { name: 'Zipify', icon: 'Z', patterns: ['zipify'] },
+
+    // Upsell & Cross-sell
+    'rebuy': { name: 'Rebuy', icon: 'R', patterns: ['rebuyengine', 'rebuy'] },
+    'recom-ai': { name: 'Recom.ai', icon: 'R', patterns: ['recom.ai'] },
+    'frequently-bought': { name: 'Frequently Bought', icon: 'F', patterns: ['frequently-bought', 'also-bought'] },
+    'honeycomb': { name: 'Honeycomb', icon: 'H', patterns: ['honeycomb-upsell'] },
+    'candy-rack': { name: 'Candy Rack', icon: 'C', patterns: ['candy-rack', 'candyrack'] },
+    'reconvert': { name: 'ReConvert', icon: 'R', patterns: ['reconvert'] },
+
+    // Shipping & Fulfillment
+    'shipstation': { name: 'ShipStation', icon: 'S', patterns: ['shipstation'] },
+    'shippo': { name: 'Shippo', icon: 'S', patterns: ['goshippo'] },
+    'easyship': { name: 'Easyship', icon: 'E', patterns: ['easyship'] },
+    'aftership': { name: 'AfterShip', icon: 'A', patterns: ['aftership'] },
+    'route': { name: 'Route', icon: 'R', patterns: ['route.com', 'routeapp'] },
+
+    // Popups & Conversion
+    'justuno': { name: 'Justuno', icon: 'J', patterns: ['justuno'] },
+    'optinmonster': { name: 'OptinMonster', icon: 'O', patterns: ['optinmonster'] },
+    'wisepops': { name: 'Wisepops', icon: 'W', patterns: ['wisepops'] },
+    'wheelio': { name: 'Wheelio', icon: 'W', patterns: ['wheelio'] },
+    'spin-a-sale': { name: 'Spin-a-Sale', icon: 'S', patterns: ['spin-a-sale', 'spinasale'] },
+
+    // Social Proof
+    'fomo': { name: 'Fomo', icon: 'F', patterns: ['fomo.com', 'usefomo'] },
+    'nudgify': { name: 'Nudgify', icon: 'N', patterns: ['nudgify'] },
+    'proof': { name: 'Proof', icon: 'P', patterns: ['useproof'] },
+    'fera': { name: 'Fera', icon: 'F', patterns: ['fera.ai'] },
+
+    // Search & Navigation
+    'searchspring': { name: 'Searchspring', icon: 'S', patterns: ['searchspring'] },
+    'algolia': { name: 'Algolia', icon: 'A', patterns: ['algolia'] },
+    'boost-commerce': { name: 'Boost Commerce', icon: 'B', patterns: ['boost-commerce', 'boostcommerce'] },
+    'klevu': { name: 'Klevu', icon: 'K', patterns: ['klevu'] },
+
+    // Miscellaneous
+    'elfsight': { name: 'Elfsight', icon: 'E', patterns: ['elfsight', 'static.elfsight'] },
+    'instafeed': { name: 'Instafeed', icon: 'I', patterns: ['instafeed'] },
+    'beeketing': { name: 'Beeketing', icon: 'B', patterns: ['beeketing'] },
+    'vitals': { name: 'Vitals', icon: 'V', patterns: ['vitals.co', 'vitalsapp'] },
+    'hextom': { name: 'Hextom', icon: 'H', patterns: ['hextom'] },
+    'cart-upsell': { name: 'Cart Upsell', icon: 'C', patterns: ['incart-upsell'] },
   };
 
   constructor() {
@@ -512,6 +623,7 @@ export class AppsPanel extends LitElement {
       const vendor = this._identifyVendor(src || content);
       const isPixel = this._isPixelScript(src, content);
       const isShopifyCore = this._isShopifyCoreScript(src);
+      const version = this._extractVersion(src, content);
 
       if (isShopifyCore && !isPixel) return;
 
@@ -525,6 +637,7 @@ export class AppsPanel extends LitElement {
         content,
         vendor,
         isPixel,
+        version,
         element: script,
         size: isInline ? new Blob([content]).size : null,
       });
@@ -577,6 +690,51 @@ export class AppsPanel extends LitElement {
 
   _categorizeScripts() {
     this.pixelScripts = this.scripts.filter(s => s.isPixel);
+  }
+
+  _extractVersion(src, content = '') {
+    // Common version patterns in URLs
+    const urlPatterns = [
+      // v1.2.3 or v1.2
+      /[?&/]v(\d+\.\d+(?:\.\d+)?)/i,
+      // version=1.2.3
+      /version[=:](\d+\.\d+(?:\.\d+)?)/i,
+      // @1.2.3
+      /@(\d+\.\d+(?:\.\d+)?)/,
+      // /1.2.3/ in path
+      /\/(\d+\.\d+\.\d+)\//,
+      // -1.2.3.js or .1.2.3.js
+      /[-.](\d+\.\d+\.\d+)\.(?:min\.)?js/i,
+      // _v1.2.3
+      /_v(\d+\.\d+(?:\.\d+)?)/i,
+    ];
+
+    // Try URL patterns first
+    for (const pattern of urlPatterns) {
+      const match = src.match(pattern);
+      if (match) return match[1];
+    }
+
+    // Try content patterns for inline scripts
+    if (content) {
+      const contentPatterns = [
+        // version: "1.2.3" or version: '1.2.3'
+        /version['":\s]+['"]?(\d+\.\d+(?:\.\d+)?)/i,
+        // VERSION = "1.2.3"
+        /VERSION\s*[=:]\s*['"](\d+\.\d+(?:\.\d+)?)/i,
+        // v1.2.3
+        /\bv(\d+\.\d+\.\d+)\b/,
+        // Shopify script pattern: shopify-1.2.3
+        /shopify-(\d+\.\d+\.\d+)/i,
+      ];
+
+      for (const pattern of contentPatterns) {
+        const match = content.match(pattern);
+        if (match) return match[1];
+      }
+    }
+
+    return null;
   }
 
   _identifyVendor(source) {
@@ -697,34 +855,62 @@ export class AppsPanel extends LitElement {
 
   _getFilteredItems() {
     const search = this.searchTerm.toLowerCase();
-    
+
     let items = [];
-    
+
     if (this.activeTab === 'all' || this.activeTab === 'blocks') {
       items = [...items, ...this.appBlocks.map(b => ({ ...b, category: 'block' }))];
     }
-    
+
     if (this.activeTab === 'all' || this.activeTab === 'scripts') {
       items = [...items, ...this.scripts.filter(s => !s.isPixel).map(s => ({ ...s, category: 'script' }))];
     }
-    
+
     if (this.activeTab === 'all' || this.activeTab === 'pixels') {
       items = [...items, ...this.pixelScripts.map(s => ({ ...s, category: 'pixel' }))];
     }
-    
+
     if (this.activeTab === 'all' || this.activeTab === 'embeds') {
       items = [...items, ...this.appEmbeds.map(e => ({ ...e, category: 'embed' }))];
     }
-    
+
     if (search) {
-      items = items.filter(item => {
-        const name = item.name || item.vendor?.name || '';
-        const src = item.src || '';
-        return name.toLowerCase().includes(search) || src.toLowerCase().includes(search);
-      });
+      items = items.filter(item => this._matchesSearch(item, search));
     }
-    
+
     return items;
+  }
+
+  _matchesSearch(item, search) {
+    // Search in name
+    const name = (item.name || item.vendor?.name || '').toLowerCase();
+    if (name.includes(search)) return true;
+
+    // Search in URL/src
+    const src = (item.src || '').toLowerCase();
+    if (src.includes(search)) return true;
+
+    // Search in block type
+    const blockType = (item.blockType || '').toLowerCase();
+    if (blockType.includes(search)) return true;
+
+    // Search in app ID (for embeds)
+    const appId = (item.appId || '').toLowerCase();
+    if (appId.includes(search)) return true;
+
+    // Deep search in inline script content
+    const content = (item.content || '').toLowerCase();
+    if (content.includes(search)) return true;
+
+    // Search in classes
+    const classes = (item.classes || '').toLowerCase();
+    if (classes.includes(search)) return true;
+
+    // Search in version
+    const version = (item.version || '').toLowerCase();
+    if (version.includes(search)) return true;
+
+    return false;
   }
 
   _getVendorIcon(vendor) {
@@ -772,7 +958,7 @@ export class AppsPanel extends LitElement {
 
   _renderBadges(item) {
     const badges = [];
-    
+
     if (item.category === 'block') {
       badges.push(html`<span class="item__badge item__badge--app">Block</span>`);
     } else if (item.category === 'script') {
@@ -782,7 +968,12 @@ export class AppsPanel extends LitElement {
     } else if (item.category === 'embed') {
       badges.push(html`<span class="item__badge item__badge--embed">Embed</span>`);
     }
-    
+
+    // Version badge
+    if (item.version) {
+      badges.push(html`<span class="item__badge item__badge--version">v${item.version}</span>`);
+    }
+
     if (item.isAsync) {
       badges.push(html`<span class="item__badge item__badge--async">Async</span>`);
     }
@@ -795,7 +986,7 @@ export class AppsPanel extends LitElement {
     if (item.src && !item.isInline) {
       badges.push(html`<span class="item__badge item__badge--external">External</span>`);
     }
-    
+
     return badges;
   }
 
@@ -832,6 +1023,12 @@ export class AppsPanel extends LitElement {
           <div class="item__detail">
             <span class="item__detail-label">Source:</span>
             <span class="item__detail-value item__detail-value--link" @click=${() => window.open(item.src, '_blank')}>${item.src}</span>
+          </div>
+        ` : ''}
+        ${item.version ? html`
+          <div class="item__detail">
+            <span class="item__detail-label">Version:</span>
+            <span class="item__detail-value">${item.version}</span>
           </div>
         ` : ''}
         ${item.type && item.type !== 'text/javascript' ? html`
@@ -927,6 +1124,73 @@ export class AppsPanel extends LitElement {
     this._scanPage();
   }
 
+  _exportApps() {
+    const filteredItems = this._getFilteredItems();
+
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      url: window.location.href,
+      summary: {
+        totalScripts: this.scripts.length,
+        totalPixels: this.pixelScripts.length,
+        totalBlocks: this.appBlocks.length,
+        totalEmbeds: this.appEmbeds.length,
+      },
+      items: filteredItems.map(item => {
+        const base = {
+          category: item.category,
+          name: item.name || item.vendor?.name || this._extractNameFromSrc(item.src) || 'Unknown',
+          vendor: item.vendor?.name || null,
+        };
+
+        if (item.category === 'block') {
+          return {
+            ...base,
+            blockType: item.blockType,
+            sectionId: item.sectionId,
+            tagName: item.tagName,
+            classes: item.classes,
+          };
+        }
+
+        if (item.category === 'script' || item.category === 'pixel') {
+          return {
+            ...base,
+            src: item.src || null,
+            isInline: item.isInline,
+            isAsync: item.isAsync,
+            isDefer: item.isDefer,
+            version: item.version || null,
+            size: item.size,
+            type: item.type,
+          };
+        }
+
+        if (item.category === 'embed') {
+          return {
+            ...base,
+            appId: item.appId,
+            type: item.type,
+            tagName: item.tagName,
+            position: item.position,
+          };
+        }
+
+        return base;
+      }),
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `apps-export-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    this._showFeedback('Exported!');
+  }
+
   render() {
     const filteredItems = this._getFilteredItems();
     const totalScripts = this.scripts.length;
@@ -990,13 +1254,14 @@ export class AppsPanel extends LitElement {
           <span>embeds</span>
         </div>
         <button class="btn btn--sm" @click=${() => this._refresh()}>🔄 Refresh</button>
+        <button class="btn-export" @click=${() => this._exportApps()}>📥 Export</button>
       </div>
 
       <div class="search-bar">
-        <input 
-          type="text" 
-          class="search-input" 
-          placeholder="Search apps, scripts, vendors..."
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search apps, scripts, vendors, content..."
           .value=${this.searchTerm}
           @input=${this._handleSearch}
         />
