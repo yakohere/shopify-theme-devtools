@@ -6,6 +6,8 @@ export class ObjectInspector extends LitElement {
     data: { type: Object },
     path: { type: String },
     expanded: { type: Object, state: true },
+    searchQuery: { type: String },
+    _matchingPaths: { type: Object, state: true },
   };
 
   static styles = [
@@ -90,6 +92,25 @@ export class ObjectInspector extends LitElement {
         border-left: 1px solid var(--tdt-border);
         margin-left: 6px;
       }
+
+      .highlight {
+        background: rgba(250, 204, 21, 0.3);
+        border-radius: 2px;
+        padding: 0 1px;
+      }
+
+      .node--hidden {
+        display: none;
+      }
+
+      .match-count {
+        color: var(--tdt-text-muted);
+        font-size: 10px;
+        margin-left: 6px;
+        background: var(--tdt-bg-secondary);
+        padding: 1px 5px;
+        border-radius: 8px;
+      }
     `
   ];
 
@@ -98,6 +119,105 @@ export class ObjectInspector extends LitElement {
     this.data = null;
     this.path = '';
     this.expanded = new Set();
+    this.searchQuery = '';
+    this._matchingPaths = new Set();
+  }
+
+  updated(changedProps) {
+    if (changedProps.has('searchQuery') || changedProps.has('data')) {
+      this._updateMatchingPaths();
+    }
+  }
+
+  _updateMatchingPaths() {
+    const query = (this.searchQuery || '').toLowerCase().trim();
+    if (!query || !this.data) {
+      this._matchingPaths = new Set();
+      return;
+    }
+
+    const matches = new Set();
+    this._findMatches(this.data, this.path, query, matches);
+    this._matchingPaths = matches;
+
+    // Auto-expand paths that contain matches
+    if (matches.size > 0) {
+      const newExpanded = new Set(this.expanded);
+      for (const matchPath of matches) {
+        // Add all parent paths
+        const parts = matchPath.split('.');
+        let current = '';
+        for (let i = 0; i < parts.length - 1; i++) {
+          current = current ? `${current}.${parts[i]}` : parts[i];
+          newExpanded.add(current);
+        }
+      }
+      this.expanded = newExpanded;
+    }
+  }
+
+  _findMatches(obj, basePath, query, matches) {
+    if (obj === null || obj === undefined) return;
+
+    const type = this._getType(obj);
+
+    if (type !== 'object' && type !== 'array') {
+      // Check if the value matches
+      const valueStr = String(obj).toLowerCase();
+      if (valueStr.includes(query)) {
+        matches.add(basePath);
+      }
+      return;
+    }
+
+    let entries;
+    try {
+      entries = Object.entries(obj);
+    } catch {
+      return;
+    }
+
+    for (const [key, value] of entries) {
+      const path = basePath ? `${basePath}.${key}` : key;
+
+      // Check if key matches
+      if (key.toLowerCase().includes(query)) {
+        matches.add(path);
+      }
+
+      // Recurse into children
+      this._findMatches(value, path, query, matches);
+    }
+  }
+
+  _isPathVisible(path) {
+    if (!this.searchQuery || this._matchingPaths.size === 0) {
+      return true;
+    }
+
+    // Path is visible if it matches or if any of its descendants match
+    for (const matchPath of this._matchingPaths) {
+      if (matchPath === path || matchPath.startsWith(path + '.')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  _highlightText(text, query) {
+    if (!query) return text;
+
+    const lowerText = String(text).toLowerCase();
+    const lowerQuery = query.toLowerCase();
+    const index = lowerText.indexOf(lowerQuery);
+
+    if (index === -1) return text;
+
+    const before = String(text).slice(0, index);
+    const match = String(text).slice(index, index + query.length);
+    const after = String(text).slice(index + query.length);
+
+    return html`${before}<span class="highlight">${match}</span>${after}`;
   }
 
   _getType(value) {
@@ -176,6 +296,29 @@ export class ObjectInspector extends LitElement {
     }
   }
 
+  _renderValueWithHighlight(value, type, query) {
+    if (!query) return this._renderValue(value, type);
+
+    switch (type) {
+      case 'string':
+        const display = value.length > 80 ? value.slice(0, 80) + '...' : value;
+        return html`<span class="value value--string">"${this._highlightText(display, query)}"</span>`;
+      case 'number':
+        return html`<span class="value value--number">${this._highlightText(String(value), query)}</span>`;
+      case 'boolean':
+        return html`<span class="value value--boolean">${this._highlightText(String(value), query)}</span>`;
+      case 'null':
+        return html`<span class="value value--null">null</span>`;
+      case 'undefined':
+        return html`<span class="value value--undefined">undefined</span>`;
+      case 'object':
+      case 'array':
+        return html`<span class="preview">{}</span>`;
+      default:
+        return html`<span class="value">${this._highlightText(String(value), query)}</span>`;
+    }
+  }
+
   _renderPreview(value, type) {
     let count;
     try {
@@ -193,27 +336,42 @@ export class ObjectInspector extends LitElement {
     const type = this._getType(value);
     const expandable = this._isExpandable(value);
     const isExpanded = this.expanded.has(currentPath);
+    const isVisible = this._isPathVisible(currentPath);
+    const query = (this.searchQuery || '').trim();
 
     const nodeClasses = [
       'node',
       isRoot ? 'node--root' : '',
       expandable ? 'node--expandable' : '',
       isExpanded ? 'node--expanded' : '',
+      !isVisible ? 'node--hidden' : '',
     ].filter(Boolean).join(' ');
 
     const displayKey = isArrayItem ? `[${key}]` : key;
+    const highlightedKey = query ? this._highlightText(displayKey, query) : displayKey;
+
+    // Count matches in children for preview
+    let matchCount = 0;
+    if (expandable && query && this._matchingPaths.size > 0) {
+      for (const matchPath of this._matchingPaths) {
+        if (matchPath.startsWith(currentPath + '.')) {
+          matchCount++;
+        }
+      }
+    }
 
     return html`
-      <div 
+      <div
         class=${nodeClasses}
         @click=${expandable ? (e) => this._toggleExpand(currentPath, e) : null}
       >
-        <span class="key" @click=${(e) => this._copyPath(currentPath, e)}>${displayKey}</span>
+        <span class="key" @click=${(e) => this._copyPath(currentPath, e)}>${highlightedKey}</span>
         <span class="separator">: </span>
-        ${expandable 
+        ${expandable
           ? this._renderPreview(value, type)
-          : this._renderValue(value, type)
+          : this._renderValueWithHighlight(value, type, query)
         }
+        ${matchCount > 0 && !isExpanded ? html`<span class="match-count">${matchCount} match${matchCount > 1 ? 'es' : ''}</span>` : ''}
         ${expandable && isExpanded ? html`
           <div class="children">
             ${this._renderObject(value, currentPath)}

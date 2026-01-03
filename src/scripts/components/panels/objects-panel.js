@@ -104,10 +104,10 @@ export class ObjectsPanel extends LitElement {
     const activeData = this.activeObject ? this.objects[this.activeObject] : null;
 
     return html`
-      <input 
-        type="search" 
-        class="search" 
-        placeholder="Filter objects..."
+      <input
+        type="search"
+        class="search"
+        placeholder="Search keys and values..."
         .value=${this.searchQuery}
         @input=${this._handleSearch}
       >
@@ -124,12 +124,13 @@ export class ObjectsPanel extends LitElement {
       </div>
 
       <div class="object-content">
-        ${activeData === null 
+        ${activeData === null
           ? html`<div class="null-state">${this.activeObject} is null on this page</div>`
           : html`
-            <tdt-object-inspector 
-              .data=${activeData} 
+            <tdt-object-inspector
+              .data=${activeData}
               .path=${'objects.' + this.activeObject}
+              .searchQuery=${this.searchQuery}
             ></tdt-object-inspector>
           `
         }
