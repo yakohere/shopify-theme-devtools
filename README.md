@@ -61,8 +61,6 @@ The devtools panel will automatically appear on unpublished/development themes. 
 |-------|-------------|
 | **Objects** | Inspect Liquid objects with deep search filtering |
 | **Metafields** | Browse metafields by resource and namespace |
-| **Settings** | View theme and section settings |
-| **Sections** | List and highlight rendered sections |
 | **Cart** | Live cart state with manipulation actions |
 | **Locale** | Markets, currencies, languages |
 | **Analytics** | Tracking codes and analytics data |

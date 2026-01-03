@@ -46,6 +46,24 @@ export class CookiesPanel extends LitElement {
         opacity: 0.9;
       }
 
+      .btn-clear {
+        background: transparent;
+        color: var(--tdt-error);
+        border: 1px solid var(--tdt-error);
+        border-radius: var(--tdt-radius);
+        padding: 6px 12px;
+        font-size: 11px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .btn-clear:hover {
+        background: var(--tdt-error);
+        color: white;
+      }
+
       .cookie-list {
         display: flex;
         flex-direction: column;
@@ -394,6 +412,19 @@ export class CookiesPanel extends LitElement {
     return `${(bytes / 1024).toFixed(1)} KB`;
   }
 
+  _clearAllCookies() {
+    if (this.cookies.length === 0) return;
+
+    if (confirm(`Clear all ${this.cookies.length} cookies? This may log you out.`)) {
+      this.cookies.forEach(cookie => {
+        document.cookie = `${cookie.name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+        document.cookie = `${cookie.name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname}`;
+        document.cookie = `${cookie.name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${window.location.hostname}`;
+      });
+      this._loadCookies();
+    }
+  }
+
   _renderModal() {
     const cookie = this.newCookie || this.editingCookie;
     if (!cookie) return null;
@@ -496,9 +527,9 @@ export class CookiesPanel extends LitElement {
       </div>
 
       <div class="toolbar">
-        <input 
-          type="search" 
-          class="search" 
+        <input
+          type="search"
+          class="search"
           placeholder="Filter cookies..."
           .value=${this.filter}
           @input=${this._filterCookies}
@@ -506,6 +537,11 @@ export class CookiesPanel extends LitElement {
         <button class="btn-add" @click=${this._openAddModal}>
           + Add Cookie
         </button>
+        ${this.cookies.length > 0 ? html`
+          <button class="btn-clear" @click=${this._clearAllCookies}>
+            Clear All
+          </button>
+        ` : ''}
       </div>
 
       ${filtered.length === 0 

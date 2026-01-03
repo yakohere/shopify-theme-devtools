@@ -94,6 +94,16 @@ export class ThemeDevtools extends LitElement {
         color: var(--tdt-accent);
       }
 
+      .dock__theme-name {
+        font-weight: 400;
+        color: var(--tdt-text);
+        text-transform: none;
+        letter-spacing: normal;
+        padding-left: 8px;
+        border-left: 1px solid var(--tdt-border);
+        margin-left: 2px;
+      }
+
       .dock__controls {
         display: flex;
         gap: 8px;
@@ -117,12 +127,18 @@ export class ThemeDevtools extends LitElement {
       .header {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 8px 12px;
+        gap: 8px;
+        padding: 6px 12px;
         background: var(--tdt-bg-secondary);
         border-bottom: 1px solid var(--tdt-border);
         flex-wrap: wrap;
         flex-shrink: 0;
+      }
+
+      .header__info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .header__template {
@@ -134,10 +150,12 @@ export class ThemeDevtools extends LitElement {
         color: var(--tdt-text-muted);
       }
 
-      .header__cart {
+      .header__actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         margin-left: auto;
-        color: var(--tdt-text-muted);
-        font-size: 11px;
+        flex-wrap: wrap;
       }
 
       .tabs {
@@ -178,25 +196,6 @@ export class ThemeDevtools extends LitElement {
       .tab--drag-over {
         background: var(--tdt-bg-hover);
         border-left: 2px solid var(--tdt-accent);
-      }
-
-      .actions-bar {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        background: var(--tdt-bg);
-        border-bottom: 1px solid var(--tdt-border);
-        flex-shrink: 0;
-        flex-wrap: wrap;
-      }
-
-      .actions-bar__label {
-        font-size: 10px;
-        color: var(--tdt-text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-right: 4px;
       }
 
       .action-btn {
@@ -574,6 +573,26 @@ export class ThemeDevtools extends LitElement {
     this._showActionFeedback('Session cleared');
   }
 
+  _clearAllCookies() {
+    const cookies = document.cookie.split(';');
+    if (cookies.length === 0 || (cookies.length === 1 && !cookies[0].trim())) {
+      this._showActionFeedback('No cookies to clear');
+      return;
+    }
+
+    if (confirm(`Clear all ${cookies.filter(c => c.trim()).length} cookies? This may log you out.`)) {
+      cookies.forEach(cookie => {
+        const name = cookie.split('=')[0].trim();
+        if (name) {
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname}`;
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${window.location.hostname}`;
+        }
+      });
+      this._showActionFeedback('Cookies cleared');
+    }
+  }
+
   _showActionFeedback(message) {
     const el = document.createElement('div');
     el.textContent = message;
@@ -641,7 +660,10 @@ export class ThemeDevtools extends LitElement {
     return html`
       <div class="dock ${this.isCollapsed ? 'dock--collapsed' : ''}">
         <div class="dock__handle" @click=${this._toggleCollapse}>
-          <div class="dock__title">Theme Devtools</div>
+          <div class="dock__title">
+            Theme Devtools
+            ${meta.theme?.name ? html`<span class="dock__theme-name">${meta.theme.name}</span>` : ''}
+          </div>
           <div class="dock__controls">
             <button class="dock__btn" @click=${(e) => { e.stopPropagation(); this._toggleCollapse(); }}>
               ${this.isCollapsed ? '▲' : '▼'}
@@ -651,17 +673,80 @@ export class ThemeDevtools extends LitElement {
         </div>
 
         <div class="header">
-          <span class="badge badge--${meta.theme?.role || 'unknown'}">
-            ${meta.theme?.role || 'Unknown'}
-          </span>
-          <span class="header__template">
-            ${meta.template?.name || 'Unknown'}${meta.template?.suffix ? `.${meta.template.suffix}` : ''}
-          </span>
-          <span class="header__page-type">${meta.request?.page_type || '—'}</span>
-          ${meta.request?.design_mode ? html`<span class="badge badge--design">Design Mode</span>` : ''}
-          <span class="header__cart">
-            🛒 ${this.cart?.item_count || 0} items • ${this._formatMoney(this.cart?.total_price)}
-          </span>
+          <div class="header__info">
+            <span class="badge badge--${meta.theme?.role || 'unknown'}">
+              ${meta.theme?.role || 'Unknown'}
+            </span>
+            <span class="header__template">
+              ${meta.template?.name || 'Unknown'}${meta.template?.suffix ? `.${meta.template.suffix}` : ''}
+            </span>
+            <span class="header__page-type">${meta.request?.page_type || '—'}</span>
+            ${meta.request?.design_mode ? html`<span class="badge badge--design">Design Mode</span>` : ''}
+          </div>
+
+          <div class="header__actions">
+            <button class="action-btn action-btn--danger" @click=${this._clearCart} title="Clear shopping cart">
+              <span class="action-btn__icon">🗑️</span> Clear Cart
+            </button>
+
+            <button class="action-btn" @click=${this._forceRefresh} title="Hard refresh page">
+              <span class="action-btn__icon">🔄</span> Refresh
+            </button>
+
+            <div class="actions-divider"></div>
+
+            <button class="action-btn" @click=${this._copyPageJSON} title="Copy full page context as JSON">
+              <span class="action-btn__icon">📋</span> Copy JSON
+            </button>
+
+            <button class="action-btn" @click=${this._openThemeEditor} title="Open current page in theme editor">
+              <span class="action-btn__icon">🎨</span> Editor
+            </button>
+
+            <div class="action-dropdown">
+              <button class="action-btn" @click=${this._toggleAdminDropdown} title="Open Shopify admin pages">
+                <span class="action-btn__icon">⚙️</span> Admin ▾
+              </button>
+              ${this.showAdminDropdown ? html`
+                <div class="action-dropdown__menu" @click=${(e) => e.stopPropagation()}>
+                  ${this._getResourceLabel() ? html`
+                    <button class="action-dropdown__item action-dropdown__item--highlight" @click=${this._openResourceInAdmin}>
+                      📄 Open ${this._getResourceLabel()} in Admin
+                    </button>
+                    <div class="action-dropdown__divider"></div>
+                  ` : ''}
+                  <button class="action-dropdown__item" @click=${() => this._openAdminPage('/products?selectedView=all')}>
+                    📦 Products
+                  </button>
+                  <button class="action-dropdown__item" @click=${() => this._openAdminPage('/collections?selectedView=all')}>
+                    📁 Collections
+                  </button>
+                  <button class="action-dropdown__item" @click=${() => this._openAdminPage('/orders')}>
+                    🛒 Orders
+                  </button>
+                  <button class="action-dropdown__item" @click=${() => this._openAdminPage('/discounts')}>
+                    🏷️ Discounts
+                  </button>
+                  <button class="action-dropdown__item" @click=${() => this._openAdminPage('/content/metaobjects')}>
+                    🗃️ Metaobjects
+                  </button>
+                  <div class="action-dropdown__divider"></div>
+                  <button class="action-dropdown__item" @click=${() => this._openAdminPage('/customers')}>
+                    👥 Customers
+                  </button>
+                  <button class="action-dropdown__item" @click=${() => this._openAdminPage('/settings')}>
+                    ⚙️ Settings
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="actions-divider"></div>
+
+            <button class="action-btn action-btn--danger" @click=${this._clearAllCookies} title="Clear all cookies">
+              <span class="action-btn__icon">🍪</span> Clear Cookies
+            </button>
+          </div>
         </div>
 
         <div class="tabs">
@@ -679,76 +764,6 @@ export class ThemeDevtools extends LitElement {
               ${tab.icon} ${tab.label}
             </button>
           `)}
-        </div>
-
-        <div class="actions-bar">
-          <span class="actions-bar__label">⚡ Quick</span>
-          
-          <button class="action-btn action-btn--danger" @click=${this._clearCart} title="Clear shopping cart">
-            <span class="action-btn__icon">🗑️</span> Clear Cart
-          </button>
-          
-          <button class="action-btn" @click=${this._forceRefresh} title="Hard refresh page">
-            <span class="action-btn__icon">🔄</span> Refresh
-          </button>
-          
-          <div class="actions-divider"></div>
-          
-          <button class="action-btn" @click=${this._copyPageJSON} title="Copy full page context as JSON">
-            <span class="action-btn__icon">📋</span> Copy JSON
-          </button>
-          
-          <button class="action-btn" @click=${this._openThemeEditor} title="Open current page in theme editor">
-            <span class="action-btn__icon">🎨</span> Theme Editor
-          </button>
-          
-          <div class="action-dropdown">
-            <button class="action-btn" @click=${this._toggleAdminDropdown} title="Open Shopify admin pages">
-              <span class="action-btn__icon">⚙️</span> Admin ▾
-            </button>
-            ${this.showAdminDropdown ? html`
-              <div class="action-dropdown__menu" @click=${(e) => e.stopPropagation()}>
-                ${this._getResourceLabel() ? html`
-                  <button class="action-dropdown__item action-dropdown__item--highlight" @click=${this._openResourceInAdmin}>
-                    📄 Open ${this._getResourceLabel()} in Admin
-                  </button>
-                  <div class="action-dropdown__divider"></div>
-                ` : ''}
-                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/products?selectedView=all')}>
-                  📦 Products
-                </button>
-                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/collections?selectedView=all')}>
-                  📁 Collections
-                </button>
-                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/orders')}>
-                  🛒 Orders
-                </button>
-                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/discounts')}>
-                  🏷️ Discounts
-                </button>
-                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/content/metaobjects')}>
-                  🗃️ Metaobjects
-                </button>
-                <div class="action-dropdown__divider"></div>
-                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/customers')}>
-                  👥 Customers
-                </button>
-                <button class="action-dropdown__item" @click=${() => this._openAdminPage('/settings')}>
-                  ⚙️ Settings
-                </button>
-              </div>
-            ` : ''}
-          </div>
-          
-          <div class="actions-divider"></div>
-          
-          <button class="action-btn action-btn--danger" @click=${this._clearLocalStorage} title="Clear localStorage">
-            <span class="action-btn__icon">💾</span> Clear Storage
-          </button>
-          
-          <button class="action-btn action-btn--danger" @click=${this._clearSessionStorage} title="Clear sessionStorage">
-            <span class="action-btn__icon">⏱️</span> Clear Session
-          </button>
         </div>
 
         <div class="content">
