@@ -378,6 +378,12 @@ export class ThemeDevtools extends LitElement {
       this.isCollapsed = true;
     }
 
+    const savedTab = localStorage.getItem('theme-devtools-active-tab');
+    const validTabIds = ThemeDevtools.DEFAULT_TABS.map(t => t.id);
+    if (savedTab && validTabIds.includes(savedTab)) {
+      this.activeTab = savedTab;
+    }
+
     const savedOrder = localStorage.getItem('theme-devtools-tab-order');
     if (savedOrder) {
       try {
@@ -606,6 +612,7 @@ export class ThemeDevtools extends LitElement {
 
   _setTab(tabId) {
     this.activeTab = tabId;
+    localStorage.setItem('theme-devtools-active-tab', tabId);
   }
 
   _close() {
