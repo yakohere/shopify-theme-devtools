@@ -44,7 +44,7 @@ export class SeoPanel extends LitElement {
         color: var(--tdt-text-muted);
         border-radius: var(--tdt-radius);
         padding: 4px 10px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         font-family: var(--tdt-font);
       }
@@ -69,7 +69,7 @@ export class SeoPanel extends LitElement {
         padding: 4px 10px;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         transition: all 0.15s ease;
         display: flex;
@@ -94,7 +94,7 @@ export class SeoPanel extends LitElement {
 
       .tab--warning.tab--active {
         background: var(--tdt-warning);
-        color: #000;
+        color: var(--tdt-bg);
       }
 
       .tab--error {
@@ -106,9 +106,9 @@ export class SeoPanel extends LitElement {
       }
 
       .tab__count {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         opacity: 0.8;
-        background: rgba(255,255,255,0.15);
+        background: color-mix(in srgb, var(--tdt-text) 15%, transparent);
         padding: 1px 5px;
         border-radius: 8px;
       }
@@ -131,7 +131,7 @@ export class SeoPanel extends LitElement {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
         font-weight: 700;
         flex-shrink: 0;
         font-family: var(--tdt-font);
@@ -161,13 +161,13 @@ export class SeoPanel extends LitElement {
 
       .score-title {
         font-weight: 600;
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         margin-bottom: 2px;
       }
 
       .score-summary {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
       }
 
@@ -176,7 +176,7 @@ export class SeoPanel extends LitElement {
       }
 
       .section-title {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         font-weight: 600;
         color: var(--tdt-text-muted);
         text-transform: uppercase;
@@ -231,7 +231,7 @@ export class SeoPanel extends LitElement {
 
       .meta-name {
         font-weight: 600;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-accent);
         font-family: var(--tdt-font-mono);
       }
@@ -248,7 +248,7 @@ export class SeoPanel extends LitElement {
         color: var(--tdt-text-muted);
         border-radius: var(--tdt-radius);
         padding: 2px 6px;
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         cursor: pointer;
         opacity: 0;
         transition: all 0.15s ease;
@@ -273,7 +273,7 @@ export class SeoPanel extends LitElement {
       }
 
       .meta-badge {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         padding: 1px 5px;
         border-radius: var(--tdt-radius);
         font-weight: 600;
@@ -287,7 +287,7 @@ export class SeoPanel extends LitElement {
 
       .meta-badge--warning {
         background: var(--tdt-warning);
-        color: #000;
+        color: var(--tdt-bg);
       }
 
       .meta-badge--error {
@@ -296,7 +296,7 @@ export class SeoPanel extends LitElement {
       }
 
       .meta-value {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         word-break: break-word;
       }
@@ -307,13 +307,13 @@ export class SeoPanel extends LitElement {
       }
 
       .meta-hint {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-top: 2px;
       }
 
       .meta-length {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
       }
@@ -351,21 +351,21 @@ export class SeoPanel extends LitElement {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
       }
 
       .serp-preview__domain {
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
         color: #bdc1c6;
       }
 
       .serp-preview__breadcrumb {
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
         color: #9aa0a6;
       }
 
       .serp-preview__title {
-        font-size: 20px;
+        font-size: calc(20px * var(--tdt-scale, 1));
         color: #8ab4f8;
         line-height: 1.3;
         margin-bottom: 4px;
@@ -381,7 +381,7 @@ export class SeoPanel extends LitElement {
       }
 
       .serp-preview__description {
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
         color: #bdc1c6;
         line-height: 1.58;
         display: -webkit-box;
@@ -392,7 +392,7 @@ export class SeoPanel extends LitElement {
 
       .serp-preview__char-count {
         margin-top: 8px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
         display: flex;
@@ -430,7 +430,7 @@ export class SeoPanel extends LitElement {
         align-items: center;
         justify-content: center;
         color: var(--tdt-text-muted);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         overflow: hidden;
         font-family: var(--tdt-font);
       }
@@ -446,7 +446,7 @@ export class SeoPanel extends LitElement {
       }
 
       .og-preview__site {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         text-transform: uppercase;
         margin-bottom: 2px;
@@ -455,7 +455,7 @@ export class SeoPanel extends LitElement {
 
       .og-preview__title {
         font-weight: 600;
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         margin-bottom: 2px;
         display: -webkit-box;
@@ -466,7 +466,7 @@ export class SeoPanel extends LitElement {
       }
 
       .og-preview__description {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -491,7 +491,7 @@ export class SeoPanel extends LitElement {
         align-items: center;
         justify-content: center;
         color: var(--tdt-text-muted);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         overflow: hidden;
         font-family: var(--tdt-font);
       }
@@ -508,21 +508,21 @@ export class SeoPanel extends LitElement {
 
       .twitter-preview__title {
         font-weight: 600;
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         margin-bottom: 2px;
         font-family: var(--tdt-font);
       }
 
       .twitter-preview__description {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-bottom: 2px;
         font-family: var(--tdt-font);
       }
 
       .twitter-preview__domain {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
       }
@@ -551,7 +551,7 @@ export class SeoPanel extends LitElement {
 
       .heading-tag {
         font-weight: 700;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         padding: 2px 6px;
         border-radius: var(--tdt-radius);
         background: var(--tdt-accent);
@@ -564,11 +564,11 @@ export class SeoPanel extends LitElement {
       .heading-tag--h2 { background: #8b5cf6; }
       .heading-tag--h3 { background: #a855f7; }
       .heading-tag--h4 { background: #c084fc; }
-      .heading-tag--h5 { background: #d8b4fe; color: #000; }
-      .heading-tag--h6 { background: #e9d5ff; color: #000; }
+      .heading-tag--h5 { background: #d8b4fe; color: var(--tdt-bg); }
+      .heading-tag--h6 { background: #e9d5ff; color: var(--tdt-bg); }
 
       .heading-text {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         word-break: break-word;
       }
@@ -594,13 +594,13 @@ export class SeoPanel extends LitElement {
       }
 
       .link-stat__value {
-        font-size: 20px;
+        font-size: calc(20px * var(--tdt-scale, 1));
         font-weight: 700;
         color: var(--tdt-text);
       }
 
       .link-stat__label {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-top: 2px;
       }
@@ -622,7 +622,7 @@ export class SeoPanel extends LitElement {
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
         margin-bottom: 4px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
       }
 
       .link-item--nofollow {
@@ -630,7 +630,7 @@ export class SeoPanel extends LitElement {
       }
 
       .link-item__type {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         padding: 2px 5px;
         border-radius: var(--tdt-radius);
         font-weight: 600;
@@ -665,7 +665,7 @@ export class SeoPanel extends LitElement {
 
       .link-item__text {
         color: var(--tdt-text-muted);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         max-width: 200px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -689,13 +689,13 @@ export class SeoPanel extends LitElement {
       }
 
       .content-stat__value {
-        font-size: 18px;
+        font-size: calc(18px * var(--tdt-scale, 1));
         font-weight: 700;
         color: var(--tdt-text);
       }
 
       .content-stat__label {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-top: 2px;
       }
@@ -724,7 +724,7 @@ export class SeoPanel extends LitElement {
       .schema-type {
         font-weight: 600;
         color: var(--tdt-accent);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         font-family: var(--tdt-font);
       }
 
@@ -735,7 +735,7 @@ export class SeoPanel extends LitElement {
       }
 
       .schema-badge {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         padding: 1px 5px;
         border-radius: var(--tdt-radius);
         background: var(--tdt-success);
@@ -744,7 +744,7 @@ export class SeoPanel extends LitElement {
       }
 
       .schema-validate-btn {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         padding: 2px 6px;
         border-radius: var(--tdt-radius);
         background: var(--tdt-bg);
@@ -803,7 +803,7 @@ export class SeoPanel extends LitElement {
 
       .image-item__info {
         padding: 6px;
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         font-family: var(--tdt-font);
       }
 
@@ -849,7 +849,7 @@ export class SeoPanel extends LitElement {
       }
 
       .issue-icon {
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
         flex-shrink: 0;
       }
 
@@ -859,14 +859,14 @@ export class SeoPanel extends LitElement {
 
       .issue-title {
         font-weight: 600;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         margin-bottom: 1px;
         font-family: var(--tdt-font);
       }
 
       .issue-description {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
       }
@@ -889,7 +889,7 @@ export class SeoPanel extends LitElement {
         background: var(--tdt-bg-secondary);
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
@@ -1844,9 +1844,9 @@ export class SeoPanel extends LitElement {
     if (this.jsonLdData.length === 0) {
       return html`
         <div class="empty-state">
-          <div style="font-size: 32px; margin-bottom: 8px;">📋</div>
+          <div style="font-size: calc(32px * var(--tdt-scale, 1)); margin-bottom: 8px;">📋</div>
           <div>No JSON-LD structured data found</div>
-          <div style="font-size: 11px; margin-top: 8px; color: var(--tdt-text-muted);">
+          <div style="font-size: calc(11px * var(--tdt-scale, 1)); margin-top: 8px; color: var(--tdt-text-muted);">
             Add structured data to improve rich snippets in search results
           </div>
         </div>

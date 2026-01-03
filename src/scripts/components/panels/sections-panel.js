@@ -61,12 +61,12 @@ export class SectionsPanel extends LitElement {
 
       .section-type {
         color: var(--tdt-accent);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
       }
 
       .section-blocks {
         color: var(--tdt-text-muted);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
       }
     `
   ];

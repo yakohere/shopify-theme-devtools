@@ -43,7 +43,7 @@ export class CartPanel extends LitElement {
       .stats {
         display: flex;
         gap: 12px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
       }
 
@@ -66,7 +66,7 @@ export class CartPanel extends LitElement {
         background: var(--tdt-bg-secondary);
         border-radius: var(--tdt-radius);
         margin-bottom: 8px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
       }
 
       .diff__added { color: var(--tdt-success); }
@@ -76,13 +76,13 @@ export class CartPanel extends LitElement {
       table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
       }
 
       th {
         text-align: left;
         padding: 4px 8px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         font-weight: 600;
         color: var(--tdt-text-muted);
         text-transform: uppercase;
@@ -128,12 +128,12 @@ export class CartPanel extends LitElement {
 
       .item-variant {
         color: var(--tdt-text-muted);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
       }
 
       .item-sku {
         color: var(--tdt-text-muted);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         font-family: var(--tdt-font-mono);
       }
 
@@ -147,12 +147,12 @@ export class CartPanel extends LitElement {
         width: 70px;
         padding: 2px 4px;
         text-align: center;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
       }
 
       .remove-btn {
         padding: 2px 6px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         line-height: 1;
         background: transparent;
         border: 1px solid var(--tdt-border);
@@ -172,7 +172,7 @@ export class CartPanel extends LitElement {
         align-items: center;
         gap: 4px;
         padding: 4px 8px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         background: var(--tdt-bg-secondary);
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
@@ -206,7 +206,7 @@ export class CartPanel extends LitElement {
         padding: 8px 12px;
         background: var(--tdt-bg);
         border-bottom: 1px solid var(--tdt-border);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         font-weight: 600;
       }
 
@@ -221,7 +221,7 @@ export class CartPanel extends LitElement {
         justify-content: space-between;
         padding: 8px 12px;
         border-bottom: 1px solid var(--tdt-border);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
       }
 
       .history-item:last-child {
@@ -247,7 +247,7 @@ export class CartPanel extends LitElement {
       }
 
       .history-changes span {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         max-width: 200px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -256,7 +256,7 @@ export class CartPanel extends LitElement {
 
       .history-restore {
         padding: 2px 8px;
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         background: var(--tdt-accent);
         color: white;
         border: none;
@@ -272,7 +272,7 @@ export class CartPanel extends LitElement {
         padding: 20px;
         text-align: center;
         color: var(--tdt-text-muted);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
       }
 
       .copied-toast {
@@ -284,7 +284,7 @@ export class CartPanel extends LitElement {
         color: white;
         padding: 8px 16px;
         border-radius: var(--tdt-radius);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         z-index: 1000;
         animation: fadeInOut 2s ease-in-out;
       }
@@ -305,12 +305,12 @@ export class CartPanel extends LitElement {
         padding: 6px 8px;
         background: var(--tdt-bg-secondary);
         border-radius: var(--tdt-radius);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
       }
 
       .quick-add-row input {
         padding: 4px 8px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
         background: var(--tdt-bg);
@@ -332,7 +332,7 @@ export class CartPanel extends LitElement {
 
       .quick-add-row .btn--mini {
         padding: 4px 8px;
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
       }
 
       /* Inline discount display */
@@ -350,7 +350,7 @@ export class CartPanel extends LitElement {
         padding: 2px 6px;
         background: rgba(16, 185, 129, 0.15);
         border-radius: 3px;
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         color: var(--tdt-success);
       }
 
@@ -363,7 +363,7 @@ export class CartPanel extends LitElement {
       .discount-input-inline input {
         width: 80px;
         padding: 2px 6px;
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         border: 1px solid var(--tdt-border);
         border-radius: 3px;
         background: var(--tdt-bg);
@@ -380,7 +380,7 @@ export class CartPanel extends LitElement {
         background: var(--tdt-bg-secondary);
         border-radius: var(--tdt-radius);
         margin-bottom: 8px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         flex-wrap: wrap;
       }
 
@@ -398,7 +398,7 @@ export class CartPanel extends LitElement {
 
       .meta-toggle {
         padding: 2px 6px;
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         background: transparent;
         border: 1px solid var(--tdt-border);
         border-radius: 3px;
@@ -424,7 +424,7 @@ export class CartPanel extends LitElement {
         border-radius: var(--tdt-radius);
         padding: 10px;
         margin-bottom: 8px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
       }
 
       .meta-panel-header {
@@ -433,7 +433,7 @@ export class CartPanel extends LitElement {
         justify-content: space-between;
         margin-bottom: 8px;
         font-weight: 600;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
       }
 
       .meta-panel-close {
@@ -441,7 +441,7 @@ export class CartPanel extends LitElement {
         border: none;
         color: var(--tdt-text-muted);
         cursor: pointer;
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
         line-height: 1;
         padding: 0;
       }
@@ -468,7 +468,7 @@ export class CartPanel extends LitElement {
 
       .attr-input {
         padding: 3px 6px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         border: 1px solid var(--tdt-border);
         border-radius: 3px;
         background: var(--tdt-bg);
@@ -498,7 +498,7 @@ export class CartPanel extends LitElement {
         width: 100%;
         min-height: 50px;
         padding: 6px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         border: 1px solid var(--tdt-border);
         border-radius: 3px;
         background: var(--tdt-bg);
@@ -517,7 +517,7 @@ export class CartPanel extends LitElement {
         padding: 8px 12px;
         background: var(--tdt-bg);
         border-top: 1px solid var(--tdt-border);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
       }
 
       .item-detail-row {
@@ -559,14 +559,14 @@ export class CartPanel extends LitElement {
         background: rgba(168, 85, 247, 0.1);
         border: 1px solid #a855f7;
         border-radius: var(--tdt-radius);
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         color: #a855f7;
       }
 
       .compare-price {
         text-decoration: line-through;
         color: var(--tdt-text-muted);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         margin-right: 4px;
       }
 
@@ -575,7 +575,7 @@ export class CartPanel extends LitElement {
         color: white;
         padding: 1px 4px;
         border-radius: 2px;
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         margin-left: 4px;
       }
 
@@ -587,7 +587,7 @@ export class CartPanel extends LitElement {
 
       .quick-action-btn {
         padding: 3px 8px;
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         background: var(--tdt-bg-secondary);
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
@@ -607,7 +607,7 @@ export class CartPanel extends LitElement {
         color: var(--tdt-text-muted);
         cursor: pointer;
         padding: 2px 4px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
       }
 
       .expand-btn:hover {
@@ -622,7 +622,7 @@ export class CartPanel extends LitElement {
 
       .toggle-btn {
         padding: 4px 10px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         background: var(--tdt-bg-secondary);
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
@@ -655,7 +655,7 @@ export class CartPanel extends LitElement {
 
       .total-discount {
         color: var(--tdt-success);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         margin-left: 8px;
       }
     `
@@ -1341,7 +1341,7 @@ export class CartPanel extends LitElement {
               🔄 ${sellingPlan.selling_plan?.name || 'Subscription'}
             </span>
             ${sellingPlan.price_adjustments?.length > 0 ? html`
-              <div style="margin-top: 4px; font-size: 9px; color: var(--tdt-text-muted);">
+              <div style="margin-top: 4px; font-size: calc(9px * var(--tdt-scale, 1)); color: var(--tdt-text-muted);">
                 ${sellingPlan.price_adjustments.map(adj => html`
                   <div>${adj.position}: ${this._formatMoney(adj.price)}</div>
                 `)}
@@ -1478,7 +1478,7 @@ export class CartPanel extends LitElement {
                         </span>
                       ` : ''}
                       ${hasProperties ? html`
-                        <div style="font-size: 9px; color: var(--tdt-text-muted); margin-top: 2px;">
+                        <div style="font-size: calc(9px * var(--tdt-scale, 1)); color: var(--tdt-text-muted); margin-top: 2px;">
                           ${Object.keys(item.properties).length} properties
                         </div>
                       ` : ''}

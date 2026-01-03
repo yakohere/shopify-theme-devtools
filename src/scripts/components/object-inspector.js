@@ -17,7 +17,7 @@ export class ObjectInspector extends LitElement {
       :host {
         display: block;
         font-family: var(--tdt-font);
-        font-size: var(--tdt-font-size);
+        font-size: calc(12px * var(--tdt-scale, 1));
       }
 
       .node {
@@ -38,7 +38,7 @@ export class ObjectInspector extends LitElement {
         content: '▶';
         position: absolute;
         left: 2px;
-        font-size: 8px;
+        font-size: calc(8px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         transition: transform 0.15s ease;
       }
@@ -60,11 +60,11 @@ export class ObjectInspector extends LitElement {
       }
 
       .key:hover {
-        background: rgba(199, 146, 234, 0.2);
+        background: color-mix(in srgb, var(--tdt-key) 20%, transparent);
       }
 
       .key--copied {
-        background: rgba(34, 197, 94, 0.3) !important;
+        background: color-mix(in srgb, var(--tdt-success) 30%, transparent) !important;
         transition: background 0.3s ease;
       }
 
@@ -101,7 +101,7 @@ export class ObjectInspector extends LitElement {
 
       .preview-keys {
         color: var(--tdt-text-muted);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         margin-left: 4px;
       }
 
@@ -111,7 +111,7 @@ export class ObjectInspector extends LitElement {
       }
 
       .highlight {
-        background: rgba(250, 204, 21, 0.3);
+        background: color-mix(in srgb, var(--tdt-warning) 30%, transparent);
         border-radius: 2px;
         padding: 0 1px;
       }
@@ -122,7 +122,7 @@ export class ObjectInspector extends LitElement {
 
       .match-count {
         color: var(--tdt-text-muted);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         margin-left: 6px;
         background: var(--tdt-bg-secondary);
         padding: 1px 5px;
@@ -135,7 +135,7 @@ export class ObjectInspector extends LitElement {
         border: 1px solid var(--tdt-border);
         border-radius: 3px;
         padding: 1px 4px;
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         cursor: pointer;
         margin-left: 6px;
@@ -166,7 +166,7 @@ export class ObjectInspector extends LitElement {
 
       .array-preview-item {
         color: var(--tdt-text-muted);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
       }
 
       .array-preview-item--string {

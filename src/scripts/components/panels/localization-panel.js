@@ -37,12 +37,12 @@ export class LocalizationPanel extends LitElement {
       }
 
       .info-card__icon {
-        font-size: 20px;
+        font-size: calc(20px * var(--tdt-scale, 1));
         margin-bottom: 6px;
       }
 
       .info-card__label {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: var(--tdt-text-muted);
@@ -52,11 +52,11 @@ export class LocalizationPanel extends LitElement {
       .info-card__value {
         font-weight: 600;
         color: var(--tdt-text);
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
       }
 
       .info-card__subvalue {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-top: 2px;
       }
@@ -66,7 +66,7 @@ export class LocalizationPanel extends LitElement {
       }
 
       .section-title {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         font-weight: 600;
         color: var(--tdt-text-muted);
         text-transform: uppercase;
@@ -97,7 +97,7 @@ export class LocalizationPanel extends LitElement {
         padding: 4px 10px;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         transition: all 0.15s ease;
         display: flex;
@@ -121,7 +121,7 @@ export class LocalizationPanel extends LitElement {
       }
 
       .locale-btn__flag {
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
       }
 
       .tabs {
@@ -138,7 +138,7 @@ export class LocalizationPanel extends LitElement {
         padding: 4px 10px;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         transition: all 0.15s ease;
         display: flex;
@@ -163,13 +163,13 @@ export class LocalizationPanel extends LitElement {
 
       .tab--warning.tab--active {
         background: var(--tdt-warning);
-        color: #000;
+        color: var(--tdt-bg);
       }
 
       .tab__count {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         opacity: 0.8;
-        background: rgba(255,255,255,0.15);
+        background: color-mix(in srgb, var(--tdt-text) 15%, transparent);
         padding: 1px 5px;
         border-radius: 8px;
       }
@@ -199,7 +199,7 @@ export class LocalizationPanel extends LitElement {
 
       .translation-key {
         font-family: var(--tdt-font-mono);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-accent);
         margin-bottom: 4px;
         cursor: pointer;
@@ -219,7 +219,7 @@ export class LocalizationPanel extends LitElement {
 
       .translation-key__copy {
         opacity: 0;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
       }
 
@@ -228,7 +228,7 @@ export class LocalizationPanel extends LitElement {
       }
 
       .translation-value {
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
         color: var(--tdt-text);
       }
 
@@ -238,7 +238,7 @@ export class LocalizationPanel extends LitElement {
       }
 
       .translation-context {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-top: 4px;
         display: flex;
@@ -253,7 +253,7 @@ export class LocalizationPanel extends LitElement {
       }
 
       .empty-state__icon {
-        font-size: 32px;
+        font-size: calc(32px * var(--tdt-scale, 1));
         margin-bottom: 8px;
       }
 
@@ -285,16 +285,16 @@ export class LocalizationPanel extends LitElement {
       }
 
       .country-btn__flag {
-        font-size: 20px;
+        font-size: calc(20px * var(--tdt-scale, 1));
       }
 
       .country-btn__name {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         margin-top: 4px;
       }
 
       .country-btn__currency {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         opacity: 0.7;
       }
 
@@ -307,14 +307,14 @@ export class LocalizationPanel extends LitElement {
       }
 
       .url-helper__label {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-bottom: 6px;
       }
 
       .url-helper__url {
         font-family: var(--tdt-font-mono);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-accent);
         word-break: break-all;
         background: var(--tdt-bg);
@@ -335,7 +335,7 @@ export class LocalizationPanel extends LitElement {
       .btn {
         padding: 6px 12px;
         border-radius: var(--tdt-radius);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         border: 1px solid var(--tdt-border);
         background: var(--tdt-bg-secondary);
@@ -359,7 +359,7 @@ export class LocalizationPanel extends LitElement {
         padding: 8px 12px;
         background: var(--tdt-bg-secondary);
         border-radius: var(--tdt-radius);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
       }
 
       .stat {
@@ -369,7 +369,7 @@ export class LocalizationPanel extends LitElement {
 
       .stat-label {
         color: var(--tdt-text-muted);
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         text-transform: uppercase;
       }
 

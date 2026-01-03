@@ -53,7 +53,7 @@ export class ConsolePanel extends LitElement {
         padding: 4px 10px;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         transition: all 0.15s ease;
         display: flex;
@@ -86,13 +86,13 @@ export class ConsolePanel extends LitElement {
 
       .filter-tab--warn.filter-tab--active {
         background: var(--tdt-warning);
-        color: #000;
+        color: var(--tdt-bg);
       }
 
       .filter-tab__count {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         opacity: 0.8;
-        background: rgba(255,255,255,0.15);
+        background: color-mix(in srgb, var(--tdt-text) 15%, transparent);
         padding: 1px 5px;
         border-radius: 8px;
       }
@@ -103,7 +103,7 @@ export class ConsolePanel extends LitElement {
         border-radius: var(--tdt-radius);
         padding: 4px 10px;
         color: var(--tdt-text-muted);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
       }
 
@@ -123,7 +123,7 @@ export class ConsolePanel extends LitElement {
         color: var(--tdt-text-muted);
         border-radius: var(--tdt-radius);
         padding: 4px 10px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
       }
 
@@ -143,8 +143,9 @@ export class ConsolePanel extends LitElement {
         background: var(--tdt-bg-secondary);
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         overflow: hidden;
+        margin-bottom: 4px;
       }
 
       .log-item--error {
@@ -184,7 +185,7 @@ export class ConsolePanel extends LitElement {
       }
 
       .log-type {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         padding: 2px 6px;
         border-radius: var(--tdt-radius);
         font-weight: 600;
@@ -199,7 +200,7 @@ export class ConsolePanel extends LitElement {
 
       .log-type--warn {
         background: var(--tdt-warning);
-        color: #000;
+        color: var(--tdt-bg);
       }
 
       .log-type--info {
@@ -235,14 +236,14 @@ export class ConsolePanel extends LitElement {
         color: var(--tdt-text-muted);
         padding: 2px 8px;
         border-radius: 10px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         font-weight: 600;
         flex-shrink: 0;
       }
 
       .log-time {
         color: var(--tdt-text-muted);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         flex-shrink: 0;
       }
 
@@ -254,7 +255,7 @@ export class ConsolePanel extends LitElement {
 
       .log-stack {
         font-family: var(--tdt-font-mono);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         white-space: pre-wrap;
         max-height: 150px;
@@ -266,7 +267,7 @@ export class ConsolePanel extends LitElement {
       }
 
       .log-source {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-top: 6px;
       }
@@ -287,7 +288,7 @@ export class ConsolePanel extends LitElement {
       }
 
       .empty-state__icon {
-        font-size: 32px;
+        font-size: calc(32px * var(--tdt-scale, 1));
         margin-bottom: 8px;
       }
 
@@ -296,7 +297,7 @@ export class ConsolePanel extends LitElement {
       }
 
       .section-title {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         font-weight: 600;
         color: var(--tdt-text-muted);
         text-transform: uppercase;
@@ -330,13 +331,13 @@ export class ConsolePanel extends LitElement {
       }
 
       .deprecation-message {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         margin-top: 4px;
       }
 
       .deprecation-replacement {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-top: 4px;
       }
@@ -377,7 +378,7 @@ export class ConsolePanel extends LitElement {
       .log-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         margin-top: 8px;
       }
 
@@ -406,7 +407,7 @@ export class ConsolePanel extends LitElement {
         display: grid;
         grid-template-columns: auto 1fr;
         gap: 4px 12px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         margin-top: 8px;
       }
 
@@ -424,7 +425,7 @@ export class ConsolePanel extends LitElement {
         display: inline-block;
         padding: 2px 6px;
         border-radius: var(--tdt-radius);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         font-weight: 600;
       }
 
@@ -439,7 +440,7 @@ export class ConsolePanel extends LitElement {
       }
 
       .persist-indicator {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-left: auto;
         display: flex;
@@ -472,7 +473,7 @@ export class ConsolePanel extends LitElement {
 
       .log-type--asset {
         background: #eab308;
-        color: #000;
+        color: var(--tdt-bg);
       }
 
       .log-item--schema {
@@ -486,7 +487,7 @@ export class ConsolePanel extends LitElement {
       }
 
       .liquid-category {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         padding: 1px 4px;
         border-radius: 3px;
         background: var(--tdt-bg);
@@ -496,7 +497,7 @@ export class ConsolePanel extends LitElement {
       }
 
       .element-path {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font-mono);
         margin-top: 4px;
@@ -506,7 +507,7 @@ export class ConsolePanel extends LitElement {
       }
 
       .liquid-hint {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-top: 6px;
         padding: 6px 8px;

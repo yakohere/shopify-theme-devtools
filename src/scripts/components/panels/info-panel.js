@@ -21,7 +21,7 @@ export class InfoPanel extends LitElement {
       }
 
       .section__title {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;

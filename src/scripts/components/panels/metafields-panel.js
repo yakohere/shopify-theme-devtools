@@ -38,7 +38,7 @@ export class MetafieldsPanel extends LitElement {
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
         color: var(--tdt-text);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         font-family: var(--tdt-font);
       }
 
@@ -58,7 +58,7 @@ export class MetafieldsPanel extends LitElement {
         padding: 4px 8px;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         cursor: pointer;
         transition: all 0.15s ease;
         white-space: nowrap;
@@ -76,7 +76,7 @@ export class MetafieldsPanel extends LitElement {
       }
 
       .stats {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
       }
 
@@ -100,7 +100,7 @@ export class MetafieldsPanel extends LitElement {
         padding: 4px 8px;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         cursor: pointer;
         transition: all 0.15s ease;
         display: flex;
@@ -124,14 +124,14 @@ export class MetafieldsPanel extends LitElement {
       }
 
       .resource-tab__count {
-        font-size: 9px;
-        background: rgba(255,255,255,0.15);
+        font-size: calc(9px * var(--tdt-scale, 1));
+        background: color-mix(in srgb, var(--tdt-text) 15%, transparent);
         padding: 1px 4px;
         border-radius: 6px;
       }
 
       .resource-tab__filled {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         color: var(--tdt-success);
       }
 
@@ -161,14 +161,14 @@ export class MetafieldsPanel extends LitElement {
 
       .namespace-name {
         font-weight: 600;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-accent);
         font-family: var(--tdt-font-mono);
         flex: 1;
       }
 
       .namespace-stats {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         display: flex;
         gap: 6px;
@@ -179,7 +179,7 @@ export class MetafieldsPanel extends LitElement {
       }
 
       .expand-icon {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         transition: transform 0.15s ease;
       }
@@ -198,7 +198,7 @@ export class MetafieldsPanel extends LitElement {
       .metafield {
         padding: 6px 8px;
         border-radius: var(--tdt-radius);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         margin-bottom: 2px;
         background: var(--tdt-bg-secondary);
         border: 1px solid var(--tdt-border);
@@ -238,7 +238,7 @@ export class MetafieldsPanel extends LitElement {
       }
 
       .metafield__type {
-        font-size: 8px;
+        font-size: calc(8px * var(--tdt-scale, 1));
         padding: 2px 5px;
         border-radius: 3px;
         text-transform: uppercase;
@@ -249,7 +249,7 @@ export class MetafieldsPanel extends LitElement {
       }
 
       .metafield__category {
-        font-size: 8px;
+        font-size: calc(8px * var(--tdt-scale, 1));
         padding: 2px 4px;
         border-radius: 3px;
         background: var(--tdt-bg);
@@ -274,13 +274,13 @@ export class MetafieldsPanel extends LitElement {
       .type--unknown { background: var(--tdt-bg); color: var(--tdt-text-muted); }
 
       .metafield__name {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         font-weight: 500;
       }
 
       .metafield__description {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-top: 2px;
         line-height: 1.4;
@@ -297,7 +297,7 @@ export class MetafieldsPanel extends LitElement {
       .metafield__value--empty {
         color: var(--tdt-text-muted);
         font-style: italic;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
       }
 
       .value--string { color: var(--tdt-string); }
@@ -307,7 +307,7 @@ export class MetafieldsPanel extends LitElement {
       .value--json { 
         color: var(--tdt-text-muted); 
         font-family: var(--tdt-font-mono);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         white-space: pre-wrap;
       }
 
@@ -320,7 +320,7 @@ export class MetafieldsPanel extends LitElement {
       .action-btn {
         opacity: 0;
         padding: 2px 6px;
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         background: var(--tdt-bg);
         border: 1px solid var(--tdt-border);
         border-radius: 3px;
@@ -347,20 +347,20 @@ export class MetafieldsPanel extends LitElement {
       }
 
       .empty-state__icon {
-        font-size: 32px;
+        font-size: calc(32px * var(--tdt-scale, 1));
         margin-bottom: 12px;
         opacity: 0.5;
       }
 
       .empty-state__title {
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
         font-weight: 600;
         color: var(--tdt-text);
         margin-bottom: 8px;
       }
 
       .empty-state__hint {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         max-width: 300px;
         margin: 0 auto;
         line-height: 1.5;
@@ -370,7 +370,7 @@ export class MetafieldsPanel extends LitElement {
         padding: 20px;
         text-align: center;
         color: var(--tdt-text-muted);
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
       }
 
       .schema-notice {
@@ -379,7 +379,7 @@ export class MetafieldsPanel extends LitElement {
         border-radius: var(--tdt-radius);
         padding: 8px 12px;
         margin-bottom: 12px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text);
       }
 

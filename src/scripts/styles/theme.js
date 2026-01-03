@@ -1,30 +1,64 @@
 import { css } from 'lit';
 
+// Theme definitions
+export const THEMES = {
+  dark: {
+    '--tdt-bg': '#1a1a1a',
+    '--tdt-bg-secondary': '#242424',
+    '--tdt-bg-hover': '#2a2a2a',
+    '--tdt-border': '#333',
+    '--tdt-text': '#e0e0e0',
+    '--tdt-text-muted': '#888',
+    '--tdt-accent': '#3b82f6',
+    '--tdt-accent-hover': '#2563eb',
+    '--tdt-success': '#22c55e',
+    '--tdt-warning': '#eab308',
+    '--tdt-error': '#ef4444',
+    '--tdt-danger': '#ef4444',
+    '--tdt-string': '#a5d6ff',
+    '--tdt-number': '#79c0ff',
+    '--tdt-boolean': '#ff7b72',
+    '--tdt-null': '#888',
+    '--tdt-key': '#c792ea',
+  },
+  light: {
+    '--tdt-bg': '#ffffff',
+    '--tdt-bg-secondary': '#f5f5f5',
+    '--tdt-bg-hover': '#ebebeb',
+    '--tdt-border': '#e0e0e0',
+    '--tdt-text': '#1a1a1a',
+    '--tdt-text-muted': '#666',
+    '--tdt-accent': '#2563eb',
+    '--tdt-accent-hover': '#1d4ed8',
+    '--tdt-success': '#16a34a',
+    '--tdt-warning': '#ca8a04',
+    '--tdt-error': '#dc2626',
+    '--tdt-danger': '#dc2626',
+    '--tdt-string': '#0969da',
+    '--tdt-number': '#0550ae',
+    '--tdt-boolean': '#cf222e',
+    '--tdt-null': '#666',
+    '--tdt-key': '#8250df',
+  },
+};
+
+// Scale values for font sizes
+export const FONT_SCALES = {
+  small: 0.9,
+  medium: 1,
+  large: 1.15,
+};
+
+/**
+ * Base styles for all components.
+ * CSS variables are inherited from the parent theme-devtools component.
+ * Child components should NOT redefine these variables.
+ */
 export const baseStyles = css`
   :host {
-    --tdt-bg: #1a1a1a;
-    --tdt-bg-secondary: #242424;
-    --tdt-bg-hover: #2a2a2a;
-    --tdt-border: #333;
-    --tdt-text: #e0e0e0;
-    --tdt-text-muted: #888;
-    --tdt-accent: #3b82f6;
-    --tdt-accent-hover: #2563eb;
-    --tdt-success: #22c55e;
-    --tdt-warning: #eab308;
-    --tdt-danger: #ef4444;
-    --tdt-string: #a5d6ff;
-    --tdt-number: #79c0ff;
-    --tdt-boolean: #ff7b72;
-    --tdt-null: #888;
-    --tdt-key: #c792ea;
-    --tdt-font: ui-monospace, 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
-    --tdt-font-size: 12px;
-    --tdt-radius: 4px;
-
-    all: initial;
+    /* Inherit all CSS custom properties from parent */
     font-family: var(--tdt-font);
-    font-size: var(--tdt-font-size);
+    font-size: calc(12px * var(--tdt-scale, 1));
     line-height: 1.5;
     color: var(--tdt-text);
     display: block;
@@ -32,7 +66,6 @@ export const baseStyles = css`
 
   *, *::before, *::after {
     box-sizing: border-box;
-    font-family: inherit;
   }
 
   button {
@@ -46,11 +79,11 @@ export const baseStyles = css`
     gap: 0.5rem;
     background: var(--tdt-bg-secondary);
     border: 1px solid var(--tdt-border);
-    border-radius: var(--tdt-radius);
+    border-radius: var(--tdt-radius, 4px);
     padding: 6px 12px;
     color: var(--tdt-text);
     font-family: var(--tdt-font);
-    font-size: 11px;
+    font-size: calc(11px * var(--tdt-scale, 1));
     cursor: pointer;
     transition: all 0.15s ease;
   }
@@ -67,7 +100,7 @@ export const baseStyles = css`
 
   .btn--sm {
     padding: 4px 8px;
-    font-size: 10px;
+    font-size: calc(10px * var(--tdt-scale, 1));
   }
 
   .btn--danger {
@@ -80,7 +113,7 @@ export const baseStyles = css`
   }
 
   .badge {
-    font-size: 10px;
+    font-size: calc(10px * var(--tdt-scale, 1));
     padding: 2px 8px;
     border-radius: 10px;
     font-weight: 600;
@@ -112,7 +145,7 @@ export const baseStyles = css`
 
   input, select, textarea {
     font-family: var(--tdt-font);
-    font-size: var(--tdt-font-size);
+    font-size: calc(12px * var(--tdt-scale, 1));
   }
 
   input[type="text"],
@@ -120,7 +153,7 @@ export const baseStyles = css`
   input[type="search"] {
     background: var(--tdt-bg-secondary);
     border: 1px solid var(--tdt-border);
-    border-radius: var(--tdt-radius);
+    border-radius: var(--tdt-radius, 4px);
     padding: 6px 10px;
     color: var(--tdt-text);
   }
@@ -131,3 +164,43 @@ export const baseStyles = css`
   }
 `;
 
+/**
+ * Root styles for the main theme-devtools component only.
+ * This defines all CSS custom properties that child components inherit.
+ */
+export const rootStyles = css`
+  :host {
+    /* Default dark theme - will be overridden by JS */
+    --tdt-bg: #1a1a1a;
+    --tdt-bg-secondary: #242424;
+    --tdt-bg-hover: #2a2a2a;
+    --tdt-border: #333;
+    --tdt-text: #e0e0e0;
+    --tdt-text-muted: #888;
+    --tdt-accent: #3b82f6;
+    --tdt-accent-hover: #2563eb;
+    --tdt-success: #22c55e;
+    --tdt-warning: #eab308;
+    --tdt-error: #ef4444;
+    --tdt-danger: #ef4444;
+    --tdt-string: #a5d6ff;
+    --tdt-number: #79c0ff;
+    --tdt-boolean: #ff7b72;
+    --tdt-null: #888;
+    --tdt-key: #c792ea;
+    --tdt-font: ui-monospace, 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    --tdt-scale: 1;
+    --tdt-radius: 4px;
+
+    all: initial;
+    font-family: var(--tdt-font);
+    font-size: calc(12px * var(--tdt-scale, 1));
+    line-height: 1.5;
+    color: var(--tdt-text);
+    display: block;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+`;

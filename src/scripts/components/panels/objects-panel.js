@@ -39,11 +39,11 @@ export class ObjectsPanel extends LitElement {
       .toolbar-btn {
         background: var(--tdt-bg-secondary);
         border: 1px solid var(--tdt-border);
-        border-radius: var(--tdt-radius);
+        border-radius: var(--tdt-radius, 4px);
         padding: 6px 10px;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         cursor: pointer;
         white-space: nowrap;
         display: flex;
@@ -67,7 +67,7 @@ export class ObjectsPanel extends LitElement {
         align-items: center;
         gap: 8px;
         margin-bottom: 8px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
       }
 
       .match-count {
@@ -80,9 +80,9 @@ export class ObjectsPanel extends LitElement {
         border: none;
         color: var(--tdt-text-muted);
         cursor: pointer;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         padding: 2px 6px;
-        border-radius: var(--tdt-radius);
+        border-radius: var(--tdt-radius, 4px);
       }
 
       .clear-search:hover {
@@ -100,11 +100,11 @@ export class ObjectsPanel extends LitElement {
       .object-tab {
         background: var(--tdt-bg-secondary);
         border: 1px solid var(--tdt-border);
-        border-radius: var(--tdt-radius);
+        border-radius: var(--tdt-radius, 4px);
         padding: 4px 10px;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         transition: all 0.15s ease;
         display: flex;
@@ -128,14 +128,14 @@ export class ObjectsPanel extends LitElement {
       }
 
       .object-tab__count {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         padding: 1px 5px;
         border-radius: 8px;
-        background: rgba(255, 255, 255, 0.2);
+        background: color-mix(in srgb, var(--tdt-text) 15%, transparent);
       }
 
       .object-tab--active .object-tab__count {
-        background: rgba(255, 255, 255, 0.3);
+        background: color-mix(in srgb, white 30%, transparent);
       }
 
       .object-tab:not(.object-tab--active) .object-tab__count {
@@ -166,14 +166,14 @@ export class ObjectsPanel extends LitElement {
       .content-title {
         font-weight: 600;
         color: var(--tdt-text);
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
         display: flex;
         align-items: center;
         gap: 8px;
       }
 
       .content-stats {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         font-weight: normal;
       }
@@ -186,11 +186,11 @@ export class ObjectsPanel extends LitElement {
       .action-btn {
         background: var(--tdt-bg-secondary);
         border: 1px solid var(--tdt-border);
-        border-radius: var(--tdt-radius);
+        border-radius: var(--tdt-radius, 4px);
         padding: 4px 8px;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         cursor: pointer;
       }
 
@@ -212,7 +212,7 @@ export class ObjectsPanel extends LitElement {
       }
 
       .null-section-title {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-bottom: 8px;
         text-transform: uppercase;

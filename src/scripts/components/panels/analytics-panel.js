@@ -48,7 +48,7 @@ export class AnalyticsPanel extends LitElement {
         padding: 4px 10px;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         transition: all 0.15s ease;
         display: flex;
@@ -76,9 +76,9 @@ export class AnalyticsPanel extends LitElement {
       }
 
       .filter-tab__count {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         opacity: 0.8;
-        background: rgba(255,255,255,0.15);
+        background: color-mix(in srgb, var(--tdt-text) 15%, transparent);
         padding: 1px 5px;
         border-radius: 8px;
       }
@@ -89,7 +89,7 @@ export class AnalyticsPanel extends LitElement {
         border-radius: var(--tdt-radius);
         padding: 4px 10px;
         color: var(--tdt-text-muted);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
       }
 
@@ -109,7 +109,7 @@ export class AnalyticsPanel extends LitElement {
         color: var(--tdt-text-muted);
         border-radius: var(--tdt-radius);
         padding: 4px 10px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
       }
 
@@ -126,7 +126,7 @@ export class AnalyticsPanel extends LitElement {
         padding: 8px 12px;
         background: var(--tdt-bg-secondary);
         border-radius: var(--tdt-radius);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         flex-wrap: wrap;
       }
 
@@ -137,7 +137,7 @@ export class AnalyticsPanel extends LitElement {
 
       .stat-label {
         color: var(--tdt-text-muted);
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         text-transform: uppercase;
       }
 
@@ -161,7 +161,7 @@ export class AnalyticsPanel extends LitElement {
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
         padding: 2px 8px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         display: flex;
         align-items: center;
         gap: 4px;
@@ -223,7 +223,7 @@ export class AnalyticsPanel extends LitElement {
       }
 
       .event-provider {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         padding: 2px 6px;
         border-radius: var(--tdt-radius);
         font-weight: 600;
@@ -258,7 +258,7 @@ export class AnalyticsPanel extends LitElement {
 
       .event-name {
         font-weight: 600;
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         flex: 1;
       }
@@ -268,7 +268,7 @@ export class AnalyticsPanel extends LitElement {
       }
 
       .event-badge {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         padding: 2px 6px;
         border-radius: var(--tdt-radius);
         background: var(--tdt-success);
@@ -277,7 +277,7 @@ export class AnalyticsPanel extends LitElement {
       }
 
       .event-time {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         flex-shrink: 0;
       }
@@ -289,7 +289,7 @@ export class AnalyticsPanel extends LitElement {
       }
 
       .event-summary {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-bottom: 8px;
         display: flex;
@@ -318,12 +318,12 @@ export class AnalyticsPanel extends LitElement {
       }
 
       .empty-state__icon {
-        font-size: 32px;
+        font-size: calc(32px * var(--tdt-scale, 1));
         margin-bottom: 8px;
       }
 
       .section-title {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         font-weight: 600;
         color: var(--tdt-text-muted);
         text-transform: uppercase;
@@ -347,7 +347,7 @@ export class AnalyticsPanel extends LitElement {
         color: var(--tdt-text-muted);
         border-radius: var(--tdt-radius);
         padding: 4px 10px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
       }
 
@@ -363,7 +363,7 @@ export class AnalyticsPanel extends LitElement {
         color: var(--tdt-text-muted);
         border-radius: var(--tdt-radius);
         padding: 3px 8px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         cursor: pointer;
         opacity: 0;
         transition: opacity 0.15s ease;
@@ -387,7 +387,7 @@ export class AnalyticsPanel extends LitElement {
       }
 
       .event-count {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         padding: 2px 6px;
         border-radius: var(--tdt-radius);
         background: var(--tdt-accent);
@@ -1012,7 +1012,7 @@ export class AnalyticsPanel extends LitElement {
     const detectedProviders = providers.filter(p => this._detectedProviders.has(p));
 
     if (detectedProviders.length === 0) {
-      return html`<span style="color: var(--tdt-text-muted); font-size: 10px;">None detected</span>`;
+      return html`<span style="color: var(--tdt-text-muted); font-size: calc(10px * var(--tdt-scale, 1));">None detected</span>`;
     }
 
     return html`
@@ -1101,7 +1101,7 @@ export class AnalyticsPanel extends LitElement {
           <div class="empty-state">
             <div class="empty-state__icon">📊</div>
             <div>No analytics events captured yet</div>
-            <div style="font-size: 11px; margin-top: 8px;">
+            <div style="font-size: calc(11px * var(--tdt-scale, 1)); margin-top: 8px;">
               Events will appear as they fire (GA4, FB Pixel, dataLayer, etc.)
             </div>
           </div>

@@ -1,8 +1,9 @@
 import { LitElement, html, css } from 'lit';
-import { baseStyles } from '../styles/theme.js';
+import { rootStyles, THEMES, FONT_SCALES } from '../styles/theme.js';
 import { contextParser } from '../services/context.js';
 import { cartAPI } from '../services/cart.js';
 import { sectionHighlighter } from '../services/sections.js';
+import { settingsService } from '../services/settings.js';
 
 import './panels/objects-panel.js';
 // import './panels/sections-panel.js';  // Hidden for now
@@ -17,6 +18,7 @@ import './panels/localization-panel.js';
 import './panels/analytics-panel.js';
 import './panels/seo-panel.js';
 import './panels/apps-panel.js';
+import './panels/preferences-panel.js';
 
 export class ThemeDevtools extends LitElement {
   static properties = {
@@ -28,6 +30,11 @@ export class ThemeDevtools extends LitElement {
     draggedTab: { type: String, state: true },
     dragOverTab: { type: String, state: true },
     showAdminDropdown: { type: Boolean, state: true },
+    panelPosition: { type: String, state: true },
+    panelHeight: { type: String, state: true },
+    floatingX: { type: Number, state: true },
+    floatingY: { type: Number, state: true },
+    isDraggingPanel: { type: Boolean, state: true },
   };
 
   static DEFAULT_TABS = [
@@ -42,27 +49,70 @@ export class ThemeDevtools extends LitElement {
     { id: 'cookies', label: 'Cookies', icon: '🍪' },
     { id: 'storage', label: 'Storage', icon: '💾' },
     { id: 'info', label: 'Info', icon: 'ℹ️' },
+    { id: 'preferences', label: 'Preferences', icon: '⚙️' },
   ];
 
   static styles = [
-    baseStyles,
+    rootStyles,
     css`
       .dock {
         position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 60vh;
         background: var(--tdt-bg);
-        border-top: 1px solid var(--tdt-border);
         display: flex;
         flex-direction: column;
         z-index: 2147483647;
         transition: transform 0.2s ease;
       }
 
-      .dock--collapsed {
+      /* Bottom position (default) */
+      .dock--bottom {
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--tdt-panel-height, 50vh);
+        border-top: 1px solid var(--tdt-border);
+      }
+
+      .dock--bottom.dock--collapsed {
         transform: translateY(calc(100% - 32px));
+      }
+
+      /* Floating position */
+      .dock--floating {
+        position: fixed;
+        width: 700px;
+        height: var(--tdt-panel-height, 50vh);
+        min-width: 400px;
+        min-height: 200px;
+        max-width: calc(100vw - 40px);
+        max-height: calc(100vh - 40px);
+        border: 1px solid var(--tdt-border);
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        resize: both;
+        overflow: hidden;
+      }
+
+      .dock--floating.dock--collapsed {
+        height: 32px !important;
+        width: 550px !important;
+        min-height: 32px;
+        min-width: 550px;
+        resize: none;
+      }
+
+      .dock--floating .dock__handle {
+        border-radius: 8px 8px 0 0;
+        cursor: move;
+      }
+
+      .dock--floating.dock--collapsed .dock__handle {
+        border-radius: 8px;
+      }
+
+      .dock--floating.dock--dragging {
+        opacity: 0.9;
+        transition: none;
       }
 
       .dock__handle {
@@ -80,7 +130,7 @@ export class ThemeDevtools extends LitElement {
 
       .dock__title {
         font-weight: 600;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: var(--tdt-text-muted);
@@ -115,7 +165,7 @@ export class ThemeDevtools extends LitElement {
         color: var(--tdt-text-muted);
         cursor: pointer;
         padding: 4px 8px;
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
         border-radius: var(--tdt-radius);
       }
 
@@ -160,9 +210,12 @@ export class ThemeDevtools extends LitElement {
 
       .tabs {
         display: flex;
+        flex-wrap: wrap;
         background: var(--tdt-bg-secondary);
         border-bottom: 1px solid var(--tdt-border);
         flex-shrink: 0;
+        overflow-y: auto;
+        max-height: 80px;
       }
 
       .tab {
@@ -170,7 +223,7 @@ export class ThemeDevtools extends LitElement {
         border: none;
         color: var(--tdt-text-muted);
         padding: 8px 16px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         font-family: var(--tdt-font);
         cursor: pointer;
         border-bottom: 2px solid transparent;
@@ -203,7 +256,7 @@ export class ThemeDevtools extends LitElement {
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
         padding: 4px 8px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         font-family: var(--tdt-font);
         color: var(--tdt-text-muted);
         cursor: pointer;
@@ -233,7 +286,7 @@ export class ThemeDevtools extends LitElement {
       }
 
       .action-btn__icon {
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
       }
 
       .actions-divider {
@@ -266,7 +319,7 @@ export class ThemeDevtools extends LitElement {
         align-items: center;
         gap: 8px;
         padding: 8px 12px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         cursor: pointer;
         transition: background 0.1s ease;
@@ -314,14 +367,91 @@ export class ThemeDevtools extends LitElement {
   constructor() {
     super();
     this.isCollapsed = false;
-    this.activeTab = 'objects';
+    this.activeTab = settingsService.get('defaultTab') || 'objects';
     this.context = null;
     this.cart = null;
     this._unsubscribeCart = null;
+    this._unsubscribeSettings = null;
     this.tabOrder = null;
     this.draggedTab = null;
     this.dragOverTab = null;
     this.showAdminDropdown = false;
+    this.panelPosition = settingsService.get('panelPosition') || 'bottom';
+    this.panelHeight = settingsService.get('panelHeight') || '50';
+    this.isDraggingPanel = false;
+    this._loadFloatingPosition();
+  }
+
+  _loadFloatingPosition() {
+    try {
+      const stored = localStorage.getItem('tdt-floating-position');
+      if (stored) {
+        const { x, y, width, height } = JSON.parse(stored);
+        this.floatingX = x;
+        this.floatingY = y;
+        this.floatingWidth = width || 700;
+        this.floatingHeight = height || null; // null means use default from settings
+      } else {
+        // Default to bottom-right
+        this.floatingX = window.innerWidth - 720;
+        this.floatingY = window.innerHeight - 400;
+        this.floatingWidth = 700;
+        this.floatingHeight = null;
+      }
+    } catch {
+      this.floatingX = window.innerWidth - 720;
+      this.floatingY = window.innerHeight - 400;
+      this.floatingWidth = 700;
+      this.floatingHeight = null;
+    }
+  }
+
+  _saveFloatingPosition() {
+    try {
+      localStorage.setItem('tdt-floating-position', JSON.stringify({
+        x: this.floatingX,
+        y: this.floatingY,
+        width: this.floatingWidth,
+        height: this.floatingHeight,
+      }));
+    } catch {
+      // Ignore
+    }
+  }
+
+  _setupResizeObserver() {
+    if (this._resizeObserver) return;
+
+    this._resizeObserver = new ResizeObserver((entries) => {
+      if (this.panelPosition !== 'floating' || this.isCollapsed) return;
+
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        // Only save if dimensions changed significantly (to avoid excessive saves)
+        if (Math.abs(width - (this.floatingWidth || 700)) > 5 ||
+            Math.abs(height - (this.floatingHeight || 300)) > 5) {
+          this.floatingWidth = width;
+          this.floatingHeight = height;
+          this._saveFloatingPosition();
+        }
+      }
+    });
+  }
+
+  _observeResize() {
+    if (this.panelPosition !== 'floating') return;
+
+    this._setupResizeObserver();
+    const dock = this.shadowRoot?.querySelector('.dock');
+    if (dock && this._resizeObserver) {
+      this._resizeObserver.observe(dock);
+    }
+  }
+
+  _disconnectResizeObserver() {
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect();
+    }
   }
 
   connectedCallback() {
@@ -329,6 +459,21 @@ export class ThemeDevtools extends LitElement {
     this._init();
     this._bindKeyboard();
     this._restoreState();
+    this._applySettings();
+    this._subscribeToSettings();
+    this._listenForSystemTheme();
+  }
+
+  updated(changedProps) {
+    super.updated(changedProps);
+    // Start observing resize when panel becomes floating
+    if (changedProps.has('panelPosition') && this.panelPosition === 'floating') {
+      this._observeResize();
+    }
+    // Also observe after first render
+    if (this.panelPosition === 'floating' && !this._resizeObserver) {
+      this._observeResize();
+    }
   }
 
   disconnectedCallback() {
@@ -336,6 +481,13 @@ export class ThemeDevtools extends LitElement {
     if (this._unsubscribeCart) {
       this._unsubscribeCart();
     }
+    if (this._unsubscribeSettings) {
+      this._unsubscribeSettings();
+    }
+    if (this._mediaQueryListener) {
+      this._systemThemeQuery?.removeEventListener('change', this._mediaQueryListener);
+    }
+    this._disconnectResizeObserver();
     cartAPI.stopPolling();
     sectionHighlighter.destroy();
     document.removeEventListener('keydown', this._handleKeydown);
@@ -363,12 +515,66 @@ export class ThemeDevtools extends LitElement {
 
   _bindKeyboard() {
     this._handleKeydown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'D') {
+      // Use custom shortcut from settings
+      if (settingsService.matchesShortcut(e)) {
         e.preventDefault();
         this._toggleCollapse();
       }
     };
     document.addEventListener('keydown', this._handleKeydown);
+  }
+
+  _subscribeToSettings() {
+    this._unsubscribeSettings = settingsService.subscribe((key, newValue) => {
+      if (key === 'theme' || key === 'fontSize' || key === '*') {
+        this._applySettings();
+      }
+      if (key === 'panelPosition' || key === '*') {
+        this.panelPosition = settingsService.get('panelPosition') || 'bottom';
+      }
+      if (key === 'panelHeight' || key === '*') {
+        this.panelHeight = settingsService.get('panelHeight') || '50';
+        this._applyPanelHeight();
+      }
+    });
+  }
+
+  _listenForSystemTheme() {
+    // Listen for system theme changes when theme is set to 'system'
+    this._systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    this._mediaQueryListener = () => {
+      if (settingsService.get('theme') === 'system') {
+        this._applySettings();
+      }
+    };
+    this._systemThemeQuery.addEventListener('change', this._mediaQueryListener);
+  }
+
+  _applySettings() {
+    const settings = settingsService.getAll();
+    let activeTheme = settings.theme;
+
+    // Handle system theme
+    if (activeTheme === 'system') {
+      activeTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    const themeVars = THEMES[activeTheme] || THEMES.dark;
+    const scale = FONT_SCALES[settings.fontSize] || FONT_SCALES.medium;
+
+    // Apply CSS variables to the host element
+    for (const [prop, value] of Object.entries(themeVars)) {
+      this.style.setProperty(prop, value);
+    }
+    this.style.setProperty('--tdt-scale', scale);
+
+    // Apply panel height
+    this._applyPanelHeight();
+  }
+
+  _applyPanelHeight() {
+    const height = this.panelHeight || '50';
+    this.style.setProperty('--tdt-panel-height', `${height}vh`);
   }
 
   _restoreState() {
@@ -377,11 +583,13 @@ export class ThemeDevtools extends LitElement {
       this.isCollapsed = true;
     }
 
+    // Only restore saved tab if it exists, otherwise use the default from settings
     const savedTab = localStorage.getItem('theme-devtools-active-tab');
     const validTabIds = ThemeDevtools.DEFAULT_TABS.map(t => t.id);
     if (savedTab && validTabIds.includes(savedTab)) {
       this.activeTab = savedTab;
     }
+    // Note: If no saved tab, activeTab already set from settings in constructor
 
     const savedOrder = localStorage.getItem('theme-devtools-tab-order');
     if (savedOrder) {
@@ -455,6 +663,79 @@ export class ThemeDevtools extends LitElement {
   _resetTabOrder() {
     this.tabOrder = ThemeDevtools.DEFAULT_TABS.map(t => t.id);
     localStorage.removeItem('theme-devtools-tab-order');
+  }
+
+  // Floating panel drag handlers
+  _handlePanelDragStart(e) {
+    if (this.panelPosition !== 'floating') return;
+
+    // Only handle drag on the handle element itself, not its children (buttons)
+    if (e.target.closest('.dock__btn')) return;
+
+    e.preventDefault();
+
+    const dock = this.shadowRoot.querySelector('.dock');
+    const rect = dock.getBoundingClientRect();
+
+    this._dragOffsetX = e.clientX - rect.left;
+    this._dragOffsetY = e.clientY - rect.top;
+    this._dragStartX = e.clientX;
+    this._dragStartY = e.clientY;
+    this._didDrag = false;
+
+    this._handlePanelDragMove = this._handlePanelDragMove.bind(this);
+    this._handlePanelDragEnd = this._handlePanelDragEnd.bind(this);
+
+    document.addEventListener('mousemove', this._handlePanelDragMove);
+    document.addEventListener('mouseup', this._handlePanelDragEnd);
+  }
+
+  _handlePanelDragMove(e) {
+    // Check if mouse moved enough to be considered a drag (5px threshold)
+    const dx = Math.abs(e.clientX - this._dragStartX);
+    const dy = Math.abs(e.clientY - this._dragStartY);
+
+    if (dx > 5 || dy > 5) {
+      this._didDrag = true;
+      this.isDraggingPanel = true;
+    }
+
+    if (!this.isDraggingPanel) return;
+
+    let newX = e.clientX - this._dragOffsetX;
+    let newY = e.clientY - this._dragOffsetY;
+
+    // Constrain to viewport
+    const dock = this.shadowRoot.querySelector('.dock');
+    const rect = dock.getBoundingClientRect();
+
+    newX = Math.max(0, Math.min(newX, window.innerWidth - rect.width));
+    newY = Math.max(0, Math.min(newY, window.innerHeight - rect.height));
+
+    this.floatingX = newX;
+    this.floatingY = newY;
+  }
+
+  _handlePanelDragEnd() {
+    document.removeEventListener('mousemove', this._handlePanelDragMove);
+    document.removeEventListener('mouseup', this._handlePanelDragEnd);
+
+    if (this._didDrag) {
+      this._saveFloatingPosition();
+    }
+
+    this.isDraggingPanel = false;
+    this._didDrag = false;
+  }
+
+  _handleFloatingHandleClick(e) {
+    // Only toggle if we didn't just drag
+    if (this._didDrag) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    this._toggleCollapse();
   }
 
   async _clearCart() {
@@ -605,7 +886,7 @@ export class ThemeDevtools extends LitElement {
       color: white;
       padding: 8px 16px;
       border-radius: 4px;
-      font-size: 12px;
+      font-size: calc(12px * var(--tdt-scale, 1));
       font-family: ui-monospace, 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
       z-index: 2147483647;
       animation: fadeOut 2s forwards;
@@ -657,16 +938,39 @@ export class ThemeDevtools extends LitElement {
 
     const tabs = this._getOrderedTabs();
 
+    const positionClass = `dock--${this.panelPosition || 'bottom'}`;
+    const collapseIcon = this.isCollapsed ? '▲' : '▼';
+
+    // For floating panel, apply position and size styles
+    let floatingStyle = '';
+    if (this.panelPosition === 'floating') {
+      const styles = [`left: ${this.floatingX}px`, `top: ${this.floatingY}px`];
+      if (this.floatingWidth) {
+        styles.push(`width: ${this.floatingWidth}px`);
+      }
+      if (this.floatingHeight) {
+        styles.push(`height: ${this.floatingHeight}px`);
+      }
+      floatingStyle = styles.join('; ') + ';';
+    }
+
     return html`
-      <div class="dock ${this.isCollapsed ? 'dock--collapsed' : ''}">
-        <div class="dock__handle" @click=${this._toggleCollapse}>
+      <div
+        class="dock ${positionClass} ${this.isCollapsed ? 'dock--collapsed' : ''} ${this.isDraggingPanel ? 'dock--dragging' : ''}"
+        style="${floatingStyle}"
+      >
+        <div
+          class="dock__handle"
+          @click=${this._toggleCollapse}
+          @mousedown=${this.panelPosition === 'floating' ? (e) => this._handlePanelDragStart(e) : null}
+        >
           <div class="dock__title">
             Theme Devtools
             ${meta.theme?.name ? html`<span class="dock__theme-name">${meta.theme.name}</span>` : ''}
           </div>
           <div class="dock__controls">
             <button class="dock__btn" @click=${(e) => { e.stopPropagation(); this._toggleCollapse(); }}>
-              ${this.isCollapsed ? '▲' : '▼'}
+              ${collapseIcon}
             </button>
             <button class="dock__btn" @click=${(e) => { e.stopPropagation(); this._close(); }}>×</button>
           </div>
@@ -824,10 +1128,15 @@ export class ThemeDevtools extends LitElement {
             class="panel ${this.activeTab === 'storage' ? 'panel--active' : ''}"
           ></tdt-storage-panel>
           
-          <tdt-info-panel 
+          <tdt-info-panel
             class="panel ${this.activeTab === 'info' ? 'panel--active' : ''}"
             .meta=${meta}
           ></tdt-info-panel>
+
+          <tdt-preferences-panel
+            class="panel ${this.activeTab === 'preferences' ? 'panel--active' : ''}"
+            @settings-changed=${this._applySettings}
+          ></tdt-preferences-panel>
         </div>
       </div>
     `;

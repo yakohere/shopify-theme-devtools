@@ -36,7 +36,7 @@ export class StoragePanel extends LitElement {
         padding: 4px 10px;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         transition: all 0.15s ease;
         display: flex;
@@ -56,9 +56,9 @@ export class StoragePanel extends LitElement {
       }
 
       .storage-tab__count {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         opacity: 0.8;
-        background: rgba(255,255,255,0.15);
+        background: color-mix(in srgb, var(--tdt-text) 15%, transparent);
         padding: 1px 5px;
         border-radius: 8px;
       }
@@ -79,7 +79,7 @@ export class StoragePanel extends LitElement {
         border: none;
         border-radius: var(--tdt-radius);
         padding: 6px 12px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -96,7 +96,7 @@ export class StoragePanel extends LitElement {
         color: var(--tdt-error);
         border-radius: var(--tdt-radius);
         padding: 6px 12px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
       }
 
@@ -134,7 +134,7 @@ export class StoragePanel extends LitElement {
         font-weight: 600;
         color: var(--tdt-accent);
         font-family: var(--tdt-font-mono);
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
         flex: 1;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -149,7 +149,7 @@ export class StoragePanel extends LitElement {
       }
 
       .item-size {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         background: var(--tdt-bg);
         padding: 2px 6px;
@@ -157,7 +157,7 @@ export class StoragePanel extends LitElement {
       }
 
       .item-type {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         padding: 2px 6px;
         border-radius: var(--tdt-radius);
         background: var(--tdt-bg);
@@ -184,7 +184,7 @@ export class StoragePanel extends LitElement {
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
         padding: 2px 8px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         cursor: pointer;
         color: var(--tdt-text-muted);
       }
@@ -208,7 +208,7 @@ export class StoragePanel extends LitElement {
 
       .item-value {
         font-family: var(--tdt-font-mono);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         word-break: break-all;
         white-space: pre-wrap;
@@ -222,7 +222,7 @@ export class StoragePanel extends LitElement {
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
+        background: color-mix(in srgb, var(--tdt-bg) 60%, transparent);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -250,7 +250,7 @@ export class StoragePanel extends LitElement {
 
       .form-group label {
         display: block;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-bottom: 4px;
       }
@@ -264,7 +264,7 @@ export class StoragePanel extends LitElement {
         padding: 8px;
         color: var(--tdt-text);
         font-family: var(--tdt-font-mono);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         box-sizing: border-box;
       }
 
@@ -274,7 +274,7 @@ export class StoragePanel extends LitElement {
       }
 
       .form-hint {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         margin-top: 4px;
       }
@@ -289,7 +289,7 @@ export class StoragePanel extends LitElement {
       .btn {
         padding: 8px 16px;
         border-radius: var(--tdt-radius);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         border: 1px solid var(--tdt-border);
         background: var(--tdt-bg-secondary);
@@ -323,7 +323,7 @@ export class StoragePanel extends LitElement {
         padding: 8px 12px;
         background: var(--tdt-bg-secondary);
         border-radius: var(--tdt-radius);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
       }
 
       .stat {
@@ -333,7 +333,7 @@ export class StoragePanel extends LitElement {
 
       .stat-label {
         color: var(--tdt-text-muted);
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         text-transform: uppercase;
       }
 

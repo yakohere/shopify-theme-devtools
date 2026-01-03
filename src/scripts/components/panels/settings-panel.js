@@ -39,7 +39,7 @@ export class SettingsPanel extends LitElement {
 
       .view-tab {
         padding: 4px 12px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         background: transparent;
         border: none;
         color: var(--tdt-text-muted);
@@ -65,7 +65,7 @@ export class SettingsPanel extends LitElement {
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
         color: var(--tdt-text);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         font-family: var(--tdt-font);
       }
 
@@ -93,12 +93,12 @@ export class SettingsPanel extends LitElement {
         border: 1px solid rgba(231, 76, 60, 0.3);
         border-radius: var(--tdt-radius);
         margin-bottom: 12px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-danger);
       }
 
       .validation-banner__icon {
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
       }
 
       .validation-banner__text {
@@ -107,7 +107,7 @@ export class SettingsPanel extends LitElement {
 
       .validation-banner__btn {
         padding: 4px 8px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         background: transparent;
         border: 1px solid currentColor;
         border-radius: 3px;
@@ -141,18 +141,18 @@ export class SettingsPanel extends LitElement {
       }
 
       .group-icon {
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
       }
 
       .group-name {
         font-weight: 600;
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         flex: 1;
       }
 
       .group-count {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         background: var(--tdt-bg);
         padding: 2px 6px;
@@ -160,7 +160,7 @@ export class SettingsPanel extends LitElement {
       }
 
       .expand-icon {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         transition: transform 0.15s ease;
       }
@@ -182,7 +182,7 @@ export class SettingsPanel extends LitElement {
         gap: 8px;
         padding: 8px;
         border-bottom: 1px solid var(--tdt-border);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
       }
 
       .setting-item:last-child {
@@ -225,12 +225,12 @@ export class SettingsPanel extends LitElement {
       }
 
       .setting__label {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
       }
 
       .setting__type {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         padding: 2px 5px;
         border-radius: 3px;
         text-transform: uppercase;
@@ -295,7 +295,7 @@ export class SettingsPanel extends LitElement {
 
       .setting__error {
         color: var(--tdt-danger);
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         margin-top: 4px;
       }
 
@@ -321,12 +321,12 @@ export class SettingsPanel extends LitElement {
 
       .section-type {
         font-family: var(--tdt-font-mono);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-accent);
       }
 
       .section-id {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font-mono);
       }
@@ -343,20 +343,20 @@ export class SettingsPanel extends LitElement {
       }
 
       .empty-state__icon {
-        font-size: 32px;
+        font-size: calc(32px * var(--tdt-scale, 1));
         margin-bottom: 12px;
         opacity: 0.5;
       }
 
       .empty-state__title {
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
         font-weight: 600;
         color: var(--tdt-text);
         margin-bottom: 8px;
       }
 
       .empty-state__hint {
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         max-width: 300px;
         margin: 0 auto;
         line-height: 1.5;
@@ -366,7 +366,7 @@ export class SettingsPanel extends LitElement {
         padding: 20px;
         text-align: center;
         color: var(--tdt-text-muted);
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
       }
 
       .export-modal {
@@ -399,7 +399,7 @@ export class SettingsPanel extends LitElement {
 
       .modal-title {
         font-weight: 600;
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
         color: var(--tdt-text);
       }
 
@@ -408,7 +408,7 @@ export class SettingsPanel extends LitElement {
         border: none;
         color: var(--tdt-text-muted);
         cursor: pointer;
-        font-size: 18px;
+        font-size: calc(18px * var(--tdt-scale, 1));
         padding: 4px;
       }
 
@@ -425,7 +425,7 @@ export class SettingsPanel extends LitElement {
         border-radius: var(--tdt-radius);
         color: var(--tdt-text);
         font-family: var(--tdt-font-mono);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         resize: vertical;
       }
 
@@ -454,7 +454,7 @@ export class SettingsPanel extends LitElement {
         border: 1px solid rgba(231, 76, 60, 0.2);
         border-radius: var(--tdt-radius);
         margin-bottom: 6px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
       }
 
       .validation-item__icon {

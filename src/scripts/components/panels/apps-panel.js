@@ -35,7 +35,7 @@ export class AppsPanel extends LitElement {
         padding: 4px 10px;
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         transition: all 0.15s ease;
         display: flex;
@@ -55,9 +55,9 @@ export class AppsPanel extends LitElement {
       }
 
       .tab__count {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         opacity: 0.8;
-        background: rgba(255,255,255,0.15);
+        background: color-mix(in srgb, var(--tdt-text) 15%, transparent);
         padding: 1px 5px;
         border-radius: 8px;
       }
@@ -77,7 +77,7 @@ export class AppsPanel extends LitElement {
         display: flex;
         align-items: center;
         gap: 6px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
       }
 
@@ -87,7 +87,7 @@ export class AppsPanel extends LitElement {
       }
 
       .stat__icon {
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
       }
 
       .search-bar {
@@ -102,7 +102,7 @@ export class AppsPanel extends LitElement {
         padding: 6px 10px;
         color: var(--tdt-text);
         font-family: var(--tdt-font);
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
       }
 
       .search-input:focus {
@@ -119,7 +119,7 @@ export class AppsPanel extends LitElement {
       }
 
       .section-title {
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         font-weight: 600;
         color: var(--tdt-text-muted);
         text-transform: uppercase;
@@ -184,7 +184,7 @@ export class AppsPanel extends LitElement {
       }
 
       .item__icon {
-        font-size: 14px;
+        font-size: calc(14px * var(--tdt-scale, 1));
         flex-shrink: 0;
       }
 
@@ -195,7 +195,7 @@ export class AppsPanel extends LitElement {
 
       .item__name {
         font-weight: 600;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text);
         white-space: nowrap;
         overflow: hidden;
@@ -203,7 +203,7 @@ export class AppsPanel extends LitElement {
       }
 
       .item__meta {
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         color: var(--tdt-text-muted);
         white-space: nowrap;
         overflow: hidden;
@@ -217,7 +217,7 @@ export class AppsPanel extends LitElement {
       }
 
       .item__badge {
-        font-size: 8px;
+        font-size: calc(8px * var(--tdt-scale, 1));
         padding: 2px 5px;
         border-radius: var(--tdt-radius);
         font-weight: 600;
@@ -276,7 +276,7 @@ export class AppsPanel extends LitElement {
         padding: 4px;
         cursor: pointer;
         color: var(--tdt-text-muted);
-        font-size: 12px;
+        font-size: calc(12px * var(--tdt-scale, 1));
         border-radius: var(--tdt-radius);
         transition: all 0.15s ease;
       }
@@ -296,7 +296,7 @@ export class AppsPanel extends LitElement {
         display: flex;
         gap: 8px;
         margin-bottom: 4px;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
       }
 
       .item__detail:last-child {
@@ -329,7 +329,7 @@ export class AppsPanel extends LitElement {
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
         padding: 6px 8px;
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         font-family: var(--tdt-font-mono);
         color: var(--tdt-text);
         max-height: 100px;
@@ -347,7 +347,7 @@ export class AppsPanel extends LitElement {
       }
 
       .empty-state__icon {
-        font-size: 32px;
+        font-size: calc(32px * var(--tdt-scale, 1));
         margin-bottom: 8px;
         opacity: 0.5;
       }
@@ -358,7 +358,7 @@ export class AppsPanel extends LitElement {
         border-radius: var(--tdt-radius);
         padding: 2px 6px;
         color: var(--tdt-text-muted);
-        font-size: 9px;
+        font-size: calc(9px * var(--tdt-scale, 1));
         cursor: pointer;
         font-family: var(--tdt-font);
       }
@@ -375,7 +375,7 @@ export class AppsPanel extends LitElement {
         color: var(--tdt-text-muted);
         border-radius: var(--tdt-radius);
         padding: 4px 10px;
-        font-size: 11px;
+        font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         font-family: var(--tdt-font);
       }
@@ -398,7 +398,7 @@ export class AppsPanel extends LitElement {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
         font-weight: 600;
         flex-shrink: 0;
       }
