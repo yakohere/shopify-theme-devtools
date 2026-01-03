@@ -574,36 +574,61 @@ export class MetafieldsPanel extends LitElement {
     return html`<span>${String(value)}</span>`;
   }
 
+  _deepSearchValue(value, query) {
+    if (value === null || value === undefined) return false;
+
+    // Check primitive values
+    if (typeof value !== 'object') {
+      return String(value).toLowerCase().includes(query);
+    }
+
+    // Check arrays
+    if (Array.isArray(value)) {
+      return value.some(item => this._deepSearchValue(item, query));
+    }
+
+    // Check objects - search both keys and values
+    for (const [key, val] of Object.entries(value)) {
+      if (key.toLowerCase().includes(query)) return true;
+      if (this._deepSearchValue(val, query)) return true;
+    }
+
+    return false;
+  }
+
   _filterData(merged) {
     if (!this.searchQuery.trim()) return merged;
-    
+
     const query = this.searchQuery.toLowerCase();
     const filtered = {};
-    
+
     for (const [resource, data] of Object.entries(merged)) {
       const filteredNamespaces = {};
-      
+
       for (const [ns, fields] of Object.entries(data.byNamespace)) {
         const filteredFields = fields.filter(field => {
           const matchesKey = field.key.toLowerCase().includes(query);
           const matchesNamespace = ns.toLowerCase().includes(query);
           const matchesName = field.name?.toLowerCase().includes(query);
           const matchesDesc = field.description?.toLowerCase().includes(query);
-          const matchesValue = field.actualValue && String(field.actualValue).toLowerCase().includes(query);
-          
+          // Deep search into nested values (JSON objects, arrays, etc.)
+          const matchesValue = field.actualValue !== undefined &&
+                               field.actualValue !== null &&
+                               this._deepSearchValue(field.actualValue, query);
+
           return matchesKey || matchesNamespace || matchesName || matchesDesc || matchesValue;
         });
-        
+
         if (filteredFields.length > 0) {
           filteredNamespaces[ns] = filteredFields;
         }
       }
-      
+
       if (Object.keys(filteredNamespaces).length > 0) {
         filtered[resource] = { ...data, byNamespace: filteredNamespaces };
       }
     }
-    
+
     return filtered;
   }
 
@@ -732,10 +757,10 @@ export class MetafieldsPanel extends LitElement {
       ` : ''}
 
       <div class="toolbar">
-        <input 
-          type="text" 
-          class="search-input" 
-          placeholder="Search metafields..."
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search keys, values, and nested data..."
           .value=${this.searchQuery}
           @input=${(e) => this.searchQuery = e.target.value}
         >
