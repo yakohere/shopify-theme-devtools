@@ -703,6 +703,10 @@ export class PreferencesPanel extends LitElement {
                   class="height-option ${this.settings.panelHeight === '60' ? 'height-option--active' : ''}"
                   @click=${() => this._handlePanelHeightChange('60')}
                 >60%</span>
+                <span
+                  class="height-option ${this.settings.panelHeight === '70' ? 'height-option--active' : ''}"
+                  @click=${() => this._handlePanelHeightChange('70')}
+                >70%</span>
               </div>
             </div>
             <div class="setting-control">
@@ -714,6 +718,7 @@ export class PreferencesPanel extends LitElement {
                 <option value="40">40% (Compact)</option>
                 <option value="50">50% (Default)</option>
                 <option value="60">60% (Tall)</option>
+                <option value="70">70% (Taller)</option>
               </select>
             </div>
           </div>

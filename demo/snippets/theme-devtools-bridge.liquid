@@ -62,7 +62,7 @@
 {%- if devtools_extracted_namespaces != '' -%}
   {%- assign devtools_metafield_namespaces = devtools_extracted_namespaces | split: ',' -%}
 {%- else -%}
-  {%- assign devtools_metafield_namespaces = 'custom,global,shopify' | split: ',' -%}
+  {%- assign devtools_metafield_namespaces = 'custom,global,shopify,filters,bundle' | split: ',' -%}
 {%- endif -%}
 
 {%- comment -%}

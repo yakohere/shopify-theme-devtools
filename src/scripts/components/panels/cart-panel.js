@@ -248,7 +248,6 @@ export class CartPanel extends LitElement {
 
       .history-changes span {
         font-size: calc(10px * var(--tdt-scale, 1));
-        max-width: 200px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;

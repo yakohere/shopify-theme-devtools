@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { rootStyles, THEMES, FONT_SCALES } from '../styles/theme.js';
 import { contextParser } from '../services/context.js';
 import { cartAPI } from '../services/cart.js';
+import { productAPI } from '../services/product.js';
 import { sectionHighlighter } from '../services/sections.js';
 import { settingsService } from '../services/settings.js';
 
@@ -509,6 +510,11 @@ export class ThemeDevtools extends LitElement {
     this._unsubscribeCart = cartAPI.subscribe((cart) => {
       this.cart = cart;
     });
+
+    // Initialize product API if on a product page
+    if (this.context.objects?.product) {
+      productAPI.initialize(this.context.objects.product);
+    }
 
     sectionHighlighter.init();
   }
@@ -1116,8 +1122,9 @@ export class ThemeDevtools extends LitElement {
             class="panel ${this.activeTab === 'apps' ? 'panel--active' : ''}"
           ></tdt-apps-panel>
           
-          <tdt-console-panel 
+          <tdt-console-panel
             class="panel ${this.activeTab === 'console' ? 'panel--active' : ''}"
+            .context=${this.context}
           ></tdt-console-panel>
           
           <tdt-cookies-panel 

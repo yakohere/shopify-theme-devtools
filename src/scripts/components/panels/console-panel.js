@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { baseStyles } from '../../styles/theme.js';
 import '../object-inspector.js';
+import { expressionEvaluator } from '../../services/expression-evaluator.js';
 
 export class ConsolePanel extends LitElement {
   static properties = {
@@ -13,6 +14,15 @@ export class ConsolePanel extends LitElement {
     groupedErrors: { type: Map, state: true },
     networkErrors: { type: Array, state: true },
     groupStack: { type: Array, state: true },
+    // Expression input properties
+    inputValue: { type: String, state: true },
+    inputHistory: { type: Array, state: true },
+    historyIndex: { type: Number, state: true },
+    suggestions: { type: Array, state: true },
+    selectedSuggestion: { type: Number, state: true },
+    showSuggestions: { type: Boolean, state: true },
+    showFilterDropdown: { type: Boolean, state: true },
+    context: { type: Object },
   };
 
   static STORAGE_KEY = 'tdt-console-logs';
@@ -24,77 +34,155 @@ export class ConsolePanel extends LitElement {
         display: block;
         padding: 12px;
         height: 100%;
-        overflow: auto;
+        overflow: hidden;
       }
 
       .toolbar {
         display: flex;
+        align-items: center;
         gap: 8px;
-        margin-bottom: 12px;
-        flex-wrap: wrap;
+        position: sticky;
+        top: 0;
+        background: var(--tdt-bg);
+        z-index: 10;
+        margin: 0;
+        padding: 0 0 12px 0;
       }
 
       .search {
         flex: 1;
-        min-width: 150px;
+        min-width: 120px;
       }
 
-      .filter-tabs {
+      /* Filter Dropdown */
+      .filter-dropdown {
+        position: relative;
+      }
+
+      .filter-dropdown-trigger {
         display: flex;
-        flex-wrap: wrap;
+        align-items: center;
         gap: 6px;
-        margin-bottom: 12px;
-      }
-
-      .filter-tab {
         background: var(--tdt-bg-secondary);
         border: 1px solid var(--tdt-border);
         border-radius: var(--tdt-radius);
         padding: 4px 10px;
-        color: var(--tdt-text-muted);
+        color: var(--tdt-text);
         font-family: var(--tdt-font);
         font-size: calc(11px * var(--tdt-scale, 1));
         cursor: pointer;
         transition: all 0.15s ease;
+        min-width: 150px;
+      }
+
+      .filter-dropdown-trigger:hover {
+        background: var(--tdt-bg-hover);
+      }
+
+      .filter-dropdown-trigger--active {
+        border-color: var(--tdt-accent);
+      }
+
+      .filter-dropdown-trigger__icon {
+        margin-left: auto;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        transition: transform 0.15s ease;
+      }
+
+      .filter-dropdown-trigger__icon--open {
+        transform: rotate(180deg);
+      }
+
+      .filter-dropdown-trigger__count {
+        font-size: calc(10px * var(--tdt-scale, 1));
+        background: var(--tdt-accent);
+        color: white;
+        padding: 1px 6px;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+
+      .filter-dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 4px;
+        min-width: 180px;
+        background: var(--tdt-bg);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        z-index: 100;
+        overflow: hidden;
+      }
+
+      .filter-dropdown-item {
         display: flex;
         align-items: center;
-        gap: 6px;
-      }
-
-      .filter-tab:hover {
-        background: var(--tdt-bg-hover);
+        gap: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text);
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        transition: background 0.1s ease;
       }
 
-      .filter-tab--active {
+      .filter-dropdown-item:hover {
+        background: var(--tdt-bg-hover);
+      }
+
+      .filter-dropdown-item--active {
         background: var(--tdt-accent);
-        border-color: var(--tdt-accent);
         color: white;
       }
 
-      .filter-tab--error {
-        border-color: var(--tdt-error);
+      .filter-dropdown-item--active:hover {
+        background: var(--tdt-accent);
       }
 
-      .filter-tab--error.filter-tab--active {
+      .filter-dropdown-item__icon {
+        width: 16px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      .filter-dropdown-item__label {
+        flex: 1;
+      }
+
+      .filter-dropdown-item__count {
+        font-size: calc(10px * var(--tdt-scale, 1));
+        opacity: 0.7;
+        background: rgba(255, 255, 255, 0.15);
+        padding: 1px 6px;
+        border-radius: 8px;
+      }
+
+      .filter-dropdown-item--active .filter-dropdown-item__count {
+        background: rgba(255, 255, 255, 0.25);
+        opacity: 1;
+      }
+
+      .filter-dropdown-item--error {
+        color: var(--tdt-error);
+      }
+
+      .filter-dropdown-item--error.filter-dropdown-item--active {
         background: var(--tdt-error);
+        color: white;
       }
 
-      .filter-tab--warn {
-        border-color: var(--tdt-warning);
+      .filter-dropdown-item--warn {
+        color: var(--tdt-warning);
       }
 
-      .filter-tab--warn.filter-tab--active {
+      .filter-dropdown-item--warn.filter-dropdown-item--active {
         background: var(--tdt-warning);
         color: var(--tdt-bg);
-      }
-
-      .filter-tab__count {
-        font-size: calc(10px * var(--tdt-scale, 1));
-        opacity: 0.8;
-        background: color-mix(in srgb, var(--tdt-text) 15%, transparent);
-        padding: 1px 5px;
-        border-radius: 8px;
       }
 
       .toggle-btn {
@@ -227,8 +315,6 @@ export class ConsolePanel extends LitElement {
         flex: 1;
         font-family: var(--tdt-font-mono);
         color: var(--tdt-text);
-        word-break: break-word;
-        white-space: pre-wrap;
       }
 
       .log-count {
@@ -522,6 +608,203 @@ export class ConsolePanel extends LitElement {
         border-radius: 2px;
         color: var(--tdt-success);
       }
+
+      /* Console Input Styles */
+      .console-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .console-content {
+        flex: 1;
+        overflow: auto;
+        padding-bottom: 8px;
+      }
+
+      .console-input-container {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 0;
+        border-top: 1px solid var(--tdt-border);
+        background: var(--tdt-bg);
+        margin-top: auto;
+      }
+
+      .console-prompt {
+        color: var(--tdt-accent);
+        font-family: var(--tdt-font-mono);
+        font-size: calc(14px * var(--tdt-scale, 1));
+        font-weight: 600;
+        flex-shrink: 0;
+        user-select: none;
+        padding-top: 4px;
+      }
+
+      .console-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--tdt-text);
+        font-family: var(--tdt-font-mono);
+        font-size: calc(12px * var(--tdt-scale, 1));
+        padding: 4px 0;
+        resize: none;
+        min-height: 20px;
+        max-height: 150px;
+        overflow-y: auto;
+        line-height: 1.4;
+      }
+
+      .console-input::placeholder {
+        color: var(--tdt-text-muted);
+        opacity: 0.6;
+      }
+
+      .console-input-hint {
+        position: absolute;
+        right: 0;
+        bottom: 100%;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        opacity: 0.6;
+        padding: 2px 4px;
+      }
+
+      .autocomplete-dropdown {
+        position: absolute;
+        bottom: 100%;
+        left: 20px;
+        right: 0;
+        max-height: 200px;
+        overflow-y: auto;
+        background: var(--tdt-bg);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.25);
+        z-index: 100;
+        margin-bottom: 4px;
+      }
+
+      .autocomplete-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-family: var(--tdt-font-mono);
+        font-size: calc(11px * var(--tdt-scale, 1));
+        border-bottom: 1px solid var(--tdt-border);
+      }
+
+      .autocomplete-item:last-child {
+        border-bottom: none;
+      }
+
+      .autocomplete-item:hover:not(.autocomplete-item--selected) {
+        background: var(--tdt-bg-hover);
+      }
+
+      .autocomplete-item--selected {
+        background: var(--tdt-accent);
+      }
+
+      .autocomplete-item--selected .autocomplete-path {
+        color: white;
+        font-weight: 500;
+      }
+
+      .autocomplete-item--selected .autocomplete-type {
+        background: rgba(0, 0, 0, 0.2);
+        color: white;
+        border-color: transparent;
+      }
+
+      .autocomplete-item--selected .autocomplete-preview {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .autocomplete-path {
+        flex: 1;
+        color: var(--tdt-text);
+      }
+
+      .autocomplete-type {
+        font-size: calc(9px * var(--tdt-scale, 1));
+        padding: 2px 6px;
+        border-radius: 3px;
+        background: var(--tdt-bg-hover);
+        color: var(--tdt-text-muted);
+        text-transform: uppercase;
+        font-weight: 600;
+        border: 1px solid var(--tdt-border);
+        flex-shrink: 0;
+      }
+
+      .autocomplete-type--filter {
+        background: var(--tdt-accent);
+        border-color: var(--tdt-accent);
+        color: white;
+      }
+
+      .autocomplete-preview {
+        color: var(--tdt-text-muted);
+        font-size: calc(10px * var(--tdt-scale, 1));
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* Eval log styles */
+      .log-item--eval {
+        border-left: 3px solid var(--tdt-accent);
+        background: rgba(59, 130, 246, 0.05);
+      }
+
+      .log-type--eval {
+        background: var(--tdt-accent);
+        color: white;
+      }
+
+      .eval-expression {
+        color: var(--tdt-text-muted);
+        font-family: var(--tdt-font-mono);
+        margin-bottom: 4px;
+      }
+
+      .eval-result {
+        color: var(--tdt-text);
+        font-family: var(--tdt-font-mono);
+      }
+
+      .eval-result--error {
+        color: var(--tdt-error);
+      }
+
+      .eval-result--undefined {
+        color: var(--tdt-text-muted);
+        font-style: italic;
+      }
+
+      .eval-result--string {
+        color: #22c55e;
+      }
+
+      .eval-result--number {
+        color: #3b82f6;
+      }
+
+      .eval-result--boolean {
+        color: #a855f7;
+      }
+
+      .eval-result--null {
+        color: var(--tdt-text-muted);
+      }
     `
   ];
 
@@ -553,6 +836,16 @@ export class ConsolePanel extends LitElement {
     this._originalConsole = {};
     this._originalFetch = null;
     this._currentGroupId = null;
+
+    // Expression input state
+    this.inputValue = '';
+    this.inputHistory = [];
+    this.historyIndex = -1;
+    this.suggestions = [];
+    this.selectedSuggestion = -1;
+    this.showSuggestions = false;
+    this.showFilterDropdown = false;
+    this.context = null;
 
     // Load persisted logs
     this._loadPersistedLogs();
@@ -641,6 +934,21 @@ export class ConsolePanel extends LitElement {
     this._restoreNetwork();
     window.removeEventListener('error', this._handleGlobalError);
     window.removeEventListener('unhandledrejection', this._handleUnhandledRejection);
+  }
+
+  updated(changedProperties) {
+    super.updated(changedProperties);
+    // Update expression evaluator context when context changes
+    if (changedProperties.has('context') && this.context) {
+      expressionEvaluator.setContext(this.context);
+    }
+  }
+
+  willUpdate(changedProperties) {
+    // Also set context on initial render
+    if (changedProperties.has('context') && this.context && !expressionEvaluator.context) {
+      expressionEvaluator.setContext(this.context);
+    }
   }
 
   _interceptConsole() {
@@ -1112,6 +1420,28 @@ export class ConsolePanel extends LitElement {
 
   _setFilter(filter) {
     this.activeFilter = filter;
+    this.showFilterDropdown = false;
+  }
+
+  _toggleFilterDropdown() {
+    this.showFilterDropdown = !this.showFilterDropdown;
+  }
+
+  _closeFilterDropdown() {
+    this.showFilterDropdown = false;
+  }
+
+  _getFilterLabel(filter) {
+    const labels = {
+      all: '📋 All',
+      error: '❌ Errors',
+      warn: '⚠️ Warnings',
+      info: 'ℹ️ Info',
+      log: '📝 Logs',
+      liquid: '💧 Liquid',
+      network: '🌐 Network'
+    };
+    return labels[filter] || '📋 All';
   }
 
   _toggleThemeOnly() {
@@ -1125,6 +1455,248 @@ export class ConsolePanel extends LitElement {
     this.groupStack = [];
     this._currentGroupId = null;
     sessionStorage.removeItem(ConsolePanel.STORAGE_KEY);
+  }
+
+  // Expression input methods
+  _handleInputKeydown(e) {
+    switch (e.key) {
+      case 'Enter':
+        // Shift+Enter for newlines, Enter alone to evaluate
+        if (e.shiftKey) {
+          // Allow default behavior (insert newline)
+          return;
+        }
+        e.preventDefault();
+        if (this.showSuggestions && this.selectedSuggestion >= 0) {
+          this._selectSuggestion(this.selectedSuggestion);
+        } else {
+          this._evaluateExpression();
+        }
+        break;
+
+      case 'ArrowUp':
+        // Only navigate history if at the first line or input is single line
+        if (this.showSuggestions && this.suggestions.length > 0) {
+          e.preventDefault();
+          this.selectedSuggestion = this.selectedSuggestion <= 0
+            ? this.suggestions.length - 1
+            : this.selectedSuggestion - 1;
+          this._scrollSuggestionIntoView();
+        } else if (!this.inputValue.includes('\n') || this._isAtFirstLine(e.target)) {
+          e.preventDefault();
+          this._navigateHistory(-1);
+        }
+        break;
+
+      case 'ArrowDown':
+        // Only navigate history if at the last line or input is single line
+        if (this.showSuggestions && this.suggestions.length > 0) {
+          e.preventDefault();
+          this.selectedSuggestion = this.selectedSuggestion >= this.suggestions.length - 1
+            ? 0
+            : this.selectedSuggestion + 1;
+          this._scrollSuggestionIntoView();
+        } else if (!this.inputValue.includes('\n') || this._isAtLastLine(e.target)) {
+          e.preventDefault();
+          this._navigateHistory(1);
+        }
+        break;
+
+      case 'Tab':
+        if (this.showSuggestions && this.suggestions.length > 0) {
+          e.preventDefault();
+          const index = this.selectedSuggestion >= 0 ? this.selectedSuggestion : 0;
+          this._selectSuggestion(index);
+        }
+        break;
+
+      case 'Escape':
+        if (this.showSuggestions) {
+          e.preventDefault();
+          this.showSuggestions = false;
+          this.selectedSuggestion = -1;
+        }
+        break;
+    }
+  }
+
+  _isAtFirstLine(textarea) {
+    const cursorPos = textarea.selectionStart;
+    const textBefore = textarea.value.substring(0, cursorPos);
+    return !textBefore.includes('\n');
+  }
+
+  _isAtLastLine(textarea) {
+    const cursorPos = textarea.selectionStart;
+    const textAfter = textarea.value.substring(cursorPos);
+    return !textAfter.includes('\n');
+  }
+
+  _scrollSuggestionIntoView() {
+    this.updateComplete.then(() => {
+      const dropdown = this.shadowRoot.querySelector('.autocomplete-dropdown');
+      const selectedItem = this.shadowRoot.querySelector('.autocomplete-item--selected');
+      if (dropdown && selectedItem) {
+        selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    });
+  }
+
+  _handleInput(e) {
+    this.inputValue = e.target.value;
+    this.historyIndex = -1;
+    this._updateSuggestions();
+    this._autoGrowTextarea(e.target);
+  }
+
+  _autoGrowTextarea(textarea) {
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto';
+    // Set height to scrollHeight to expand
+    textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+  }
+
+  _updateSuggestions() {
+    if (!this.inputValue.trim()) {
+      this.suggestions = [];
+      this.showSuggestions = false;
+      this.selectedSuggestion = -1;
+      return;
+    }
+
+    this.suggestions = expressionEvaluator.getCompletions(this.inputValue);
+    this.showSuggestions = this.suggestions.length > 0;
+    this.selectedSuggestion = -1;
+  }
+
+  _selectSuggestion(index) {
+    const suggestion = this.suggestions[index];
+    if (!suggestion) return;
+
+    // Check if we're completing a filter (after |)
+    const pipeIndex = this.inputValue.lastIndexOf('|');
+    if (pipeIndex !== -1 && suggestion.type === 'filter') {
+      // Replace filter part only
+      this.inputValue = this.inputValue.slice(0, pipeIndex + 1) + ' ' + suggestion.value;
+    } else {
+      this.inputValue = suggestion.value;
+    }
+
+    this.showSuggestions = false;
+    this.selectedSuggestion = -1;
+
+    // Focus back on textarea
+    this.updateComplete.then(() => {
+      const textarea = this.shadowRoot.querySelector('.console-input');
+      if (textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        this._autoGrowTextarea(textarea);
+      }
+    });
+  }
+
+  _navigateHistory(direction) {
+    const history = expressionEvaluator.getHistory();
+    if (history.length === 0) return;
+
+    if (direction === -1) {
+      // Up - go back in history
+      if (this.historyIndex < history.length - 1) {
+        this.historyIndex++;
+        this.inputValue = history[history.length - 1 - this.historyIndex];
+      }
+    } else {
+      // Down - go forward in history
+      if (this.historyIndex > 0) {
+        this.historyIndex--;
+        this.inputValue = history[history.length - 1 - this.historyIndex];
+      } else if (this.historyIndex === 0) {
+        this.historyIndex = -1;
+        this.inputValue = '';
+      }
+    }
+
+    this.showSuggestions = false;
+  }
+
+  async _evaluateExpression() {
+    if (!this.inputValue.trim()) return;
+
+    const expression = this.inputValue;
+
+    // Clear input immediately for better UX
+    this.inputValue = '';
+    this.historyIndex = -1;
+    this.showSuggestions = false;
+
+    // Evaluate asynchronously
+    const result = await expressionEvaluator.evaluate(expression);
+
+    // Add to logs as an eval entry
+    const logEntry = {
+      id: Date.now() + Math.random(),
+      type: 'eval',
+      expression: result.expression,
+      message: result.expression,
+      result: result.success ? result.value : null,
+      error: result.success ? null : result.error,
+      success: result.success,
+      timestamp: new Date(),
+      isThemeRelated: true,
+    };
+
+    this.logs = [...this.logs, logEntry];
+    this._persistLogs();
+
+    // Update history
+    this.inputHistory = expressionEvaluator.getHistory();
+
+    // Scroll to bottom after adding log
+    this.updateComplete.then(() => {
+      const content = this.shadowRoot.querySelector('.console-content');
+      if (content) {
+        content.scrollTop = content.scrollHeight;
+      }
+    });
+  }
+
+  _renderEvalResult(log) {
+    if (!log.success) {
+      return html`<span class="eval-result eval-result--error">${log.error}</span>`;
+    }
+
+    const value = log.result;
+
+    if (value === undefined) {
+      return html`<span class="eval-result eval-result--undefined">undefined</span>`;
+    }
+
+    if (value === null) {
+      return html`<span class="eval-result eval-result--null">null</span>`;
+    }
+
+    if (typeof value === 'string') {
+      return html`<span class="eval-result eval-result--string">"${value}"</span>`;
+    }
+
+    if (typeof value === 'number') {
+      return html`<span class="eval-result eval-result--number">${value}</span>`;
+    }
+
+    if (typeof value === 'boolean') {
+      return html`<span class="eval-result eval-result--boolean">${value}</span>`;
+    }
+
+    if (typeof value === 'object') {
+      return html`
+        <div class="eval-result">
+          <tdt-object-inspector .data=${value} .path=${'result'}></tdt-object-inspector>
+        </div>
+      `;
+    }
+
+    return html`<span class="eval-result">${String(value)}</span>`;
   }
 
   _toggleExpand(logId) {
@@ -1374,6 +1946,24 @@ export class ConsolePanel extends LitElement {
     const isExpanded = this.expandedLogs.has(log.id);
     const hasExpandable = log.hasObjects || log.stack || log.source || log.isTable || log.type === 'group';
 
+    // Handle eval logs
+    if (log.type === 'eval') {
+      return html`
+        <div class="log-item log-item--eval">
+          <div class="log-header">
+            <span class="log-type log-type--eval">EVAL</span>
+            <span class="log-message">
+              <span class="eval-expression">${log.expression}</span>
+            </span>
+            <span class="log-time">${this._formatTime(log.timestamp)}</span>
+          </div>
+          <div class="log-content">
+            ${this._renderEvalResult(log)}
+          </div>
+        </div>
+      `;
+    }
+
     // Handle group logs
     if (log.type === 'group') {
       return html`
@@ -1531,100 +2121,163 @@ export class ConsolePanel extends LitElement {
     const counts = this._getCounts();
 
     return html`
-      <div class="toolbar">
-        <input 
-          type="search" 
-          class="search" 
-          placeholder="Filter logs..."
-          .value=${this.filter}
-          @input=${this._filterLogs}
-        >
-        <button 
-          class="toggle-btn ${this.showThemeOnly ? 'toggle-btn--active' : ''}"
-          @click=${this._toggleThemeOnly}
-          title="Show only theme-related logs"
-        >
-          🎯 Theme Only
-        </button>
-        <button class="btn-clear" @click=${this._clearLogs}>
-          🗑️ Clear
-        </button>
-      </div>
-
-      <div class="filter-tabs">
-        <button 
-          class="filter-tab ${this.activeFilter === 'all' ? 'filter-tab--active' : ''}"
-          @click=${() => this._setFilter('all')}
-        >
-          All <span class="filter-tab__count">${counts.all}</span>
-        </button>
-        <button 
-          class="filter-tab filter-tab--error ${this.activeFilter === 'error' ? 'filter-tab--active' : ''}"
-          @click=${() => this._setFilter('error')}
-        >
-          ❌ Errors <span class="filter-tab__count">${counts.error}</span>
-        </button>
-        <button 
-          class="filter-tab filter-tab--warn ${this.activeFilter === 'warn' ? 'filter-tab--active' : ''}"
-          @click=${() => this._setFilter('warn')}
-        >
-          ⚠️ Warnings <span class="filter-tab__count">${counts.warn}</span>
-        </button>
-        <button 
-          class="filter-tab ${this.activeFilter === 'info' ? 'filter-tab--active' : ''}"
-          @click=${() => this._setFilter('info')}
-        >
-          ℹ️ Info <span class="filter-tab__count">${counts.info}</span>
-        </button>
-        <button 
-          class="filter-tab ${this.activeFilter === 'log' ? 'filter-tab--active' : ''}"
-          @click=${() => this._setFilter('log')}
-        >
-          📝 Logs <span class="filter-tab__count">${counts.log}</span>
-        </button>
-        ${counts.liquid > 0 ? html`
-          <button
-            class="filter-tab ${this.activeFilter === 'liquid' ? 'filter-tab--active' : ''}"
-            @click=${() => this._setFilter('liquid')}
-          >
-            💧 Liquid <span class="filter-tab__count">${counts.liquid}</span>
-          </button>
-        ` : ''}
-        ${counts.network > 0 ? html`
-          <button
-            class="filter-tab filter-tab--error ${this.activeFilter === 'network' ? 'filter-tab--active' : ''}"
-            @click=${() => this._setFilter('network')}
-          >
-            🌐 Network <span class="filter-tab__count">${counts.network}</span>
-          </button>
-        ` : ''}
-      </div>
-
-      ${this.activeFilter === 'all' || this.activeFilter === 'liquid'
-        ? this._renderLiquidErrors()
-        : ''
-      }
-
-      ${this.activeFilter === 'all' || this.activeFilter === 'network'
-        ? this._renderNetworkErrors()
-        : ''
-      }
-
-      ${this.activeFilter === 'network'
-        ? '' // Network errors already rendered above
-        : filtered.length === 0
-        ? html`
-          <div class="empty-state">
-            <div class="empty-state__icon">📋</div>
-            <div>No ${this.showThemeOnly ? 'theme-related ' : ''}logs captured yet</div>
+      <div class="console-container">
+        <div class="console-content">
+          <div class="toolbar">
+            <div class="filter-dropdown">
+              <button
+                class="filter-dropdown-trigger ${this.activeFilter !== 'all' ? 'filter-dropdown-trigger--active' : ''}"
+                @click=${this._toggleFilterDropdown}
+              >
+                ${this._getFilterLabel(this.activeFilter)}
+                ${counts.all > 0 ? html`<span class="filter-dropdown-trigger__count">${counts.all}</span>` : ''}
+                <span class="filter-dropdown-trigger__icon ${this.showFilterDropdown ? 'filter-dropdown-trigger__icon--open' : ''}">▼</span>
+              </button>
+              ${this.showFilterDropdown ? html`
+                <div class="filter-dropdown-menu" @mouseleave=${this._closeFilterDropdown}>
+                  <button
+                    class="filter-dropdown-item ${this.activeFilter === 'all' ? 'filter-dropdown-item--active' : ''}"
+                    @click=${() => this._setFilter('all')}
+                  >
+                    <span class="filter-dropdown-item__icon">📋</span>
+                    <span class="filter-dropdown-item__label">All</span>
+                    <span class="filter-dropdown-item__count">${counts.all}</span>
+                  </button>
+                  <button
+                    class="filter-dropdown-item filter-dropdown-item--error ${this.activeFilter === 'error' ? 'filter-dropdown-item--active' : ''}"
+                    @click=${() => this._setFilter('error')}
+                  >
+                    <span class="filter-dropdown-item__icon">❌</span>
+                    <span class="filter-dropdown-item__label">Errors</span>
+                    <span class="filter-dropdown-item__count">${counts.error}</span>
+                  </button>
+                  <button
+                    class="filter-dropdown-item filter-dropdown-item--warn ${this.activeFilter === 'warn' ? 'filter-dropdown-item--active' : ''}"
+                    @click=${() => this._setFilter('warn')}
+                  >
+                    <span class="filter-dropdown-item__icon">⚠️</span>
+                    <span class="filter-dropdown-item__label">Warnings</span>
+                    <span class="filter-dropdown-item__count">${counts.warn}</span>
+                  </button>
+                  <button
+                    class="filter-dropdown-item ${this.activeFilter === 'info' ? 'filter-dropdown-item--active' : ''}"
+                    @click=${() => this._setFilter('info')}
+                  >
+                    <span class="filter-dropdown-item__icon">ℹ️</span>
+                    <span class="filter-dropdown-item__label">Info</span>
+                    <span class="filter-dropdown-item__count">${counts.info}</span>
+                  </button>
+                  <button
+                    class="filter-dropdown-item ${this.activeFilter === 'log' ? 'filter-dropdown-item--active' : ''}"
+                    @click=${() => this._setFilter('log')}
+                  >
+                    <span class="filter-dropdown-item__icon">📝</span>
+                    <span class="filter-dropdown-item__label">Logs</span>
+                    <span class="filter-dropdown-item__count">${counts.log}</span>
+                  </button>
+                  ${counts.liquid > 0 ? html`
+                    <button
+                      class="filter-dropdown-item ${this.activeFilter === 'liquid' ? 'filter-dropdown-item--active' : ''}"
+                      @click=${() => this._setFilter('liquid')}
+                    >
+                      <span class="filter-dropdown-item__icon">💧</span>
+                      <span class="filter-dropdown-item__label">Liquid</span>
+                      <span class="filter-dropdown-item__count">${counts.liquid}</span>
+                    </button>
+                  ` : ''}
+                  ${counts.network > 0 ? html`
+                    <button
+                      class="filter-dropdown-item filter-dropdown-item--error ${this.activeFilter === 'network' ? 'filter-dropdown-item--active' : ''}"
+                      @click=${() => this._setFilter('network')}
+                    >
+                      <span class="filter-dropdown-item__icon">🌐</span>
+                      <span class="filter-dropdown-item__label">Network</span>
+                      <span class="filter-dropdown-item__count">${counts.network}</span>
+                    </button>
+                  ` : ''}
+                </div>
+              ` : ''}
+            </div>
+            <input
+              type="search"
+              class="search"
+              placeholder="Filter logs..."
+              .value=${this.filter}
+              @input=${this._filterLogs}
+            >
+            <button
+              class="toggle-btn ${this.showThemeOnly ? 'toggle-btn--active' : ''}"
+              @click=${this._toggleThemeOnly}
+              title="Show only theme-related logs"
+            >
+              🎯 Theme Only
+            </button>
+            <button class="btn-clear" @click=${this._clearLogs}>
+              🗑️ Clear
+            </button>
           </div>
-        `
-        : html`
-          <div class="log-list">
-            ${filtered.slice().reverse().map(log => this._renderLogItem(log))}
-          </div>
-        `
-      }
+
+          ${this.activeFilter === 'all' || this.activeFilter === 'liquid'
+            ? this._renderLiquidErrors()
+            : ''
+          }
+
+          ${this.activeFilter === 'all' || this.activeFilter === 'network'
+            ? this._renderNetworkErrors()
+            : ''
+          }
+
+          ${this.activeFilter === 'network'
+            ? '' // Network errors already rendered above
+            : filtered.length === 0
+            ? html`
+              <div class="empty-state">
+                <div class="empty-state__icon">📋</div>
+                <div>No ${this.showThemeOnly ? 'theme-related ' : ''}logs captured yet</div>
+              </div>
+            `
+            : html`
+              <div class="log-list">
+                ${filtered.map(log => this._renderLogItem(log))}
+              </div>
+            `
+          }
+        </div>
+
+        <div class="console-input-container">
+          ${this.showSuggestions && this.suggestions.length > 0 ? html`
+            <div class="autocomplete-dropdown">
+              ${this.suggestions.map((suggestion, index) => html`
+                <div
+                  class="autocomplete-item ${index === this.selectedSuggestion ? 'autocomplete-item--selected' : ''}"
+                  @click=${() => this._selectSuggestion(index)}
+                  @mouseenter=${() => this.selectedSuggestion = index}
+                >
+                  <span class="autocomplete-path">${suggestion.value}</span>
+                  <span class="autocomplete-type ${suggestion.type === 'filter' ? 'autocomplete-type--filter' : ''}">${suggestion.type}</span>
+                  ${suggestion.preview ? html`
+                    <span class="autocomplete-preview">${typeof suggestion.preview === 'object' ? JSON.stringify(suggestion.preview) : suggestion.preview}</span>
+                  ` : ''}
+                </div>
+              `)}
+            </div>
+          ` : ''}
+          ${this.inputValue.includes('\n') ? html`
+            <span class="console-input-hint">Shift+Enter for newline</span>
+          ` : ''}
+          <span class="console-prompt">></span>
+          <textarea
+            class="console-input"
+            placeholder="Type expression... (e.g., product.title | upcase)"
+            .value=${this.inputValue}
+            @input=${this._handleInput}
+            @keydown=${this._handleInputKeydown}
+            @blur=${() => setTimeout(() => this.showSuggestions = false, 200)}
+            @focus=${() => this._updateSuggestions()}
+            rows="1"
+          ></textarea>
+        </div>
+      </div>
     `;
   }
 }
