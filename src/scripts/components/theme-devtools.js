@@ -27,6 +27,7 @@ export class ThemeDevtools extends LitElement {
     activeTab: { type: String, state: true },
     context: { type: Object, state: true },
     cart: { type: Object, state: true },
+    product: { type: Object, state: true },
     tabOrder: { type: Array, state: true },
     draggedTab: { type: String, state: true },
     dragOverTab: { type: String, state: true },
@@ -371,7 +372,9 @@ export class ThemeDevtools extends LitElement {
     this.activeTab = settingsService.get('defaultTab') || 'objects';
     this.context = null;
     this.cart = null;
+    this.product = null;
     this._unsubscribeCart = null;
+    this._unsubscribeProduct = null;
     this._unsubscribeSettings = null;
     this.tabOrder = null;
     this.draggedTab = null;
@@ -482,6 +485,9 @@ export class ThemeDevtools extends LitElement {
     if (this._unsubscribeCart) {
       this._unsubscribeCart();
     }
+    if (this._unsubscribeProduct) {
+      this._unsubscribeProduct();
+    }
     if (this._unsubscribeSettings) {
       this._unsubscribeSettings();
     }
@@ -513,6 +519,9 @@ export class ThemeDevtools extends LitElement {
 
     // Initialize product API if on a product page
     if (this.context.objects?.product) {
+      this._unsubscribeProduct = productAPI.subscribe((product) => {
+        this.product = product;
+      });
       productAPI.initialize(this.context.objects.product);
     }
 
@@ -974,7 +983,8 @@ export class ThemeDevtools extends LitElement {
 
     const objectsWithLiveCart = {
       ...objects,
-      cart: this.cart || objects.cart
+      cart: this.cart || objects.cart,
+      product: this.product || objects.product
     };
 
     const tabs = this._getOrderedTabs();
