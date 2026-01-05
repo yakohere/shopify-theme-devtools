@@ -6,8 +6,6 @@
 
 A powerful in-browser developer tools panel for Shopify theme development. Inspect Liquid objects, evaluate expressions, explore metafields, manipulate cart state, detect Liquid errors, and much more — all without leaving the browser.
 
-![Theme Devtools Screenshot](docs/screenshot.png)
-
 ## Features
 
 ### Core Panels
@@ -22,6 +20,24 @@ A powerful in-browser developer tools panel for Shopify theme development. Inspe
 - **Storage Inspector** — Browse and edit localStorage, sessionStorage, and cookies
 - **Apps Panel** — Lists installed Shopify apps detected on the page
 - **Info Panel** — Theme details, template info, and request metadata
+
+### Objects Inspector
+
+Browse and search through all Liquid objects with a collapsible tree view. Click any key to copy its Liquid path.
+
+![Objects Inspector](screenshots/object-inspector.gif)
+
+### Console Panel
+
+Evaluate Liquid expressions in real-time with autocomplete, filter support, and command history.
+
+![Console Panel](screenshots/console-panel.gif)
+
+### Cart Snapshots
+
+Track cart state changes over time and restore any previous snapshot with a single click.
+
+![Cart Snapshots](screenshots/cart-snapshots.gif)
 
 ### Console Expression Evaluator
 
