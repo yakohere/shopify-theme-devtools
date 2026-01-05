@@ -2210,10 +2210,10 @@ export class ConsolePanel extends LitElement {
               @click=${this._toggleThemeOnly}
               title="Show only theme-related logs"
             >
-              🎯 Theme Only
+              Theme Only
             </button>
             <button class="btn-clear" @click=${this._clearLogs}>
-              🗑️ Clear
+              Clear
             </button>
           </div>
 

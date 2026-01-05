@@ -1204,56 +1204,52 @@ export class AppsPanel extends LitElement {
           class="tab ${this.activeTab === 'all' ? 'tab--active' : ''}"
           @click=${() => this._setActiveTab('all')}
         >
-          📦 All <span class="tab__count">${totalScripts + totalBlocks + totalEmbeds}</span>
+          All <span class="tab__count">${totalScripts + totalBlocks + totalEmbeds}</span>
         </button>
         <button 
           class="tab ${this.activeTab === 'blocks' ? 'tab--active' : ''}"
           @click=${() => this._setActiveTab('blocks')}
         >
-          🧩 App Blocks <span class="tab__count">${totalBlocks}</span>
+          App Blocks <span class="tab__count">${totalBlocks}</span>
         </button>
         <button 
           class="tab ${this.activeTab === 'scripts' ? 'tab--active' : ''}"
           @click=${() => this._setActiveTab('scripts')}
         >
-          📜 Scripts <span class="tab__count">${totalScripts - totalPixels}</span>
+          Scripts <span class="tab__count">${totalScripts - totalPixels}</span>
         </button>
         <button 
           class="tab ${this.activeTab === 'pixels' ? 'tab--active' : ''}"
           @click=${() => this._setActiveTab('pixels')}
         >
-          📊 Pixels <span class="tab__count">${totalPixels}</span>
+          Pixels <span class="tab__count">${totalPixels}</span>
         </button>
         <button 
           class="tab ${this.activeTab === 'embeds' ? 'tab--active' : ''}"
           @click=${() => this._setActiveTab('embeds')}
         >
-          🔌 Embeds <span class="tab__count">${totalEmbeds}</span>
+          Embeds <span class="tab__count">${totalEmbeds}</span>
         </button>
       </div>
 
       <div class="stats-bar">
         <div class="stat">
-          <span class="stat__icon">📜</span>
           <span class="stat__value">${totalScripts}</span>
           <span>scripts</span>
         </div>
         <div class="stat">
-          <span class="stat__icon">📊</span>
           <span class="stat__value">${totalPixels}</span>
           <span>pixels</span>
         </div>
         <div class="stat">
-          <span class="stat__icon">🧩</span>
           <span class="stat__value">${totalBlocks}</span>
           <span>blocks</span>
         </div>
         <div class="stat">
-          <span class="stat__icon">🔌</span>
           <span class="stat__value">${totalEmbeds}</span>
           <span>embeds</span>
         </div>
-        <button class="btn btn--sm" @click=${() => this._refresh()}>🔄 Refresh</button>
+        <button class="btn btn--sm" @click=${() => this._refresh()}>Refresh</button>
         <button class="btn-export" @click=${() => this._exportApps()}>📥 Export</button>
       </div>
 

@@ -391,22 +391,6 @@ export class MetafieldsPanel extends LitElement {
     `
   ];
 
-  static RESOURCE_ICONS = {
-    shop: '🏪',
-    product: '📦',
-    variant: '🏷️',
-    collection: '📂',
-    customer: '👤',
-    article: '📝',
-    blog: '📰',
-    page: '📄',
-    order: '🧾',
-    company: '🏢',
-    company_location: '📍',
-    location: '📍',
-    market: '🌍',
-  };
-
   constructor() {
     super();
     this.metafields = null;
@@ -781,7 +765,7 @@ export class MetafieldsPanel extends LitElement {
               class="resource-tab ${this.activeResource === resource ? 'resource-tab--active' : ''} ${isEmpty ? 'resource-tab--empty' : ''}"
               @click=${() => this.activeResource = resource}
             >
-              ${MetafieldsPanel.RESOURCE_ICONS[resource] || '📋'} ${resource}
+              ${resource}
               <span class="resource-tab__count">${stats.total}</span>
               ${stats.filled > 0 ? html`<span class="resource-tab__filled">✓${stats.filled}</span>` : ''}
             </button>

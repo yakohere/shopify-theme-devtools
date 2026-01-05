@@ -562,7 +562,7 @@ export class CookiesPanel extends LitElement {
                 </div>
                 <div class="cookie-value">${cookie.value || '(empty)'}</div>
                 <div class="cookie-meta">
-                  <span>📦 ${this._formatSize(cookie.name + '=' + cookie.value)}</span>
+                  <span>${this._formatSize(cookie.name + '=' + cookie.value)}</span>
                 </div>
               </div>
             `)}

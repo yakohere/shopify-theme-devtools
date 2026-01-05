@@ -461,17 +461,17 @@ export class AnalyticsPanel extends LitElement {
   ];
 
   static PROVIDERS = {
-    ga4: { name: 'GA4', icon: '📊', color: '#4285f4' },
-    ga: { name: 'GA Universal', icon: '📈', color: '#e37400' },
-    fbpixel: { name: 'FB Pixel', icon: '📘', color: '#1877f2' },
-    tiktok: { name: 'TikTok', icon: '🎵', color: '#000000' },
-    pinterest: { name: 'Pinterest', icon: '📌', color: '#e60023' },
-    snapchat: { name: 'Snapchat', icon: '👻', color: '#fffc00' },
-    klaviyo: { name: 'Klaviyo', icon: '📧', color: '#2d2d2d' },
-    shopify: { name: 'Shopify', icon: '🛍️', color: '#96bf48' },
-    webpixel: { name: 'Web Pixel', icon: '🔷', color: '#5c6ac4' },
-    datalayer: { name: 'DataLayer', icon: '📦', color: '#f9ab00' },
-    custom: { name: 'Custom', icon: '⚡', color: '#9382ff' },
+    ga4: { name: 'GA4', color: '#4285f4' },
+    ga: { name: 'GA Universal', color: '#e37400' },
+    fbpixel: { name: 'FB Pixel', color: '#1877f2' },
+    tiktok: { name: 'TikTok', color: '#000000' },
+    pinterest: { name: 'Pinterest', color: '#e60023' },
+    snapchat: { name: 'Snapchat', color: '#fffc00' },
+    klaviyo: { name: 'Klaviyo', color: '#2d2d2d' },
+    shopify: { name: 'Shopify', color: '#96bf48' },
+    webpixel: { name: 'Web Pixel', color: '#5c6ac4' },
+    datalayer: { name: 'DataLayer', color: '#f9ab00' },
+    custom: { name: 'Custom', color: '#9382ff' },
   };
 
   static STORAGE_KEY = 'tdt-analytics-events';
@@ -1021,7 +1021,7 @@ export class AnalyticsPanel extends LitElement {
           const info = AnalyticsPanel.PROVIDERS[p];
           return html`
             <span class="provider-badge provider-badge--active">
-              ${info.icon} ${info.name}
+              ${info.name}
             </span>
           `;
         })}
@@ -1082,7 +1082,7 @@ export class AnalyticsPanel extends LitElement {
           class="filter-tab filter-tab--conversion ${this.activeFilter === 'conversion' ? 'filter-tab--active' : ''}"
           @click=${() => this._setFilter('conversion')}
         >
-          💰 Conversions <span class="filter-tab__count">${counts.conversion}</span>
+          Conversions <span class="filter-tab__count">${counts.conversion}</span>
         </button>
         ${Object.entries(AnalyticsPanel.PROVIDERS).map(([key, info]) =>
           counts[key] > 0 ? html`
@@ -1090,7 +1090,7 @@ export class AnalyticsPanel extends LitElement {
               class="filter-tab ${this.activeFilter === key ? 'filter-tab--active' : ''}"
               @click=${() => this._setFilter(key)}
             >
-              ${info.icon} ${info.name} <span class="filter-tab__count">${counts[key]}</span>
+              ${info.name} <span class="filter-tab__count">${counts[key]}</span>
             </button>
           ` : ''
         )}
@@ -1117,7 +1117,7 @@ export class AnalyticsPanel extends LitElement {
                 <div class="event-item event-item--${event.provider} ${event.isConversion ? 'event-item--conversion' : ''}">
                   <div class="event-header" @click=${() => this._toggleExpand(event.id)}>
                     <span class="event-provider event-provider--${event.provider}">
-                      ${providerInfo?.icon} ${providerInfo?.name}
+                      ${providerInfo?.name}
                     </span>
                     <span class="event-name ${event.isConversion ? 'event-name--conversion' : ''}">
                       ${event.eventName}

@@ -53,10 +53,6 @@ export class PreferencesPanel extends LitElement {
         gap: 8px;
       }
 
-      .section-title__icon {
-        font-size: calc(14px * var(--tdt-scale, 1));
-      }
-
       .setting-row {
         display: flex;
         align-items: flex-start;
@@ -578,7 +574,6 @@ export class PreferencesPanel extends LitElement {
       <div class="settings-container">
         <div class="section">
           <div class="section-title">
-            <span class="section-title__icon">🎨</span>
             Appearance
           </div>
 
@@ -664,7 +659,6 @@ export class PreferencesPanel extends LitElement {
 
         <div class="section">
           <div class="section-title">
-            <span class="section-title__icon">📐</span>
             Panel
           </div>
 
@@ -763,7 +757,6 @@ export class PreferencesPanel extends LitElement {
 
         <div class="section">
           <div class="section-title">
-            <span class="section-title__icon">💾</span>
             Storage
           </div>
 
@@ -789,7 +782,6 @@ export class PreferencesPanel extends LitElement {
 
         <div class="section">
           <div class="section-title">
-            <span class="section-title__icon">⌨️</span>
             Keyboard Shortcut
           </div>
 

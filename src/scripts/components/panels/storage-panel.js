@@ -575,14 +575,14 @@ export class StoragePanel extends LitElement {
           class="storage-tab ${this.activeStorage === 'local' ? 'storage-tab--active' : ''}"
           @click=${() => this._switchStorage('local')}
         >
-          💾 localStorage
+          localStorage
           <span class="storage-tab__count">${localCount}</span>
         </button>
         <button 
           class="storage-tab ${this.activeStorage === 'session' ? 'storage-tab--active' : ''}"
           @click=${() => this._switchStorage('session')}
         >
-          ⏱️ sessionStorage
+          sessionStorage
           <span class="storage-tab__count">${sessionCount}</span>
         </button>
       </div>

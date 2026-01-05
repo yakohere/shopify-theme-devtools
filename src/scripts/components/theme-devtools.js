@@ -39,18 +39,18 @@ export class ThemeDevtools extends LitElement {
   };
 
   static DEFAULT_TABS = [
-    { id: 'objects', label: 'Objects', icon: '📦' },
-    { id: 'metafields', label: 'Metafields', icon: '🏷️' },
-    { id: 'cart', label: 'Cart', icon: '🛒' },
-    { id: 'locale', label: 'Locale', icon: '🌐' },
-    { id: 'analytics', label: 'Analytics', icon: '📊' },
-    { id: 'seo', label: 'SEO', icon: '🔍' },
-    { id: 'apps', label: 'Apps', icon: '🔌' },
-    { id: 'console', label: 'Console', icon: '📋' },
-    { id: 'cookies', label: 'Cookies', icon: '🍪' },
-    { id: 'storage', label: 'Storage', icon: '💾' },
-    { id: 'info', label: 'Info', icon: 'ℹ️' },
-    { id: 'preferences', label: 'Preferences', icon: '⚙️' },
+    { id: 'objects', label: 'Objects' },
+    { id: 'metafields', label: 'Metafields' },
+    { id: 'cart', label: 'Cart' },
+    { id: 'locale', label: 'Locale' },
+    { id: 'analytics', label: 'Analytics' },
+    { id: 'seo', label: 'SEO' },
+    { id: 'apps', label: 'Apps' },
+    { id: 'console', label: 'Console' },
+    { id: 'cookies', label: 'Cookies' },
+    { id: 'storage', label: 'Storage' },
+    { id: 'info', label: 'Info' },
+    { id: 'preferences', label: 'Preferences' },
   ];
 
   static styles = [
@@ -768,16 +768,6 @@ export class ThemeDevtools extends LitElement {
     window.location.href = url.toString();
   }
 
-  async _copyPageJSON() {
-    try {
-      const json = JSON.stringify(this.context, null, 2);
-      await navigator.clipboard.writeText(json);
-      this._showActionFeedback('JSON copied');
-    } catch (e) {
-      console.error('Failed to copy:', e);
-    }
-  }
-
   _getShopURL() {
     return window.location.origin;
   }
@@ -807,16 +797,61 @@ export class ThemeDevtools extends LitElement {
   _openThemeEditor() {
     const { meta } = this.context || {};
     const themeId = meta?.theme?.id;
-    
+
     if (!themeId) {
       window.open(this._getAdminBaseUrl() + '/themes', '_blank');
       return;
     }
-    
+
     const path = window.location.pathname + window.location.search;
     const editorUrl = `${this._getAdminBaseUrl()}/themes/${themeId}/editor?previewPath=${encodeURIComponent(path)}`;
-    
+
     window.open(editorUrl, '_blank');
+  }
+
+  _getThemeEditorUrl() {
+    const { meta } = this.context || {};
+    const themeId = meta?.theme?.id;
+
+    if (!themeId) {
+      return `${this._getAdminBaseUrl()}/themes`;
+    }
+
+    const path = window.location.pathname + window.location.search;
+    return `${this._getAdminBaseUrl()}/themes/${themeId}/editor?previewPath=${encodeURIComponent(path)}`;
+  }
+
+  async _copyThemeEditorUrl() {
+    try {
+      const url = this._getThemeEditorUrl();
+      await navigator.clipboard.writeText(url);
+      this._showActionFeedback('Editor URL copied');
+    } catch (e) {
+      console.error('Failed to copy:', e);
+    }
+  }
+
+  _getPreviewThemeUrl() {
+    const { meta } = this.context || {};
+    const themeId = meta?.theme?.id;
+
+    if (!themeId) {
+      return window.location.href;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('preview_theme_id', themeId);
+    return url.toString();
+  }
+
+  async _copyPreviewThemeUrl() {
+    try {
+      const url = this._getPreviewThemeUrl();
+      await navigator.clipboard.writeText(url);
+      this._showActionFeedback('Preview URL copied');
+    } catch (e) {
+      console.error('Failed to copy:', e);
+    }
   }
 
   _openResourceInAdmin() {
@@ -996,65 +1031,69 @@ export class ThemeDevtools extends LitElement {
 
           <div class="header__actions">
             <button class="action-btn action-btn--danger" @click=${this._clearCart} title="Clear shopping cart">
-              <span class="action-btn__icon">🗑️</span> Clear Cart
+              Clear Cart
             </button>
 
             <button class="action-btn" @click=${this._forceRefresh} title="Hard refresh page">
-              <span class="action-btn__icon">🔄</span> Refresh
+              Refresh
             </button>
 
             <div class="actions-divider"></div>
 
-            <button class="action-btn" @click=${this._copyPageJSON} title="Copy full page context as JSON">
-              <span class="action-btn__icon">📋</span> Copy JSON
-            </button>
-
-            <button class="action-btn" @click=${this._openThemeEditor} title="Open current page in theme editor">
-              <span class="action-btn__icon">🎨</span> Editor
-            </button>
-
             <div class="action-dropdown">
               <button class="action-btn" @click=${this._toggleAdminDropdown} title="Open Shopify admin pages">
-                <span class="action-btn__icon">⚙️</span> Admin ▾
+                Admin ▾
               </button>
               ${this.showAdminDropdown ? html`
                 <div class="action-dropdown__menu" @click=${(e) => e.stopPropagation()}>
                   ${this._getResourceLabel() ? html`
                     <button class="action-dropdown__item action-dropdown__item--highlight" @click=${this._openResourceInAdmin}>
-                      📄 Open ${this._getResourceLabel()} in Admin
+                      Open ${this._getResourceLabel()} in Admin
                     </button>
                     <div class="action-dropdown__divider"></div>
                   ` : ''}
                   <button class="action-dropdown__item" @click=${() => this._openAdminPage('/products?selectedView=all')}>
-                    📦 Products
+                    Products
                   </button>
                   <button class="action-dropdown__item" @click=${() => this._openAdminPage('/collections?selectedView=all')}>
-                    📁 Collections
+                    Collections
                   </button>
                   <button class="action-dropdown__item" @click=${() => this._openAdminPage('/orders')}>
-                    🛒 Orders
+                    Orders
                   </button>
                   <button class="action-dropdown__item" @click=${() => this._openAdminPage('/discounts')}>
-                    🏷️ Discounts
+                    Discounts
                   </button>
                   <button class="action-dropdown__item" @click=${() => this._openAdminPage('/content/metaobjects')}>
-                    🗃️ Metaobjects
+                    Metaobjects
                   </button>
                   <div class="action-dropdown__divider"></div>
                   <button class="action-dropdown__item" @click=${() => this._openAdminPage('/customers')}>
-                    👥 Customers
+                    Customers
                   </button>
                   <button class="action-dropdown__item" @click=${() => this._openAdminPage('/settings')}>
-                    ⚙️ Settings
+                    Settings
                   </button>
                 </div>
               ` : ''}
             </div>
 
+            <button class="action-btn" @click=${this._openThemeEditor} title="Open current page in theme editor">
+              Editor
+            </button>
+
+            <button class="action-btn" @click=${this._copyThemeEditorUrl} title="Copy theme editor URL">
+              Copy Editor URL
+            </button>
+
+            <button class="action-btn" @click=${this._copyPreviewThemeUrl} title="Copy preview theme URL">
+              Copy Preview URL
+            </button>
+
             <div class="actions-divider"></div>
 
             <button class="action-btn action-btn--danger" @click=${this._clearAllCookies} title="Clear all cookies">
-              <span class="action-btn__icon">🍪</span> Clear Cookies
+              Clear Cookies
             </button>
           </div>
         </div>
@@ -1071,7 +1110,7 @@ export class ThemeDevtools extends LitElement {
               @drop=${(e) => this._handleDrop(tab.id, e)}
               @dragend=${() => this._handleDragEnd()}
             >
-              ${tab.icon} ${tab.label}
+              ${tab.label}
             </button>
           `)}
         </div>

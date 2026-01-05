@@ -1502,19 +1502,19 @@ export class SeoPanel extends LitElement {
           class="preview-tab ${this._previewType === 'facebook' ? 'preview-tab--active' : ''}"
           @click=${() => this._setPreviewType('facebook')}
         >
-          📘 Facebook
+          Facebook
         </button>
         <button
           class="preview-tab ${this._previewType === 'twitter' ? 'preview-tab--active' : ''}"
           @click=${() => this._setPreviewType('twitter')}
         >
-          🐦 Twitter
+          Twitter
         </button>
         <button
           class="preview-tab ${this._previewType === 'linkedin' ? 'preview-tab--active' : ''}"
           @click=${() => this._setPreviewType('linkedin')}
         >
-          💼 LinkedIn
+          LinkedIn
         </button>
       </div>
 
@@ -1949,44 +1949,44 @@ export class SeoPanel extends LitElement {
             class="tab ${this.activeTab === 'overview' ? 'tab--active' : ''} ${issueCount > 0 ? 'tab--warning' : ''}"
             @click=${() => this._setTab('overview')}
           >
-            📊 Overview
+            Overview
             ${issueCount > 0 ? html`<span class="tab__count">${issueCount}</span>` : ''}
           </button>
           <button
             class="tab ${this.activeTab === 'social' ? 'tab--active' : ''}"
             @click=${() => this._setTab('social')}
           >
-            📱 Social
+            Social
           </button>
           <button
             class="tab ${this.activeTab === 'headings' ? 'tab--active' : ''} ${headingIssues ? 'tab--warning' : ''}"
             @click=${() => this._setTab('headings')}
           >
-            📝 Headings
+            Headings
           </button>
           <button
             class="tab ${this.activeTab === 'links' ? 'tab--active' : ''}"
             @click=${() => this._setTab('links')}
           >
-            🔗 Links
+            Links
           </button>
           <button
             class="tab ${this.activeTab === 'content' ? 'tab--active' : ''}"
             @click=${() => this._setTab('content')}
           >
-            📄 Content
+            Content
           </button>
           <button
             class="tab ${this.activeTab === 'schema' ? 'tab--active' : ''}"
             @click=${() => this._setTab('schema')}
           >
-            📋 Schema <span class="tab__count">${this.jsonLdData.length}</span>
+            Schema <span class="tab__count">${this.jsonLdData.length}</span>
           </button>
           <button
             class="tab ${this.activeTab === 'images' ? 'tab--active' : ''} ${missingAltCount > 0 ? 'tab--warning' : ''}"
             @click=${() => this._setTab('images')}
           >
-            🖼️ Images
+            Images
             ${missingAltCount > 0 ? html`<span class="tab__count">${missingAltCount}</span>` : ''}
           </button>
         </div>

@@ -626,28 +626,24 @@ export class LocalizationPanel extends LitElement {
     return html`
       <div class="market-info">
         <div class="info-card">
-          <div class="info-card__icon">${this._getFlag(localization?.country?.iso_code)}</div>
           <div class="info-card__label">Country</div>
           <div class="info-card__value">${localization?.country?.name || '—'}</div>
           <div class="info-card__subvalue">${localization?.country?.iso_code || ''}</div>
         </div>
         
         <div class="info-card">
-          <div class="info-card__icon">${this._getFlag(request?.locale?.iso_code, 'language')}</div>
           <div class="info-card__label">Language</div>
           <div class="info-card__value">${request?.locale?.name || localization?.language?.name || '—'}</div>
           <div class="info-card__subvalue">${request?.locale?.iso_code || ''} ${request?.locale?.primary ? '(Primary)' : ''}</div>
         </div>
         
         <div class="info-card">
-          <div class="info-card__icon">💰</div>
           <div class="info-card__label">Currency</div>
           <div class="info-card__value">${localization?.country?.currency?.iso_code || '—'}</div>
           <div class="info-card__subvalue">${localization?.country?.currency?.symbol || ''}</div>
         </div>
         
         <div class="info-card">
-          <div class="info-card__icon">🏪</div>
           <div class="info-card__label">Market</div>
           <div class="info-card__value">${localization?.market?.handle || '—'}</div>
           <div class="info-card__subvalue">ID: ${localization?.market?.id || '—'}</div>
