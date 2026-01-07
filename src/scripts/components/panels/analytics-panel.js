@@ -528,13 +528,61 @@ export class AnalyticsPanel extends LitElement {
   _persistEvents() {
     try {
       const toStore = this.events.slice(-500).map(e => ({
-        ...e,
-        timestamp: e.timestamp.toISOString()
+        id: e.id,
+        provider: e.provider,
+        eventName: e.eventName,
+        data: this._safeCloneData(e.data),
+        timestamp: e.timestamp.toISOString(),
+        isConversion: e.isConversion,
+        isLive: e.isLive,
+        count: e.count
       }));
       sessionStorage.setItem(AnalyticsPanel.STORAGE_KEY, JSON.stringify(toStore));
     } catch (err) {
       console.warn('[TDT] Failed to persist events:', err);
     }
+  }
+
+  _safeCloneData(data, seen = new WeakSet()) {
+    if (data === null || typeof data !== 'object') {
+      return data;
+    }
+
+    // Handle circular references
+    if (seen.has(data)) {
+      return '[Circular]';
+    }
+
+    // Skip DOM elements and Lit elements
+    if (data instanceof Element || data instanceof Node) {
+      return '[DOM Element]';
+    }
+
+    // Skip functions
+    if (typeof data === 'function') {
+      return '[Function]';
+    }
+
+    seen.add(data);
+
+    if (Array.isArray(data)) {
+      return data.map(item => this._safeCloneData(item, seen));
+    }
+
+    const result = {};
+    for (const key of Object.keys(data)) {
+      try {
+        const value = data[key];
+        // Skip certain problematic keys
+        if (key === 'renderOptions' || key === 'host' || key.startsWith('__')) {
+          continue;
+        }
+        result[key] = this._safeCloneData(value, seen);
+      } catch {
+        result[key] = '[Unserializable]';
+      }
+    }
+    return result;
   }
 
   _detectProviders() {
