@@ -622,7 +622,12 @@ export class LocalizationPanel extends LitElement {
 
   _renderMarketInfo() {
     const { localization, request } = this.meta;
-    
+
+    // Get currency rate from window.Shopify if available
+    const shopifyCurrency = window.Shopify?.currency;
+    const currencyRate = shopifyCurrency?.rate;
+    const activeCurrency = shopifyCurrency?.active;
+
     return html`
       <div class="market-info">
         <div class="info-card">
@@ -630,19 +635,25 @@ export class LocalizationPanel extends LitElement {
           <div class="info-card__value">${localization?.country?.name || '—'}</div>
           <div class="info-card__subvalue">${localization?.country?.iso_code || ''}</div>
         </div>
-        
+
         <div class="info-card">
           <div class="info-card__label">Language</div>
           <div class="info-card__value">${request?.locale?.name || localization?.language?.name || '—'}</div>
           <div class="info-card__subvalue">${request?.locale?.iso_code || ''} ${request?.locale?.primary ? '(Primary)' : ''}</div>
         </div>
-        
+
         <div class="info-card">
           <div class="info-card__label">Currency</div>
-          <div class="info-card__value">${localization?.country?.currency?.iso_code || '—'}</div>
+          <div class="info-card__value">${activeCurrency || localization?.country?.currency?.iso_code || '—'}</div>
           <div class="info-card__subvalue">${localization?.country?.currency?.symbol || ''}</div>
         </div>
-        
+
+        <div class="info-card">
+          <div class="info-card__label">Conversion Rate</div>
+          <div class="info-card__value">${currencyRate != null ? currencyRate : '—'}</div>
+          <div class="info-card__subvalue">${currencyRate != null && currencyRate !== 1 ? `1 ${shopifyCurrency?.active || 'base'} = ${currencyRate} shop currency` : currencyRate === 1 ? 'No conversion' : ''}</div>
+        </div>
+
         <div class="info-card">
           <div class="info-card__label">Market</div>
           <div class="info-card__value">${localization?.market?.handle || '—'}</div>
