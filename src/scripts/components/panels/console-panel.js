@@ -5,27 +5,17 @@ import { expressionEvaluator } from '../../services/expression-evaluator.js';
 
 export class ConsolePanel extends LitElement {
   static properties = {
-    logs: { type: Array, state: true },
     liquidErrors: { type: Array, state: true },
-    filter: { type: String, state: true },
-    activeFilter: { type: String, state: true },
-    showThemeOnly: { type: Boolean, state: true },
+    evalLogs: { type: Array, state: true },
     expandedLogs: { type: Set, state: true },
-    groupedErrors: { type: Map, state: true },
-    networkErrors: { type: Array, state: true },
-    groupStack: { type: Array, state: true },
     // Expression input properties
     inputValue: { type: String, state: true },
-    inputHistory: { type: Array, state: true },
     historyIndex: { type: Number, state: true },
     suggestions: { type: Array, state: true },
     selectedSuggestion: { type: Number, state: true },
     showSuggestions: { type: Boolean, state: true },
-    showFilterDropdown: { type: Boolean, state: true },
     context: { type: Object },
   };
-
-  static STORAGE_KEY = 'tdt-console-logs';
 
   static styles = [
     baseStyles,
@@ -49,160 +39,14 @@ export class ConsolePanel extends LitElement {
         padding: 0 0 12px 0;
       }
 
-      .search {
-        flex: 1;
-        min-width: 120px;
-      }
-
-      /* Filter Dropdown */
-      .filter-dropdown {
-        position: relative;
-      }
-
-      .filter-dropdown-trigger {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        background: var(--tdt-bg-secondary);
-        border: 1px solid var(--tdt-border);
-        border-radius: var(--tdt-radius);
-        padding: 4px 10px;
-        color: var(--tdt-text);
-        font-family: var(--tdt-font);
-        font-size: calc(11px * var(--tdt-scale, 1));
-        cursor: pointer;
-        transition: all 0.15s ease;
-        min-width: 150px;
-      }
-
-      .filter-dropdown-trigger:hover {
-        background: var(--tdt-bg-hover);
-      }
-
-      .filter-dropdown-trigger--active {
-        border-color: var(--tdt-accent);
-      }
-
-      .filter-dropdown-trigger__icon {
-        margin-left: auto;
-        font-size: calc(10px * var(--tdt-scale, 1));
-        transition: transform 0.15s ease;
-      }
-
-      .filter-dropdown-trigger__icon--open {
-        transform: rotate(180deg);
-      }
-
-      .filter-dropdown-trigger__count {
-        font-size: calc(10px * var(--tdt-scale, 1));
-        background: var(--tdt-accent);
-        color: white;
-        padding: 1px 6px;
-        border-radius: 8px;
+      .toolbar-title {
+        font-size: calc(12px * var(--tdt-scale, 1));
         font-weight: 600;
-      }
-
-      .filter-dropdown-menu {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        margin-top: 4px;
-        min-width: 180px;
-        background: var(--tdt-bg);
-        border: 1px solid var(--tdt-border);
-        border-radius: var(--tdt-radius);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-        z-index: 100;
-        overflow: hidden;
-      }
-
-      .filter-dropdown-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 12px;
-        cursor: pointer;
-        font-size: calc(11px * var(--tdt-scale, 1));
         color: var(--tdt-text);
-        border: none;
-        background: none;
-        width: 100%;
-        text-align: left;
-        transition: background 0.1s ease;
       }
 
-      .filter-dropdown-item:hover {
-        background: var(--tdt-bg-hover);
-      }
-
-      .filter-dropdown-item--active {
-        background: var(--tdt-accent);
-        color: white;
-      }
-
-      .filter-dropdown-item--active:hover {
-        background: var(--tdt-accent);
-      }
-
-      .filter-dropdown-item__icon {
-        width: 16px;
-        text-align: center;
-        flex-shrink: 0;
-      }
-
-      .filter-dropdown-item__label {
+      .toolbar-spacer {
         flex: 1;
-      }
-
-      .filter-dropdown-item__count {
-        font-size: calc(10px * var(--tdt-scale, 1));
-        opacity: 0.7;
-        background: rgba(255, 255, 255, 0.15);
-        padding: 1px 6px;
-        border-radius: 8px;
-      }
-
-      .filter-dropdown-item--active .filter-dropdown-item__count {
-        background: rgba(255, 255, 255, 0.25);
-        opacity: 1;
-      }
-
-      .filter-dropdown-item--error {
-        color: var(--tdt-error);
-      }
-
-      .filter-dropdown-item--error.filter-dropdown-item--active {
-        background: var(--tdt-error);
-        color: white;
-      }
-
-      .filter-dropdown-item--warn {
-        color: var(--tdt-warning);
-      }
-
-      .filter-dropdown-item--warn.filter-dropdown-item--active {
-        background: var(--tdt-warning);
-        color: var(--tdt-bg);
-      }
-
-      .toggle-btn {
-        background: var(--tdt-bg-secondary);
-        border: 1px solid var(--tdt-border);
-        border-radius: var(--tdt-radius);
-        padding: 4px 10px;
-        color: var(--tdt-text-muted);
-        font-size: calc(11px * var(--tdt-scale, 1));
-        cursor: pointer;
-      }
-
-      .toggle-btn:hover {
-        background: var(--tdt-bg-hover);
-      }
-
-      .toggle-btn--active {
-        background: var(--tdt-accent);
-        border-color: var(--tdt-accent);
-        color: white;
       }
 
       .btn-clear {
@@ -221,10 +65,20 @@ export class ConsolePanel extends LitElement {
         color: white;
       }
 
-      .log-list {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
+      .btn-rescan {
+        background: transparent;
+        border: 1px solid var(--tdt-border);
+        color: var(--tdt-text-muted);
+        border-radius: var(--tdt-radius);
+        padding: 4px 10px;
+        font-size: calc(11px * var(--tdt-scale, 1));
+        cursor: pointer;
+      }
+
+      .btn-rescan:hover {
+        background: var(--tdt-accent);
+        border-color: var(--tdt-accent);
+        color: white;
       }
 
       .log-item {
@@ -236,28 +90,34 @@ export class ConsolePanel extends LitElement {
         margin-bottom: 4px;
       }
 
-      .log-item--error {
-        border-left: 3px solid var(--tdt-error);
-        background: rgba(255, 77, 77, 0.05);
-      }
-
-      .log-item--warn {
-        border-left: 3px solid var(--tdt-warning);
-        background: rgba(255, 193, 100, 0.05);
-      }
-
-      .log-item--info {
-        border-left: 3px solid var(--tdt-accent);
-      }
-
       .log-item--liquid {
         border-left: 3px solid #9382ff;
         background: rgba(147, 130, 255, 0.05);
       }
 
-      .log-item--deprecation {
-        border-left: 3px solid #ff9f43;
-        background: rgba(255, 159, 67, 0.05);
+      .log-item--drop {
+        border-left: 3px solid #f97316;
+        background: rgba(249, 115, 22, 0.05);
+      }
+
+      .log-item--asset {
+        border-left: 3px solid #eab308;
+        background: rgba(234, 179, 8, 0.05);
+      }
+
+      .log-item--schema {
+        border-left: 3px solid #ec4899;
+        background: rgba(236, 72, 153, 0.05);
+      }
+
+      .log-item--json {
+        border-left: 3px solid #ef4444;
+        background: rgba(239, 68, 68, 0.05);
+      }
+
+      .log-item--eval {
+        border-left: 3px solid var(--tdt-accent);
+        background: rgba(59, 130, 246, 0.05);
       }
 
       .log-header {
@@ -281,33 +141,33 @@ export class ConsolePanel extends LitElement {
         flex-shrink: 0;
       }
 
-      .log-type--error {
-        background: var(--tdt-error);
-        color: white;
-      }
-
-      .log-type--warn {
-        background: var(--tdt-warning);
-        color: var(--tdt-bg);
-      }
-
-      .log-type--info {
-        background: var(--tdt-accent);
-        color: white;
-      }
-
-      .log-type--log {
-        background: var(--tdt-bg);
-        color: var(--tdt-text-muted);
-      }
-
       .log-type--liquid {
         background: #9382ff;
         color: white;
       }
 
-      .log-type--deprecation {
-        background: #ff9f43;
+      .log-type--drop {
+        background: #f97316;
+        color: white;
+      }
+
+      .log-type--asset {
+        background: #eab308;
+        color: var(--tdt-bg);
+      }
+
+      .log-type--schema {
+        background: #ec4899;
+        color: white;
+      }
+
+      .log-type--json {
+        background: #ef4444;
+        color: white;
+      }
+
+      .log-type--eval {
+        background: var(--tdt-accent);
         color: white;
       }
 
@@ -315,16 +175,6 @@ export class ConsolePanel extends LitElement {
         flex: 1;
         font-family: var(--tdt-font-mono);
         color: var(--tdt-text);
-      }
-
-      .log-count {
-        background: var(--tdt-bg);
-        color: var(--tdt-text-muted);
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-size: calc(10px * var(--tdt-scale, 1));
-        font-weight: 600;
-        flex-shrink: 0;
       }
 
       .log-time {
@@ -337,34 +187,6 @@ export class ConsolePanel extends LitElement {
         border-top: 1px solid var(--tdt-border);
         padding: 10px;
         background: var(--tdt-bg);
-      }
-
-      .log-stack {
-        font-family: var(--tdt-font-mono);
-        font-size: calc(10px * var(--tdt-scale, 1));
-        color: var(--tdt-text-muted);
-        white-space: pre-wrap;
-        max-height: 150px;
-        overflow: auto;
-        margin-top: 8px;
-        padding: 8px;
-        background: var(--tdt-bg-secondary);
-        border-radius: var(--tdt-radius);
-      }
-
-      .log-source {
-        font-size: calc(10px * var(--tdt-scale, 1));
-        color: var(--tdt-text-muted);
-        margin-top: 6px;
-      }
-
-      .log-source a {
-        color: var(--tdt-accent);
-        text-decoration: none;
-      }
-
-      .log-source a:hover {
-        text-decoration: underline;
       }
 
       .empty-state {
@@ -399,177 +221,6 @@ export class ConsolePanel extends LitElement {
         flex: 1;
         height: 1px;
         background: var(--tdt-border);
-      }
-
-      .deprecation-item {
-        background: var(--tdt-bg-secondary);
-        border: 1px solid var(--tdt-border);
-        border-left: 3px solid #ff9f43;
-        border-radius: var(--tdt-radius);
-        padding: 10px 12px;
-        margin-bottom: 8px;
-      }
-
-      .deprecation-tag {
-        font-family: var(--tdt-font-mono);
-        font-weight: 600;
-        color: #ff9f43;
-      }
-
-      .deprecation-message {
-        font-size: calc(11px * var(--tdt-scale, 1));
-        color: var(--tdt-text);
-        margin-top: 4px;
-      }
-
-      .deprecation-replacement {
-        font-size: calc(11px * var(--tdt-scale, 1));
-        color: var(--tdt-text-muted);
-        margin-top: 4px;
-      }
-
-      .deprecation-replacement code {
-        background: var(--tdt-bg);
-        padding: 2px 6px;
-        border-radius: var(--tdt-radius);
-        color: var(--tdt-success);
-      }
-
-      .log-item--network {
-        border-left: 3px solid #ef4444;
-        background: rgba(239, 68, 68, 0.05);
-      }
-
-      .log-type--network {
-        background: #ef4444;
-        color: white;
-      }
-
-      .log-item--group {
-        border-left: 3px solid #6366f1;
-        background: rgba(99, 102, 241, 0.05);
-      }
-
-      .log-type--group {
-        background: #6366f1;
-        color: white;
-      }
-
-      .log-group-children {
-        margin-left: 16px;
-        padding-left: 12px;
-        border-left: 2px solid var(--tdt-border);
-      }
-
-      .log-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: calc(11px * var(--tdt-scale, 1));
-        margin-top: 8px;
-      }
-
-      .log-table th,
-      .log-table td {
-        border: 1px solid var(--tdt-border);
-        padding: 4px 8px;
-        text-align: left;
-      }
-
-      .log-table th {
-        background: var(--tdt-bg-secondary);
-        color: var(--tdt-text-muted);
-        font-weight: 600;
-      }
-
-      .log-table td {
-        color: var(--tdt-text);
-      }
-
-      .log-table tr:nth-child(even) td {
-        background: rgba(255, 255, 255, 0.02);
-      }
-
-      .network-details {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 4px 12px;
-        font-size: calc(11px * var(--tdt-scale, 1));
-        margin-top: 8px;
-      }
-
-      .network-details dt {
-        color: var(--tdt-text-muted);
-      }
-
-      .network-details dd {
-        color: var(--tdt-text);
-        margin: 0;
-        word-break: break-all;
-      }
-
-      .status-badge {
-        display: inline-block;
-        padding: 2px 6px;
-        border-radius: var(--tdt-radius);
-        font-size: calc(10px * var(--tdt-scale, 1));
-        font-weight: 600;
-      }
-
-      .status-badge--error {
-        background: var(--tdt-error);
-        color: white;
-      }
-
-      .status-badge--success {
-        background: var(--tdt-success);
-        color: white;
-      }
-
-      .persist-indicator {
-        font-size: calc(10px * var(--tdt-scale, 1));
-        color: var(--tdt-text-muted);
-        margin-left: auto;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .persist-indicator::before {
-        content: '';
-        width: 6px;
-        height: 6px;
-        background: var(--tdt-success);
-        border-radius: 50%;
-      }
-
-      .log-item--drop {
-        border-left: 3px solid #f97316;
-        background: rgba(249, 115, 22, 0.05);
-      }
-
-      .log-type--drop {
-        background: #f97316;
-        color: white;
-      }
-
-      .log-item--asset {
-        border-left: 3px solid #eab308;
-        background: rgba(234, 179, 8, 0.05);
-      }
-
-      .log-type--asset {
-        background: #eab308;
-        color: var(--tdt-bg);
-      }
-
-      .log-item--schema {
-        border-left: 3px solid #ec4899;
-        background: rgba(236, 72, 153, 0.05);
-      }
-
-      .log-type--schema {
-        background: #ec4899;
-        color: white;
       }
 
       .liquid-category {
@@ -759,17 +410,6 @@ export class ConsolePanel extends LitElement {
         white-space: nowrap;
       }
 
-      /* Eval log styles */
-      .log-item--eval {
-        border-left: 3px solid var(--tdt-accent);
-        background: rgba(59, 130, 246, 0.05);
-      }
-
-      .log-type--eval {
-        background: var(--tdt-accent);
-        color: white;
-      }
-
       .eval-expression {
         color: var(--tdt-text-muted);
         font-family: var(--tdt-font-mono);
@@ -808,424 +448,37 @@ export class ConsolePanel extends LitElement {
     `
   ];
 
-  static THEME_KEYWORDS = [
-    'shopify', 'theme', 'liquid', 'cart', 'product', 'collection',
-    'variant', 'checkout', 'customer', 'section', 'block', 'snippet',
-    'asset', 'cdn.shopify', 'myshopify', 'storefront'
-  ];
-
-  static LIQUID_DEPRECATIONS = [
-    { pattern: /\{\%\s*include\s+/i, tag: '{% include %}', message: 'The include tag is deprecated', replacement: '{% render %}' },
-    { pattern: /\|\s*date_to_xmlschema/i, tag: '| date_to_xmlschema', message: 'date_to_xmlschema is deprecated', replacement: '| date: "%Y-%m-%dT%H:%M:%S%z"' },
-    { pattern: /\|\s*json_string/i, tag: '| json_string', message: 'json_string is deprecated', replacement: '| json' },
-    { pattern: /\.all\.size/i, tag: '.all.size', message: 'Using .all.size is deprecated', replacement: 'Use .size directly or specific count properties' },
-    { pattern: /product\.collections\[0\]/i, tag: 'product.collections[0]', message: 'Accessing collections by index is unreliable', replacement: 'Use collection object directly' },
-  ];
-
   constructor() {
     super();
-    this.logs = [];
     this.liquidErrors = [];
-    this.filter = '';
-    this.activeFilter = 'all';
-    this.showThemeOnly = true;
+    this.evalLogs = [];
     this.expandedLogs = new Set();
-    this.groupedErrors = new Map();
-    this.networkErrors = [];
-    this.groupStack = [];
-    this._originalConsole = {};
-    this._originalFetch = null;
-    this._currentGroupId = null;
 
     // Expression input state
     this.inputValue = '';
-    this.inputHistory = [];
     this.historyIndex = -1;
     this.suggestions = [];
     this.selectedSuggestion = -1;
     this.showSuggestions = false;
-    this.showFilterDropdown = false;
     this.context = null;
-
-    // Load persisted logs
-    this._loadPersistedLogs();
-  }
-
-  _loadPersistedLogs() {
-    try {
-      const stored = sessionStorage.getItem(ConsolePanel.STORAGE_KEY);
-      if (stored) {
-        const data = JSON.parse(stored);
-        this.logs = (data.logs || []).map(log => ({
-          ...log,
-          timestamp: new Date(log.timestamp),
-          persisted: true
-        }));
-        this.networkErrors = (data.networkErrors || []).map(err => ({
-          ...err,
-          timestamp: new Date(err.timestamp),
-          persisted: true
-        }));
-
-        // Rebuild grouped errors
-        this.logs.forEach(log => {
-          if (log.type === 'error' || log.type === 'warn') {
-            const key = this._getGroupKey(log);
-            const existing = this.groupedErrors.get(key);
-            if (existing) {
-              existing.count++;
-            } else {
-              this.groupedErrors.set(key, { ...log, count: 1 });
-            }
-          }
-        });
-        this.groupedErrors = new Map(this.groupedErrors);
-      }
-    } catch (e) {
-      console.warn('Failed to load persisted logs:', e);
-    }
-  }
-
-  _persistLogs() {
-    try {
-      const data = {
-        logs: this.logs.slice(-500).map(log => ({
-          ...log,
-          args: undefined // Don't persist complex objects
-        })),
-        networkErrors: this.networkErrors.slice(-100)
-      };
-      sessionStorage.setItem(ConsolePanel.STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-      // Storage full or unavailable, silently fail
-    }
-  }
-
-  _getGroupKey(log) {
-    // Smarter grouping: normalize URLs, remove timestamps, etc.
-    let message = log.message || '';
-
-    // Remove timestamps
-    message = message.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/g, '[timestamp]');
-    message = message.replace(/\d{2}:\d{2}:\d{2}\.\d{3}/g, '[time]');
-
-    // Normalize UUIDs
-    message = message.replace(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/gi, '[uuid]');
-
-    // Normalize numbers in URLs
-    message = message.replace(/\/\d+\//g, '/[id]/');
-    message = message.replace(/=\d+(&|$)/g, '=[num]$1');
-
-    // Take first 200 chars after normalization
-    return `${log.type}:${message.substring(0, 200)}`;
   }
 
   connectedCallback() {
     super.connectedCallback();
-    this._interceptConsole();
-    this._interceptNetwork();
     this._scanForLiquidErrors();
-    this._captureGlobalErrors();
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this._restoreConsole();
-    this._restoreNetwork();
-    window.removeEventListener('error', this._handleGlobalError);
-    window.removeEventListener('unhandledrejection', this._handleUnhandledRejection);
   }
 
   updated(changedProperties) {
     super.updated(changedProperties);
-    // Update expression evaluator context when context changes
     if (changedProperties.has('context') && this.context) {
       expressionEvaluator.setContext(this.context);
     }
   }
 
   willUpdate(changedProperties) {
-    // Also set context on initial render
     if (changedProperties.has('context') && this.context && !expressionEvaluator.context) {
       expressionEvaluator.setContext(this.context);
     }
-  }
-
-  _interceptConsole() {
-    const self = this;
-    const methods = ['log', 'info', 'warn', 'error', 'debug'];
-
-    methods.forEach(method => {
-      this._originalConsole[method] = console[method];
-      console[method] = function(...args) {
-        self._addLog(method, args);
-        self._originalConsole[method].apply(console, args);
-      };
-    });
-
-    // Handle console.table
-    this._originalConsole.table = console.table;
-    console.table = function(data, columns) {
-      self._addLog('table', [data], { columns, isTable: true });
-      self._originalConsole.table.apply(console, [data, columns]);
-    };
-
-    // Handle console.group and groupCollapsed
-    this._originalConsole.group = console.group;
-    this._originalConsole.groupCollapsed = console.groupCollapsed;
-    this._originalConsole.groupEnd = console.groupEnd;
-
-    console.group = function(...args) {
-      const groupId = Date.now() + Math.random();
-      self._startGroup(args.join(' ') || 'Group', groupId, false);
-      self._originalConsole.group.apply(console, args);
-    };
-
-    console.groupCollapsed = function(...args) {
-      const groupId = Date.now() + Math.random();
-      self._startGroup(args.join(' ') || 'Group', groupId, true);
-      self._originalConsole.groupCollapsed.apply(console, args);
-    };
-
-    console.groupEnd = function() {
-      self._endGroup();
-      self._originalConsole.groupEnd.apply(console);
-    };
-  }
-
-  _restoreConsole() {
-    Object.keys(this._originalConsole).forEach(method => {
-      if (this._originalConsole[method]) {
-        console[method] = this._originalConsole[method];
-      }
-    });
-  }
-
-  _startGroup(label, groupId, collapsed) {
-    const groupLog = {
-      id: groupId,
-      type: 'group',
-      message: label,
-      timestamp: new Date(),
-      isThemeRelated: this._isThemeRelated(label, ''),
-      collapsed,
-      children: [],
-      parentGroupId: this._currentGroupId
-    };
-
-    if (this._currentGroupId) {
-      // Nested group - add to parent's children
-      const parentGroup = this._findGroupById(this._currentGroupId);
-      if (parentGroup) {
-        parentGroup.children.push(groupLog);
-      }
-    } else {
-      this.logs = [...this.logs, groupLog];
-    }
-
-    this.groupStack.push(groupId);
-    this._currentGroupId = groupId;
-  }
-
-  _endGroup() {
-    this.groupStack.pop();
-    this._currentGroupId = this.groupStack.length > 0
-      ? this.groupStack[this.groupStack.length - 1]
-      : null;
-  }
-
-  _findGroupById(groupId, logs = this.logs) {
-    for (const log of logs) {
-      if (log.id === groupId) return log;
-      if (log.children) {
-        const found = this._findGroupById(groupId, log.children);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
-
-  _interceptNetwork() {
-    const self = this;
-
-    // Intercept fetch
-    this._originalFetch = window.fetch;
-    window.fetch = async function(input, init) {
-      const url = typeof input === 'string' ? input : input.url;
-      const method = init?.method || 'GET';
-      const startTime = performance.now();
-
-      try {
-        const response = await self._originalFetch.apply(window, [input, init]);
-        const duration = performance.now() - startTime;
-
-        if (!response.ok) {
-          self._addNetworkError({
-            url,
-            method,
-            status: response.status,
-            statusText: response.statusText,
-            duration,
-            type: 'fetch'
-          });
-        }
-
-        return response;
-      } catch (error) {
-        const duration = performance.now() - startTime;
-        self._addNetworkError({
-          url,
-          method,
-          status: 0,
-          statusText: error.message || 'Network Error',
-          duration,
-          type: 'fetch',
-          error: true
-        });
-        throw error;
-      }
-    };
-
-    // Intercept XMLHttpRequest
-    const originalXHROpen = XMLHttpRequest.prototype.open;
-    const originalXHRSend = XMLHttpRequest.prototype.send;
-
-    XMLHttpRequest.prototype.open = function(method, url) {
-      this._tdtMethod = method;
-      this._tdtUrl = url;
-      this._tdtStartTime = null;
-      return originalXHROpen.apply(this, arguments);
-    };
-
-    XMLHttpRequest.prototype.send = function() {
-      this._tdtStartTime = performance.now();
-
-      this.addEventListener('loadend', function() {
-        const duration = performance.now() - this._tdtStartTime;
-
-        if (this.status >= 400 || this.status === 0) {
-          self._addNetworkError({
-            url: this._tdtUrl,
-            method: this._tdtMethod,
-            status: this.status,
-            statusText: this.statusText || (this.status === 0 ? 'Network Error' : ''),
-            duration,
-            type: 'xhr'
-          });
-        }
-      });
-
-      return originalXHRSend.apply(this, arguments);
-    };
-
-    this._originalXHROpen = originalXHROpen;
-    this._originalXHRSend = originalXHRSend;
-  }
-
-  _restoreNetwork() {
-    if (this._originalFetch) {
-      window.fetch = this._originalFetch;
-    }
-    if (this._originalXHROpen) {
-      XMLHttpRequest.prototype.open = this._originalXHROpen;
-    }
-    if (this._originalXHRSend) {
-      XMLHttpRequest.prototype.send = this._originalXHRSend;
-    }
-  }
-
-  _addNetworkError(details) {
-    const error = {
-      id: Date.now() + Math.random(),
-      ...details,
-      timestamp: new Date(),
-      isThemeRelated: this._isThemeRelated(details.url, '')
-    };
-
-    this.networkErrors = [...this.networkErrors, error];
-    this._persistLogs();
-  }
-
-  _captureGlobalErrors() {
-    this._handleGlobalError = (event) => {
-      this._addLog('error', [event.message], {
-        stack: event.error?.stack,
-        source: `${event.filename}:${event.lineno}:${event.colno}`
-      });
-    };
-
-    this._handleUnhandledRejection = (event) => {
-      this._addLog('error', [`Unhandled Promise Rejection: ${event.reason}`], {
-        stack: event.reason?.stack
-      });
-    };
-
-    window.addEventListener('error', this._handleGlobalError);
-    window.addEventListener('unhandledrejection', this._handleUnhandledRejection);
-  }
-
-  _addLog(type, args, extra = {}) {
-    const message = args.map(arg => {
-      if (typeof arg === 'object') {
-        try {
-          return JSON.stringify(arg, null, 2);
-        } catch {
-          return String(arg);
-        }
-      }
-      return String(arg);
-    }).join(' ');
-
-    const isThemeRelated = this._isThemeRelated(message, extra.source);
-
-    const logEntry = {
-      id: Date.now() + Math.random(),
-      type,
-      message,
-      args,
-      timestamp: new Date(),
-      isThemeRelated,
-      stack: extra.stack,
-      source: extra.source,
-      hasObjects: args.some(a => typeof a === 'object' && a !== null),
-      isTable: extra.isTable || false,
-      tableColumns: extra.columns,
-      groupId: this._currentGroupId
-    };
-
-    const key = this._getGroupKey(logEntry);
-    const existing = this.groupedErrors.get(key);
-
-    if (existing && (type === 'error' || type === 'warn')) {
-      existing.count++;
-      existing.lastTime = logEntry.timestamp;
-      this.groupedErrors = new Map(this.groupedErrors);
-    } else {
-      if (type === 'error' || type === 'warn') {
-        this.groupedErrors.set(key, { ...logEntry, count: 1 });
-        this.groupedErrors = new Map(this.groupedErrors);
-      }
-
-      // Add to current group if we're inside one
-      if (this._currentGroupId) {
-        const currentGroup = this._findGroupById(this._currentGroupId);
-        if (currentGroup) {
-          currentGroup.children.push(logEntry);
-          this.logs = [...this.logs]; // Trigger reactivity
-        } else {
-          this.logs = [...this.logs, logEntry];
-        }
-      } else {
-        this.logs = [...this.logs, logEntry];
-      }
-    }
-
-    this._persistLogs();
-  }
-
-  _isThemeRelated(message, source = '') {
-    const combined = (message + ' ' + source).toLowerCase();
-    return ConsolePanel.THEME_KEYWORDS.some(kw => combined.includes(kw));
   }
 
   _scanForLiquidErrors() {
@@ -1268,31 +521,54 @@ export class ConsolePanel extends LitElement {
     // Liquid error patterns
     const liquidErrorPatterns = [
       // Standard Liquid errors
-      /Liquid\s+error\s*\(line\s*\d+\):\s*[^<\n]+/gi,
-      /Liquid\s+error:\s*[^<\n]+/gi,
-      /Liquid\s+syntax\s+error\s*\(line\s*\d+\):\s*[^<\n]+/gi,
-      /Liquid\s+syntax\s+error:\s*[^<\n]+/gi,
+      { pattern: /Liquid\s+error\s*\(line\s*\d+\):\s*[^<\n]+/gi, category: 'inline' },
+      { pattern: /Liquid\s+error:\s*[^<\n]+/gi, category: 'inline' },
+      { pattern: /Liquid\s+syntax\s+error\s*\(line\s*\d+\):\s*[^<\n]+/gi, category: 'inline' },
+      { pattern: /Liquid\s+syntax\s+error:\s*[^<\n]+/gi, category: 'inline' },
 
       // Schema/JSON errors
-      /Error\s+in\s+schema:\s*[^<\n]+/gi,
-      /Invalid\s+JSON\s+in\s+schema\s+tag/gi,
-      /Error\s+parsing\s+schema:\s*[^<\n]+/gi,
+      { pattern: /Error\s+in\s+schema:\s*[^<\n]+/gi, category: 'schema' },
+      { pattern: /Invalid\s+JSON\s+in\s+schema\s+tag/gi, category: 'schema' },
+      { pattern: /Error\s+parsing\s+schema:\s*[^<\n]+/gi, category: 'schema' },
     ];
 
-    liquidErrorPatterns.forEach(pattern => {
+    liquidErrorPatterns.forEach(({ pattern, category }) => {
       let match;
       while ((match = pattern.exec(pageContent)) !== null) {
-        addError(match[0], 'inline');
+        addError(match[0], category);
       }
     });
 
-    // 3. Detect Drop objects rendered as strings (e.g., #<ProductDrop:0x...>)
+    // 2b. Detect JSON filter errors (appears as {"error":"..."} in page)
+    const jsonErrorPattern = /\{"error"\s*:\s*"([^"]+)"\}/gi;
+    let jsonMatch;
+    while ((jsonMatch = jsonErrorPattern.exec(pageContent)) !== null) {
+      const errorMsg = jsonMatch[1];
+      addError(
+        `JSON filter error: ${errorMsg} — This occurs when using | json on objects that cannot be serialized`,
+        'json'
+      );
+    }
+
+    // 3. Detect Drop objects rendered as strings
+    // Pattern 1: #<ProductDrop:0x...> format
     const dropPattern = /#<(?:Shopify::)?(?:Liquid::)?(\w+)Drop:0x[a-f0-9]+>/gi;
     let dropMatch;
     while ((dropMatch = dropPattern.exec(pageContent)) !== null) {
       const dropType = dropMatch[1];
       addError(
         `Raw ${dropType} Drop object rendered: ${dropMatch[0]} — Use .title, .url, or other property instead of outputting the object directly`,
+        'drop'
+      );
+    }
+
+    // Pattern 2: Simple "ShopDrop", "ProductDrop", etc. format (newer Shopify output)
+    const simpleDropPattern = /\b(Shop|Product|Collection|Cart|Customer|Article|Blog|Page|Variant|Image|Metafield|Address|Order|LineItem|Fulfillment|Transaction|Country|Currency|Locale|Market|Policy|Section|Block|Theme|Font|Link|Linklist|Comment|Form|Paginate|TableRow|ForLoop)Drop\b/g;
+    let simpleDropMatch;
+    while ((simpleDropMatch = simpleDropPattern.exec(pageContent)) !== null) {
+      const dropType = simpleDropMatch[1];
+      addError(
+        `Raw ${dropType}Drop object rendered on page — Use a property like .title, .name, .url instead of outputting {{ ${dropType.toLowerCase()} }} directly`,
         'drop'
       );
     }
@@ -1379,7 +655,6 @@ export class ConsolePanel extends LitElement {
       }
     });
 
-    this._checkDeprecations();
     this.liquidErrors = errors;
   }
 
@@ -1401,69 +676,25 @@ export class ConsolePanel extends LitElement {
     return parts.join(' > ');
   }
 
-  _checkDeprecations() {
-    const scripts = document.querySelectorAll('script:not([src])');
-    const pageHTML = document.documentElement.innerHTML;
-    
-    ConsolePanel.LIQUID_DEPRECATIONS.forEach(dep => {
-      if (dep.pattern.test(pageHTML)) {
-        this._addLog('warn', [`Liquid Deprecation: ${dep.message}`], {
-          deprecation: dep
-        });
-      }
-    });
+  _clearEvalLogs() {
+    this.evalLogs = [];
   }
 
-  _filterLogs(e) {
-    this.filter = e.target.value;
-  }
-
-  _setFilter(filter) {
-    this.activeFilter = filter;
-    this.showFilterDropdown = false;
-  }
-
-  _toggleFilterDropdown() {
-    this.showFilterDropdown = !this.showFilterDropdown;
-  }
-
-  _closeFilterDropdown() {
-    this.showFilterDropdown = false;
-  }
-
-  _getFilterLabel(filter) {
-    const labels = {
-      all: '📋 All',
-      error: '❌ Errors',
-      warn: '⚠️ Warnings',
-      info: 'ℹ️ Info',
-      log: '📝 Logs',
-      liquid: '💧 Liquid',
-      network: '🌐 Network'
-    };
-    return labels[filter] || '📋 All';
-  }
-
-  _toggleThemeOnly() {
-    this.showThemeOnly = !this.showThemeOnly;
-  }
-
-  _clearLogs() {
-    this.logs = [];
-    this.networkErrors = [];
-    this.groupedErrors = new Map();
-    this.groupStack = [];
-    this._currentGroupId = null;
-    sessionStorage.removeItem(ConsolePanel.STORAGE_KEY);
+  _toggleExpand(logId) {
+    const newExpanded = new Set(this.expandedLogs);
+    if (newExpanded.has(logId)) {
+      newExpanded.delete(logId);
+    } else {
+      newExpanded.add(logId);
+    }
+    this.expandedLogs = newExpanded;
   }
 
   // Expression input methods
   _handleInputKeydown(e) {
     switch (e.key) {
       case 'Enter':
-        // Shift+Enter for newlines, Enter alone to evaluate
         if (e.shiftKey) {
-          // Allow default behavior (insert newline)
           return;
         }
         e.preventDefault();
@@ -1475,7 +706,6 @@ export class ConsolePanel extends LitElement {
         break;
 
       case 'ArrowUp':
-        // Only navigate history if at the first line or input is single line
         if (this.showSuggestions && this.suggestions.length > 0) {
           e.preventDefault();
           this.selectedSuggestion = this.selectedSuggestion <= 0
@@ -1489,7 +719,6 @@ export class ConsolePanel extends LitElement {
         break;
 
       case 'ArrowDown':
-        // Only navigate history if at the last line or input is single line
         if (this.showSuggestions && this.suggestions.length > 0) {
           e.preventDefault();
           this.selectedSuggestion = this.selectedSuggestion >= this.suggestions.length - 1
@@ -1550,9 +779,7 @@ export class ConsolePanel extends LitElement {
   }
 
   _autoGrowTextarea(textarea) {
-    // Reset height to auto to get the correct scrollHeight
     textarea.style.height = 'auto';
-    // Set height to scrollHeight to expand
     textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
   }
 
@@ -1573,10 +800,8 @@ export class ConsolePanel extends LitElement {
     const suggestion = this.suggestions[index];
     if (!suggestion) return;
 
-    // Check if we're completing a filter (after |)
     const pipeIndex = this.inputValue.lastIndexOf('|');
     if (pipeIndex !== -1 && suggestion.type === 'filter') {
-      // Replace filter part only
       this.inputValue = this.inputValue.slice(0, pipeIndex + 1) + ' ' + suggestion.value;
     } else {
       this.inputValue = suggestion.value;
@@ -1585,7 +810,6 @@ export class ConsolePanel extends LitElement {
     this.showSuggestions = false;
     this.selectedSuggestion = -1;
 
-    // Focus back on textarea
     this.updateComplete.then(() => {
       const textarea = this.shadowRoot.querySelector('.console-input');
       if (textarea) {
@@ -1601,13 +825,11 @@ export class ConsolePanel extends LitElement {
     if (history.length === 0) return;
 
     if (direction === -1) {
-      // Up - go back in history
       if (this.historyIndex < history.length - 1) {
         this.historyIndex++;
         this.inputValue = history[history.length - 1 - this.historyIndex];
       }
     } else {
-      // Down - go forward in history
       if (this.historyIndex > 0) {
         this.historyIndex--;
         this.inputValue = history[history.length - 1 - this.historyIndex];
@@ -1625,39 +847,45 @@ export class ConsolePanel extends LitElement {
 
     const expression = this.inputValue;
 
-    // Clear input immediately for better UX
     this.inputValue = '';
     this.historyIndex = -1;
     this.showSuggestions = false;
 
-    // Evaluate asynchronously
     const result = await expressionEvaluator.evaluate(expression);
 
-    // Add to logs as an eval entry
     const logEntry = {
       id: Date.now() + Math.random(),
       type: 'eval',
       expression: result.expression,
-      message: result.expression,
       result: result.success ? result.value : null,
       error: result.success ? null : result.error,
       success: result.success,
       timestamp: new Date(),
-      isThemeRelated: true,
     };
 
-    this.logs = [...this.logs, logEntry];
-    this._persistLogs();
+    this.evalLogs = [...this.evalLogs, logEntry];
 
-    // Update history
-    this.inputHistory = expressionEvaluator.getHistory();
-
-    // Scroll to bottom after adding log
     this.updateComplete.then(() => {
       const content = this.shadowRoot.querySelector('.console-content');
       if (content) {
         content.scrollTop = content.scrollHeight;
       }
+    });
+  }
+
+  _formatTime(date) {
+    if (!(date instanceof Date)) {
+      date = new Date(date);
+    }
+    if (isNaN(date.getTime())) {
+      return '--:--:--';
+    }
+    return date.toLocaleTimeString('en-US', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      fractionalSecondDigits: 3
     });
   }
 
@@ -1699,300 +927,6 @@ export class ConsolePanel extends LitElement {
     return html`<span class="eval-result">${String(value)}</span>`;
   }
 
-  _toggleExpand(logId) {
-    const newExpanded = new Set(this.expandedLogs);
-    if (newExpanded.has(logId)) {
-      newExpanded.delete(logId);
-    } else {
-      newExpanded.add(logId);
-    }
-    this.expandedLogs = newExpanded;
-  }
-
-  _getFilteredLogs() {
-    let filtered = this.logs.filter(log => !log.groupId); // Only top-level logs
-
-    if (this.showThemeOnly) {
-      filtered = filtered.filter(log => log.isThemeRelated);
-    }
-
-    if (this.activeFilter !== 'all') {
-      if (this.activeFilter === 'liquid') {
-        filtered = filtered.filter(log =>
-          log.message.toLowerCase().includes('liquid') ||
-          this.liquidErrors.some(e => e.message === log.message)
-        );
-      } else if (this.activeFilter === 'network') {
-        return []; // Network errors are handled separately
-      } else if (this.activeFilter === 'table') {
-        filtered = filtered.filter(log => log.isTable);
-      } else if (this.activeFilter === 'group') {
-        filtered = filtered.filter(log => log.type === 'group');
-      } else {
-        filtered = filtered.filter(log => log.type === this.activeFilter);
-      }
-    }
-
-    if (this.filter) {
-      const lower = this.filter.toLowerCase();
-      filtered = filtered.filter(log =>
-        log.message.toLowerCase().includes(lower)
-      );
-    }
-
-    return filtered;
-  }
-
-  _getFilteredNetworkErrors() {
-    let filtered = this.networkErrors;
-
-    if (this.showThemeOnly) {
-      filtered = filtered.filter(err => err.isThemeRelated);
-    }
-
-    if (this.filter) {
-      const lower = this.filter.toLowerCase();
-      filtered = filtered.filter(err =>
-        err.url.toLowerCase().includes(lower) ||
-        err.statusText.toLowerCase().includes(lower)
-      );
-    }
-
-    return filtered;
-  }
-
-  _getCounts() {
-    const logs = this.showThemeOnly
-      ? this.logs.filter(l => l.isThemeRelated)
-      : this.logs;
-
-    const networkErrors = this.showThemeOnly
-      ? this.networkErrors.filter(e => e.isThemeRelated)
-      : this.networkErrors;
-
-    return {
-      all: logs.length + networkErrors.length,
-      error: logs.filter(l => l.type === 'error').length,
-      warn: logs.filter(l => l.type === 'warn').length,
-      info: logs.filter(l => l.type === 'info').length,
-      log: logs.filter(l => l.type === 'log' || l.type === 'debug').length,
-      liquid: this.liquidErrors.length,
-      network: networkErrors.length,
-      table: logs.filter(l => l.isTable).length,
-      group: logs.filter(l => l.type === 'group').length
-    };
-  }
-
-  _formatTime(date) {
-    return date.toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit',
-      fractionalSecondDigits: 3
-    });
-  }
-
-  _renderLogContent(log) {
-    // Handle table rendering
-    if (log.isTable && log.args && log.args[0]) {
-      return html`
-        <div class="log-content">
-          ${this._renderTable(log.args[0], log.tableColumns)}
-        </div>
-      `;
-    }
-
-    if (log.hasObjects) {
-      const objects = log.args.filter(a => typeof a === 'object' && a !== null);
-      return html`
-        <div class="log-content">
-          ${objects.map(obj => html`
-            <tdt-object-inspector .data=${obj} .path=${'console'}></tdt-object-inspector>
-          `)}
-          ${log.stack ? html`<pre class="log-stack">${log.stack}</pre>` : ''}
-          ${log.source ? html`<div class="log-source">Source: <a href="#">${log.source}</a></div>` : ''}
-        </div>
-      `;
-    }
-
-    if (log.stack || log.source) {
-      return html`
-        <div class="log-content">
-          ${log.stack ? html`<pre class="log-stack">${log.stack}</pre>` : ''}
-          ${log.source ? html`<div class="log-source">Source: ${log.source}</div>` : ''}
-        </div>
-      `;
-    }
-
-    return null;
-  }
-
-  _renderTable(data, columns) {
-    if (!data) return null;
-
-    // Convert to array if it's an object
-    let rows = Array.isArray(data) ? data : Object.entries(data).map(([k, v]) => ({ '(index)': k, ...v }));
-
-    if (rows.length === 0) return html`<span class="preview">Empty table</span>`;
-
-    // Get all unique keys
-    let allKeys = new Set();
-    rows.forEach(row => {
-      if (typeof row === 'object' && row !== null) {
-        Object.keys(row).forEach(k => allKeys.add(k));
-      }
-    });
-
-    // Filter by columns if specified
-    let headers = columns ? columns.filter(c => allKeys.has(c)) : Array.from(allKeys);
-
-    // Add index column
-    if (!headers.includes('(index)')) {
-      headers = ['(index)', ...headers];
-    }
-
-    return html`
-      <table class="log-table">
-        <thead>
-          <tr>
-            ${headers.map(h => html`<th>${h}</th>`)}
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map((row, index) => html`
-            <tr>
-              ${headers.map(h => {
-                if (h === '(index)') {
-                  return html`<td>${row['(index)'] ?? index}</td>`;
-                }
-                const value = row && typeof row === 'object' ? row[h] : row;
-                return html`<td>${this._formatTableValue(value)}</td>`;
-              })}
-            </tr>
-          `)}
-        </tbody>
-      </table>
-    `;
-  }
-
-  _formatTableValue(value) {
-    if (value === null) return 'null';
-    if (value === undefined) return 'undefined';
-    if (typeof value === 'object') {
-      try {
-        return JSON.stringify(value);
-      } catch {
-        return '[Object]';
-      }
-    }
-    return String(value);
-  }
-
-  _renderGroupChildren(children) {
-    if (!children || children.length === 0) return null;
-
-    return html`
-      <div class="log-group-children">
-        ${children.map(child => this._renderLogItem(child))}
-      </div>
-    `;
-  }
-
-  _renderNetworkErrors() {
-    const errors = this._getFilteredNetworkErrors();
-    if (errors.length === 0) return null;
-
-    return html`
-      <div class="liquid-section">
-        <div class="section-title">Network Errors</div>
-        ${errors.slice().reverse().map(error => {
-          const isExpanded = this.expandedLogs.has(error.id);
-          return html`
-            <div class="log-item log-item--network">
-              <div class="log-header" @click=${() => this._toggleExpand(error.id)}>
-                <span class="log-type log-type--network">${error.type.toUpperCase()}</span>
-                <span class="status-badge status-badge--error">${error.status || 'ERR'}</span>
-                <span class="log-message">${error.method} ${error.url}</span>
-                <span class="log-time">${Math.round(error.duration)}ms</span>
-              </div>
-              ${isExpanded ? html`
-                <div class="log-content">
-                  <dl class="network-details">
-                    <dt>URL</dt>
-                    <dd>${error.url}</dd>
-                    <dt>Method</dt>
-                    <dd>${error.method}</dd>
-                    <dt>Status</dt>
-                    <dd>${error.status} ${error.statusText}</dd>
-                    <dt>Duration</dt>
-                    <dd>${error.duration.toFixed(2)}ms</dd>
-                    <dt>Type</dt>
-                    <dd>${error.type}</dd>
-                  </dl>
-                </div>
-              ` : ''}
-            </div>
-          `;
-        })}
-      </div>
-    `;
-  }
-
-  _renderLogItem(log) {
-    const groupKey = this._getGroupKey(log);
-    const grouped = this.groupedErrors.get(groupKey);
-    const count = grouped?.count || 1;
-    const isExpanded = this.expandedLogs.has(log.id);
-    const hasExpandable = log.hasObjects || log.stack || log.source || log.isTable || log.type === 'group';
-
-    // Handle eval logs
-    if (log.type === 'eval') {
-      return html`
-        <div class="log-item log-item--eval">
-          <div class="log-header">
-            <span class="log-type log-type--eval">EVAL</span>
-            <span class="log-message">
-              <span class="eval-expression">${log.expression}</span>
-            </span>
-            <span class="log-time">${this._formatTime(log.timestamp)}</span>
-          </div>
-          <div class="log-content">
-            ${this._renderEvalResult(log)}
-          </div>
-        </div>
-      `;
-    }
-
-    // Handle group logs
-    if (log.type === 'group') {
-      return html`
-        <div class="log-item log-item--group">
-          <div class="log-header" @click=${() => this._toggleExpand(log.id)}>
-            <span class="log-type log-type--group">GROUP</span>
-            <span class="log-message">${log.message}</span>
-            ${log.children?.length ? html`<span class="log-count">${log.children.length} items</span>` : ''}
-            <span class="log-time">${this._formatTime(log.timestamp)}</span>
-          </div>
-          ${isExpanded || !log.collapsed ? this._renderGroupChildren(log.children) : ''}
-        </div>
-      `;
-    }
-
-    return html`
-      <div class="log-item log-item--${log.type}${log.isTable ? ' log-item--table' : ''}">
-        <div class="log-header" @click=${() => hasExpandable && this._toggleExpand(log.id)}>
-          <span class="log-type log-type--${log.isTable ? 'info' : log.type}">${log.isTable ? 'TABLE' : log.type}</span>
-          <span class="log-message">${log.message}</span>
-          ${count > 1 ? html`<span class="log-count">${count}</span>` : ''}
-          ${log.persisted ? html`<span class="persist-indicator">from previous page</span>` : ''}
-          <span class="log-time">${this._formatTime(log.timestamp)}</span>
-        </div>
-        ${isExpanded ? this._renderLogContent(log) : ''}
-      </div>
-    `;
-  }
-
   _renderLiquidErrors() {
     if (this.liquidErrors.length === 0) return null;
 
@@ -2001,6 +935,7 @@ export class ConsolePanel extends LitElement {
         case 'drop': return 'log-item--drop';
         case 'asset': return 'log-item--asset';
         case 'schema': return 'log-item--schema';
+        case 'json': return 'log-item--json';
         default: return 'log-item--liquid';
       }
     };
@@ -2010,6 +945,7 @@ export class ConsolePanel extends LitElement {
         case 'drop': return 'log-type--drop';
         case 'asset': return 'log-type--asset';
         case 'schema': return 'log-type--schema';
+        case 'json': return 'log-type--json';
         default: return 'log-type--liquid';
       }
     };
@@ -2019,6 +955,7 @@ export class ConsolePanel extends LitElement {
         case 'drop': return 'DROP';
         case 'asset': return 'ASSET';
         case 'schema': return 'SCHEMA';
+        case 'json': return 'JSON';
         case 'form': return 'FORM';
         default: return 'LIQUID';
       }
@@ -2026,7 +963,6 @@ export class ConsolePanel extends LitElement {
 
     const getHint = (error) => {
       if (error.category === 'drop') {
-        // Extract the drop type from the message
         const match = error.message.match(/Raw\s+(\w+)\s+Drop/i);
         const dropType = match?.[1]?.toLowerCase() || 'object';
         return html`
@@ -2082,6 +1018,14 @@ export class ConsolePanel extends LitElement {
           </div>
         `;
       }
+      if (error.category === 'json') {
+        return html`
+          <div class="liquid-hint">
+            The <code>| json</code> filter cannot serialize certain objects like forms, images, or media.
+            Use specific properties instead: <code>{{ object.property | json }}</code> or manually build the JSON structure.
+          </div>
+        `;
+      }
       return null;
     };
 
@@ -2090,7 +1034,7 @@ export class ConsolePanel extends LitElement {
         <div class="section-title">Liquid Errors Found on Page (${this.liquidErrors.length})</div>
         ${this.liquidErrors.map(error => {
           const isExpanded = this.expandedLogs.has(error.id);
-          const hasDetails = error.element || error.category === 'drop';
+          const hasDetails = error.element || error.category === 'drop' || error.category === 'json';
           return html`
             <div class="log-item ${getCategoryStyle(error.category)}">
               <div class="log-header" @click=${() => hasDetails && this._toggleExpand(error.id)}>
@@ -2116,132 +1060,59 @@ export class ConsolePanel extends LitElement {
     `;
   }
 
+  _renderEvalLogs() {
+    if (this.evalLogs.length === 0) return null;
+
+    return html`
+      <div class="liquid-section">
+        <div class="section-title">Expression Results (${this.evalLogs.length})</div>
+        ${this.evalLogs.map(log => html`
+          <div class="log-item log-item--eval">
+            <div class="log-header">
+              <span class="log-type log-type--eval">EVAL</span>
+              <span class="log-message">
+                <span class="eval-expression">${log.expression}</span>
+              </span>
+              <span class="log-time">${this._formatTime(log.timestamp)}</span>
+            </div>
+            <div class="log-content">
+              ${this._renderEvalResult(log)}
+            </div>
+          </div>
+        `)}
+      </div>
+    `;
+  }
+
   render() {
-    const filtered = this._getFilteredLogs();
-    const counts = this._getCounts();
+    const hasContent = this.liquidErrors.length > 0 || this.evalLogs.length > 0;
 
     return html`
       <div class="console-container">
         <div class="console-content">
           <div class="toolbar">
-            <div class="filter-dropdown">
-              <button
-                class="filter-dropdown-trigger ${this.activeFilter !== 'all' ? 'filter-dropdown-trigger--active' : ''}"
-                @click=${this._toggleFilterDropdown}
-              >
-                ${this._getFilterLabel(this.activeFilter)}
-                ${counts.all > 0 ? html`<span class="filter-dropdown-trigger__count">${counts.all}</span>` : ''}
-                <span class="filter-dropdown-trigger__icon ${this.showFilterDropdown ? 'filter-dropdown-trigger__icon--open' : ''}">▼</span>
+            <span class="toolbar-title">Liquid Inspector</span>
+            <span class="toolbar-spacer"></span>
+            <button class="btn-rescan" @click=${() => this._scanForLiquidErrors()}>
+              Rescan Page
+            </button>
+            ${this.evalLogs.length > 0 ? html`
+              <button class="btn-clear" @click=${this._clearEvalLogs}>
+                Clear Results
               </button>
-              ${this.showFilterDropdown ? html`
-                <div class="filter-dropdown-menu" @mouseleave=${this._closeFilterDropdown}>
-                  <button
-                    class="filter-dropdown-item ${this.activeFilter === 'all' ? 'filter-dropdown-item--active' : ''}"
-                    @click=${() => this._setFilter('all')}
-                  >
-                    <span class="filter-dropdown-item__icon">📋</span>
-                    <span class="filter-dropdown-item__label">All</span>
-                    <span class="filter-dropdown-item__count">${counts.all}</span>
-                  </button>
-                  <button
-                    class="filter-dropdown-item filter-dropdown-item--error ${this.activeFilter === 'error' ? 'filter-dropdown-item--active' : ''}"
-                    @click=${() => this._setFilter('error')}
-                  >
-                    <span class="filter-dropdown-item__icon">❌</span>
-                    <span class="filter-dropdown-item__label">Errors</span>
-                    <span class="filter-dropdown-item__count">${counts.error}</span>
-                  </button>
-                  <button
-                    class="filter-dropdown-item filter-dropdown-item--warn ${this.activeFilter === 'warn' ? 'filter-dropdown-item--active' : ''}"
-                    @click=${() => this._setFilter('warn')}
-                  >
-                    <span class="filter-dropdown-item__icon">⚠️</span>
-                    <span class="filter-dropdown-item__label">Warnings</span>
-                    <span class="filter-dropdown-item__count">${counts.warn}</span>
-                  </button>
-                  <button
-                    class="filter-dropdown-item ${this.activeFilter === 'info' ? 'filter-dropdown-item--active' : ''}"
-                    @click=${() => this._setFilter('info')}
-                  >
-                    <span class="filter-dropdown-item__icon">ℹ️</span>
-                    <span class="filter-dropdown-item__label">Info</span>
-                    <span class="filter-dropdown-item__count">${counts.info}</span>
-                  </button>
-                  <button
-                    class="filter-dropdown-item ${this.activeFilter === 'log' ? 'filter-dropdown-item--active' : ''}"
-                    @click=${() => this._setFilter('log')}
-                  >
-                    <span class="filter-dropdown-item__icon">📝</span>
-                    <span class="filter-dropdown-item__label">Logs</span>
-                    <span class="filter-dropdown-item__count">${counts.log}</span>
-                  </button>
-                  ${counts.liquid > 0 ? html`
-                    <button
-                      class="filter-dropdown-item ${this.activeFilter === 'liquid' ? 'filter-dropdown-item--active' : ''}"
-                      @click=${() => this._setFilter('liquid')}
-                    >
-                      <span class="filter-dropdown-item__icon">💧</span>
-                      <span class="filter-dropdown-item__label">Liquid</span>
-                      <span class="filter-dropdown-item__count">${counts.liquid}</span>
-                    </button>
-                  ` : ''}
-                  ${counts.network > 0 ? html`
-                    <button
-                      class="filter-dropdown-item filter-dropdown-item--error ${this.activeFilter === 'network' ? 'filter-dropdown-item--active' : ''}"
-                      @click=${() => this._setFilter('network')}
-                    >
-                      <span class="filter-dropdown-item__icon">🌐</span>
-                      <span class="filter-dropdown-item__label">Network</span>
-                      <span class="filter-dropdown-item__count">${counts.network}</span>
-                    </button>
-                  ` : ''}
-                </div>
-              ` : ''}
-            </div>
-            <input
-              type="search"
-              class="search"
-              placeholder="Filter logs..."
-              .value=${this.filter}
-              @input=${this._filterLogs}
-            >
-            <button
-              class="toggle-btn ${this.showThemeOnly ? 'toggle-btn--active' : ''}"
-              @click=${this._toggleThemeOnly}
-              title="Show only theme-related logs"
-            >
-              Theme Only
-            </button>
-            <button class="btn-clear" @click=${this._clearLogs}>
-              Clear
-            </button>
+            ` : ''}
           </div>
 
-          ${this.activeFilter === 'all' || this.activeFilter === 'liquid'
-            ? this._renderLiquidErrors()
-            : ''
-          }
+          ${this._renderLiquidErrors()}
+          ${this._renderEvalLogs()}
 
-          ${this.activeFilter === 'all' || this.activeFilter === 'network'
-            ? this._renderNetworkErrors()
-            : ''
-          }
-
-          ${this.activeFilter === 'network'
-            ? '' // Network errors already rendered above
-            : filtered.length === 0
-            ? html`
-              <div class="empty-state">
-                <div class="empty-state__icon">📋</div>
-                <div>No ${this.showThemeOnly ? 'theme-related ' : ''}logs captured yet</div>
-              </div>
-            `
-            : html`
-              <div class="log-list">
-                ${filtered.map(log => this._renderLogItem(log))}
-              </div>
-            `
-          }
+          ${!hasContent ? html`
+            <div class="empty-state">
+              <div class="empty-state__icon">✓</div>
+              <div>No Liquid errors found on this page</div>
+              <div style="font-size: 11px; margin-top: 8px;">Use the expression input below to evaluate Liquid variables</div>
+            </div>
+          ` : ''}
         </div>
 
         <div class="console-input-container">
@@ -2283,4 +1154,3 @@ export class ConsolePanel extends LitElement {
 }
 
 customElements.define('tdt-console-panel', ConsolePanel);
-
