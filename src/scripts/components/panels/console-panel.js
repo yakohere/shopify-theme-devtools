@@ -325,6 +325,14 @@ export class ConsolePanel extends LitElement {
         padding: 2px 4px;
       }
 
+      .console-disclaimer {
+        font-size: calc(10px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        opacity: 0.7;
+        padding: 4px 0 0 20px;
+        font-style: italic;
+      }
+
       .autocomplete-dropdown {
         position: absolute;
         bottom: 100%;
@@ -1147,6 +1155,9 @@ export class ConsolePanel extends LitElement {
             @focus=${() => this._updateSuggestions()}
             rows="1"
           ></textarea>
+        </div>
+        <div class="console-disclaimer">
+          Uses LiquidJS engine — results may differ slightly from Shopify's native Liquid
         </div>
       </div>
     `;
