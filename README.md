@@ -98,11 +98,11 @@ Copy the Liquid bridge to your theme's snippets folder:
 ```bash
 # Option A: Download directly
 curl -o snippets/theme-devtools-bridge.liquid \
-  https://raw.githubusercontent.com/user/shopify-theme-devtools/main/src/liquid/theme-devtools-bridge.liquid
+  https://raw.githubusercontent.com/yakohere/shopify-theme-devtools/main/src/liquid/theme-devtools-bridge.liquid
 
-# Option B: Install via npm
-npm install shopify-theme-devtools
-cp node_modules/shopify-theme-devtools/src/liquid/theme-devtools-bridge.liquid snippets/
+# Option B: Copy manually from GitHub
+# Visit: https://github.com/yakohere/shopify-theme-devtools/blob/main/src/liquid/theme-devtools-bridge.liquid
+# Click "Raw" and save the file to your theme's snippets/ folder
 ```
 
 ### 2. Include in your layout
