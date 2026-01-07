@@ -11,7 +11,6 @@ import './panels/objects-panel.js';
 import './panels/cart-panel.js';
 import './panels/info-panel.js';
 import './panels/metafields-panel.js';
-// import './panels/settings-panel.js';  // Hidden for now
 import './panels/cookies-panel.js';
 import './panels/storage-panel.js';
 import './panels/console-panel.js';
@@ -979,7 +978,7 @@ export class ThemeDevtools extends LitElement {
       return html``;
     }
 
-    const { meta, objects, metafields, settings, sectionSettings, metafieldsSchema } = this.context;
+    const { meta, objects, metafields, metafieldsSchema } = this.context;
 
     const objectsWithLiveCart = {
       ...objects,
@@ -1078,6 +1077,9 @@ export class ThemeDevtools extends LitElement {
                     Metaobjects
                   </button>
                   <div class="action-dropdown__divider"></div>
+                  <button class="action-dropdown__item" @click=${() => this._openAdminPage('/themes')}>
+                    Themes
+                  </button>
                   <button class="action-dropdown__item" @click=${() => this._openAdminPage('/customers')}>
                     Customers
                   </button>
@@ -1137,13 +1139,7 @@ export class ThemeDevtools extends LitElement {
             .metafieldsSchema=${metafieldsSchema}
           ></tdt-metafields-panel>
           
-          <!-- Settings and Sections panels hidden for now
-          <tdt-settings-panel 
-            class="panel ${this.activeTab === 'settings' ? 'panel--active' : ''}"
-            .settings=${settings}
-            .sectionSettings=${sectionSettings}
-          ></tdt-settings-panel>
-          
+          <!-- Sections panels hidden for now
           <tdt-sections-panel 
             class="panel ${this.activeTab === 'sections' ? 'panel--active' : ''}"
           ></tdt-sections-panel>
