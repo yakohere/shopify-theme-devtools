@@ -13,7 +13,7 @@ A powerful in-browser developer tools panel for Shopify theme development. Inspe
 - **Objects Inspector** — Browse `shop`, `product`, `collection`, `customer`, `cart` and more with deep search and collapsible tree view
 - **Metafields Viewer** — Explore metafields across all resources and namespaces with type labels
 - **Cart Panel** — Real-time cart state with add/remove/quantity controls, cart history with restore, and attribute editing
-- **Console** — Chrome DevTools-style console with Liquid expression evaluator, autocomplete, and log filtering
+- **Console** — Chrome DevTools-style console with Liquid expression evaluator, and autocomplete
 - **Localization** — Markets, currencies, languages, and country data with quick switcher
 - **SEO Inspector** — Meta tags, Open Graph, Twitter Cards, and structured data (JSON-LD) validation
 - **Analytics Viewer** — Detects Google Analytics, Facebook Pixel, and other tracking codes
@@ -29,9 +29,20 @@ Browse and search through all Liquid objects with a collapsible tree view. Click
 
 ### Console Panel
 
-Evaluate Liquid expressions in real-time with autocomplete, filter support, and command history.
+A powerful Liquid debugger combining error detection and expression evaluation.
 
 ![Console Panel](screenshots/console-panel.gif)
+
+**Liquid Error Detection:**
+- **Liquid Errors** — Detects `Liquid error:` and `Liquid syntax error:` messages in page content
+- **Drop Object Leaks** — Finds raw Drop objects rendered on page (`ProductDrop`, `#<ProductDrop:0x...>`)
+- **Asset Errors** — Missing snippets, images, and asset files
+- **Schema Errors** — Invalid JSON in section schemas
+- **JSON Filter Errors** — Detects `{"error":"..."}` output from failed `| json` filters
+- **Form Errors** — Missing product/customer objects for forms
+- **Smart Hints** — Context-aware fix suggestions for each error type
+
+**Expression Evaluator:**
 
 ### Cart Snapshots
 
@@ -82,12 +93,28 @@ Automatically scans the page for common Liquid issues:
 - Schema validation errors
 - Deprecation warnings
 
-### Network Monitor
+### Network Panel
 
-Captures failed HTTP requests with:
-- Status codes and response times
-- Request URLs with query parameters
-- Error categorization (4xx, 5xx, CORS, timeout)
+Captures and inspects Shopify API requests with powerful debugging tools:
+
+- **Request Logging** — Auto-captures cart, product, collection, search, and GraphQL requests
+- **Request Editor** — Edit and resend requests with modified method, URL, headers, and body
+- **Replay** — Re-execute any captured request with one click
+- **Cart State Diff** — See exactly what changed in the cart after mutations (items added/removed/changed)
+- **Copy as cURL/Fetch** — Export requests for debugging or sharing
+- **Persistence** — Last 32 requests are saved to localStorage and restored on reload
+- **GraphQL Prettifier** — Syntax-highlighted, formatted GraphQL queries
+- **Error Diagnosis** — Smart suggestions for common cart and API errors (out of stock, invalid variants, quantity limits)
+
+### Tab Customization
+
+Customize your devtools layout like Chrome DevTools:
+
+- **Right-click any tab** to show/hide it
+- **Drag tabs** to reorder them
+- **Preferences tab** cannot be hidden (ensures you can always restore tabs)
+- **"Reset to Defaults"** restores original tab order and visibility
+- Hidden tabs are completely unloaded from DOM (saves memory/CPU)
 
 ## Quick Start
 
@@ -126,6 +153,8 @@ The devtools panel automatically appears on **unpublished/development themes onl
 | Evaluate Expression | `Enter` in Console input |
 | Autocomplete | `Tab` in Console input |
 | Command History | `↑` / `↓` in Console input |
+| Show/Hide Tabs | Right-click any tab |
+| Reorder Tabs | Drag and drop tabs |
 
 ## Panel Reference
 
@@ -138,6 +167,7 @@ The devtools panel automatically appears on **unpublished/development themes onl
 | **Analytics** | Detected tracking codes and analytics configuration |
 | **SEO** | Meta tags, Open Graph, Twitter Cards, JSON-LD structured data |
 | **Apps** | Installed Shopify apps detected on the page |
+| **Network** | API request monitor with edit/replay, cart diffs, and error diagnosis |
 | **Console** | Logs, errors, and Liquid expression evaluator |
 | **Cookies** | Browser cookies with expiration and flags |
 | **Storage** | localStorage and sessionStorage key-value pairs |
@@ -212,7 +242,7 @@ src/
 │   └── theme-devtools-bridge.liquid  # Liquid snippet for themes
 ├── scripts/
 │   ├── components/
-│   │   ├── theme-devtools.js         # Main component
+│   │   ├── theme-devtools.js         # Main component with tab management
 │   │   ├── object-inspector.js       # Tree view inspector
 │   │   └── panels/                   # Panel components
 │   ├── services/
@@ -220,6 +250,7 @@ src/
 │   │   ├── product.js                # Product API (variants/images)
 │   │   ├── context.js                # Liquid context parser
 │   │   ├── expression-evaluator.js   # Liquid expression engine
+│   │   ├── network-interceptor.js    # Fetch/XHR interceptor with persistence
 │   │   └── settings.js               # User preferences
 │   └── styles/
 │       └── theme.js                  # CSS variables and themes
