@@ -278,7 +278,6 @@ src/
 - [Lit](https://lit.dev/) — Lightweight Web Components
 - [LiquidJS](https://liquidjs.com/) — Liquid template engine
 - [Vite](https://vitejs.dev/) — Fast build tooling
-- Single IIFE bundle (~55KB gzipped)
 
 ## Browser Support
 
