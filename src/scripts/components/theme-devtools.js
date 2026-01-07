@@ -18,6 +18,7 @@ import './panels/localization-panel.js';
 import './panels/analytics-panel.js';
 import './panels/seo-panel.js';
 import './panels/apps-panel.js';
+import './panels/network-panel.js';
 import './panels/preferences-panel.js';
 
 export class ThemeDevtools extends LitElement {
@@ -46,6 +47,7 @@ export class ThemeDevtools extends LitElement {
     { id: 'analytics', label: 'Analytics' },
     { id: 'seo', label: 'SEO' },
     { id: 'apps', label: 'Apps' },
+    { id: 'network', label: 'Network' },
     { id: 'console', label: 'Console' },
     { id: 'cookies', label: 'Cookies' },
     { id: 'storage', label: 'Storage' },
@@ -1163,10 +1165,14 @@ export class ThemeDevtools extends LitElement {
             class="panel ${this.activeTab === 'seo' ? 'panel--active' : ''}"
           ></tdt-seo-panel>
           
-          <tdt-apps-panel 
+          <tdt-apps-panel
             class="panel ${this.activeTab === 'apps' ? 'panel--active' : ''}"
           ></tdt-apps-panel>
-          
+
+          <network-panel
+            class="panel ${this.activeTab === 'network' ? 'panel--active' : ''}"
+          ></network-panel>
+
           <tdt-console-panel
             class="panel ${this.activeTab === 'console' ? 'panel--active' : ''}"
             .context=${this.context}

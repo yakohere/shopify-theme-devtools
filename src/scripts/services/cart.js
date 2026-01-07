@@ -108,7 +108,9 @@ class CartAPI {
   async fetch() {
     try {
       const response = await fetch('/cart.js', {
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
+        // Mark as internal TDT request to hide from Network panel
+        _tdtInternal: true
       });
       return await response.json();
     } catch (e) {
