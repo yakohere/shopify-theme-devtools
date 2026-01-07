@@ -326,10 +326,10 @@ export class SeoPanel extends LitElement {
         color: var(--tdt-error);
       }
 
-      /* SERP Preview - Dark Mode (Google Dark Theme) */
+      /* SERP Preview - Respects theme preference */
       .serp-preview {
-        background: #202124;
-        border: 1px solid #3c4043;
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-serp-border);
         border-radius: 8px;
         padding: 16px;
         max-width: 600px;
@@ -347,7 +347,7 @@ export class SeoPanel extends LitElement {
         width: 26px;
         height: 26px;
         border-radius: 50%;
-        background: #303134;
+        background: var(--tdt-serp-favicon-bg);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -356,17 +356,17 @@ export class SeoPanel extends LitElement {
 
       .serp-preview__domain {
         font-size: calc(14px * var(--tdt-scale, 1));
-        color: #bdc1c6;
+        color: var(--tdt-serp-domain);
       }
 
       .serp-preview__breadcrumb {
         font-size: calc(12px * var(--tdt-scale, 1));
-        color: #9aa0a6;
+        color: var(--tdt-serp-breadcrumb);
       }
 
       .serp-preview__title {
         font-size: calc(20px * var(--tdt-scale, 1));
-        color: #8ab4f8;
+        color: var(--tdt-serp-title);
         line-height: 1.3;
         margin-bottom: 4px;
         cursor: pointer;
@@ -382,7 +382,7 @@ export class SeoPanel extends LitElement {
 
       .serp-preview__description {
         font-size: calc(14px * var(--tdt-scale, 1));
-        color: #bdc1c6;
+        color: var(--tdt-serp-description);
         line-height: 1.58;
         display: -webkit-box;
         -webkit-line-clamp: 2;

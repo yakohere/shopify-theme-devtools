@@ -20,6 +20,14 @@ export const THEMES = {
     '--tdt-boolean': '#ff7b72',
     '--tdt-null': '#888',
     '--tdt-key': '#c792ea',
+    // SERP preview (Google dark theme)
+    '--tdt-serp-bg': '#202124',
+    '--tdt-serp-border': '#3c4043',
+    '--tdt-serp-favicon-bg': '#303134',
+    '--tdt-serp-domain': '#bdc1c6',
+    '--tdt-serp-breadcrumb': '#9aa0a6',
+    '--tdt-serp-title': '#8ab4f8',
+    '--tdt-serp-description': '#bdc1c6',
   },
   light: {
     '--tdt-bg': '#ffffff',
@@ -39,6 +47,14 @@ export const THEMES = {
     '--tdt-boolean': '#cf222e',
     '--tdt-null': '#666',
     '--tdt-key': '#8250df',
+    // SERP preview (Google light theme)
+    '--tdt-serp-bg': '#ffffff',
+    '--tdt-serp-border': '#dfe1e5',
+    '--tdt-serp-favicon-bg': '#f1f3f4',
+    '--tdt-serp-domain': '#202124',
+    '--tdt-serp-breadcrumb': '#5f6368',
+    '--tdt-serp-title': '#1a0dab',
+    '--tdt-serp-description': '#4d5156',
   },
 };
 
@@ -191,6 +207,14 @@ export const rootStyles = css`
     --tdt-font: ui-monospace, 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
     --tdt-scale: 1;
     --tdt-radius: 4px;
+    /* SERP preview defaults (dark theme) */
+    --tdt-serp-bg: #202124;
+    --tdt-serp-border: #3c4043;
+    --tdt-serp-favicon-bg: #303134;
+    --tdt-serp-domain: #bdc1c6;
+    --tdt-serp-breadcrumb: #9aa0a6;
+    --tdt-serp-title: #8ab4f8;
+    --tdt-serp-description: #bdc1c6;
 
     all: initial;
     font-family: var(--tdt-font);
