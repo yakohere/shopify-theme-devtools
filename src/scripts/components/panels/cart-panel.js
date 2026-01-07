@@ -20,7 +20,14 @@ export class CartPanel extends LitElement {
     noteInput: { type: String, state: true },
     editingAttributes: { type: Boolean, state: true },
     attributesInput: { type: Object, state: true },
+    // Scenario builder
+    showScenarios: { type: Boolean, state: true },
+    scenarios: { type: Array, state: true },
+    editingScenario: { type: Object, state: true },
+    scenarioNameInput: { type: String, state: true },
   };
+
+  static SCENARIOS_STORAGE_KEY = 'tdt_cart_scenarios';
 
   static styles = [
     baseStyles,
@@ -657,6 +664,235 @@ export class CartPanel extends LitElement {
         font-size: calc(10px * var(--tdt-scale, 1));
         margin-left: 8px;
       }
+
+      /* Scenario Builder Styles */
+      .scenario-panel {
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        margin-bottom: 12px;
+        overflow: hidden;
+      }
+
+      .scenario-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: var(--tdt-bg);
+        border-bottom: 1px solid var(--tdt-border);
+        font-size: calc(11px * var(--tdt-scale, 1));
+        font-weight: 600;
+      }
+
+      .scenario-header-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .scenario-list {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .scenario-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--tdt-border);
+        font-size: calc(11px * var(--tdt-scale, 1));
+      }
+
+      .scenario-item:last-child {
+        border-bottom: none;
+      }
+
+      .scenario-item:hover {
+        background: var(--tdt-bg-hover);
+      }
+
+      .scenario-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .scenario-name {
+        font-weight: 600;
+        color: var(--tdt-text);
+        margin-bottom: 2px;
+      }
+
+      .scenario-meta {
+        font-size: calc(10px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+      }
+
+      .scenario-actions {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+
+      .scenario-btn {
+        padding: 4px 8px;
+        font-size: calc(9px * var(--tdt-scale, 1));
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        color: var(--tdt-text-muted);
+        cursor: pointer;
+      }
+
+      .scenario-btn:hover {
+        background: var(--tdt-bg-hover);
+        color: var(--tdt-text);
+      }
+
+      .scenario-btn--primary {
+        background: var(--tdt-accent);
+        border-color: var(--tdt-accent);
+        color: white;
+      }
+
+      .scenario-btn--primary:hover {
+        opacity: 0.9;
+      }
+
+      .scenario-btn--danger {
+        color: var(--tdt-danger);
+      }
+
+      .scenario-btn--danger:hover {
+        background: var(--tdt-danger);
+        border-color: var(--tdt-danger);
+        color: white;
+      }
+
+      .scenario-empty {
+        padding: 20px;
+        text-align: center;
+        color: var(--tdt-text-muted);
+        font-size: calc(11px * var(--tdt-scale, 1));
+      }
+
+      /* Scenario Editor */
+      .scenario-editor {
+        padding: 12px;
+        background: var(--tdt-bg);
+        border-top: 1px solid var(--tdt-border);
+      }
+
+      .scenario-editor-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .scenario-editor-header input {
+        flex: 1;
+        padding: 6px 10px;
+        font-size: calc(11px * var(--tdt-scale, 1));
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        background: var(--tdt-bg-secondary);
+        color: var(--tdt-text);
+      }
+
+      .scenario-items-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .scenario-item-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px;
+        background: var(--tdt-bg-secondary);
+        border-radius: var(--tdt-radius);
+        font-size: calc(10px * var(--tdt-scale, 1));
+      }
+
+      .scenario-item-row input {
+        padding: 4px 6px;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        border: 1px solid var(--tdt-border);
+        border-radius: 3px;
+        background: var(--tdt-bg);
+        color: var(--tdt-text);
+      }
+
+      .scenario-item-row input.variant-input {
+        width: 100px;
+      }
+
+      .scenario-item-row input.qty-input {
+        width: 45px;
+        text-align: center;
+      }
+
+      .scenario-item-props {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .scenario-item-props-row {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 4px;
+      }
+
+      .scenario-item-props-row input {
+        flex: 1;
+      }
+
+      .scenario-add-prop-btn {
+        font-size: calc(9px * var(--tdt-scale, 1));
+        color: var(--tdt-accent);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 2px 4px;
+      }
+
+      .scenario-add-prop-btn:hover {
+        text-decoration: underline;
+      }
+
+      .scenario-editor-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        padding-top: 8px;
+        border-top: 1px solid var(--tdt-border);
+      }
+
+      .scenario-add-item-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+        background: var(--tdt-bg-secondary);
+        border: 1px dashed var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        color: var(--tdt-text-muted);
+        cursor: pointer;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        margin-bottom: 12px;
+      }
+
+      .scenario-add-item-btn:hover {
+        background: var(--tdt-bg-hover);
+        color: var(--tdt-text);
+        border-color: var(--tdt-accent);
+      }
     `
   ];
 
@@ -679,6 +915,31 @@ export class CartPanel extends LitElement {
     this.editingAttributes = false;
     this.attributesInput = {};
     this._toastTimeout = null;
+    // Scenario builder
+    this.showScenarios = false;
+    this.scenarios = [];
+    this.editingScenario = null;
+    this.scenarioNameInput = '';
+    this._loadScenarios();
+  }
+
+  _loadScenarios() {
+    try {
+      const stored = localStorage.getItem(CartPanel.SCENARIOS_STORAGE_KEY);
+      if (stored) {
+        this.scenarios = JSON.parse(stored);
+      }
+    } catch (err) {
+      console.warn('[TDT] Failed to load scenarios:', err);
+    }
+  }
+
+  _saveScenarios() {
+    try {
+      localStorage.setItem(CartPanel.SCENARIOS_STORAGE_KEY, JSON.stringify(this.scenarios));
+    } catch (err) {
+      console.warn('[TDT] Failed to save scenarios:', err);
+    }
   }
 
   updated(changedProps) {
@@ -1142,7 +1403,7 @@ export class CartPanel extends LitElement {
           @input=${(e) => this.quantityInput = parseInt(e.target.value, 10) || 1}
         >
         <button class="btn btn--sm btn--mini" @click=${this._addByVariantId}>+Add</button>
-        <span style="margin-left: auto; color: var(--tdt-text-muted);">|</span>
+        <span style="margin-left: auto; color: var(--tdt-text-muted);"></span>
         <span class="label">Discount:</span>
         <div class="discount-input-inline">
           <input
@@ -1298,6 +1559,14 @@ export class CartPanel extends LitElement {
     return html`
       <div class="item-expanded">
         <div class="item-detail-row">
+          <span class="item-detail-label">Vendor:</span>
+          <span class="item-detail-value">${item.vendor || '—'}</span>
+        </div>
+        <div class="item-detail-row">
+          <span class="item-detail-label">Product Type:</span>
+          <span class="item-detail-value">${item.product_type || '—'}</span>
+        </div>
+        <div class="item-detail-row">
           <span class="item-detail-label">Variant ID:</span>
           <span class="item-detail-value">${item.variant_id}</span>
         </div>
@@ -1379,6 +1648,340 @@ export class CartPanel extends LitElement {
     `;
   }
 
+  // ============ Scenario Builder Methods ============
+
+  _toggleScenarios() {
+    this.showScenarios = !this.showScenarios;
+    if (!this.showScenarios) {
+      this.editingScenario = null;
+    }
+  }
+
+  _createNewScenario() {
+    this.editingScenario = {
+      id: null,
+      name: '',
+      items: [{ variantId: '', quantity: 1, properties: {} }],
+      note: '',
+      attributes: {}
+    };
+    this.scenarioNameInput = '';
+  }
+
+  _saveCurrentCartAsScenario() {
+    if (!this.cart || this.cart.items.length === 0) {
+      this._showToast('Cart is empty');
+      return;
+    }
+
+    const name = prompt('Enter scenario name:', `Cart ${new Date().toLocaleDateString()}`);
+    if (!name) return;
+
+    const scenario = {
+      id: Date.now(),
+      name,
+      items: this.cart.items.map(item => ({
+        variantId: String(item.variant_id),
+        quantity: item.quantity,
+        properties: item.properties || {},
+        // Store metadata for display
+        _title: item.product_title,
+        _variant: item.variant_title,
+        _sku: item.sku
+      })),
+      note: this.cart.note || '',
+      attributes: this.cart.attributes || {},
+      createdAt: new Date().toISOString()
+    };
+
+    this.scenarios = [...this.scenarios, scenario];
+    this._saveScenarios();
+    this._showToast('Scenario saved!');
+  }
+
+  _editScenario(scenario) {
+    this.editingScenario = {
+      ...scenario,
+      items: scenario.items.map(item => ({ ...item, properties: { ...item.properties } }))
+    };
+    this.scenarioNameInput = scenario.name;
+  }
+
+  _deleteScenario(scenarioId) {
+    if (!confirm('Delete this scenario?')) return;
+    this.scenarios = this.scenarios.filter(s => s.id !== scenarioId);
+    this._saveScenarios();
+    this._showToast('Scenario deleted');
+  }
+
+  _cancelEditScenario() {
+    this.editingScenario = null;
+    this.scenarioNameInput = '';
+  }
+
+  _saveEditingScenario() {
+    if (!this.scenarioNameInput.trim()) {
+      this._showToast('Please enter a scenario name');
+      return;
+    }
+
+    const validItems = this.editingScenario.items.filter(item => item.variantId.trim());
+    if (validItems.length === 0) {
+      this._showToast('Add at least one item with a variant ID');
+      return;
+    }
+
+    const scenario = {
+      ...this.editingScenario,
+      name: this.scenarioNameInput.trim(),
+      items: validItems,
+      id: this.editingScenario.id || Date.now(),
+      createdAt: this.editingScenario.createdAt || new Date().toISOString()
+    };
+
+    if (this.editingScenario.id) {
+      // Update existing
+      this.scenarios = this.scenarios.map(s => s.id === scenario.id ? scenario : s);
+    } else {
+      // Add new
+      this.scenarios = [...this.scenarios, scenario];
+    }
+
+    this._saveScenarios();
+    this.editingScenario = null;
+    this.scenarioNameInput = '';
+    this._showToast('Scenario saved!');
+  }
+
+  _addScenarioItem() {
+    this.editingScenario = {
+      ...this.editingScenario,
+      items: [...this.editingScenario.items, { variantId: '', quantity: 1, properties: {} }]
+    };
+  }
+
+  _removeScenarioItem(index) {
+    const items = [...this.editingScenario.items];
+    items.splice(index, 1);
+    this.editingScenario = { ...this.editingScenario, items };
+  }
+
+  _updateScenarioItem(index, field, value) {
+    const items = [...this.editingScenario.items];
+    items[index] = { ...items[index], [field]: value };
+    this.editingScenario = { ...this.editingScenario, items };
+  }
+
+  _addScenarioItemProperty(index) {
+    const items = [...this.editingScenario.items];
+    const props = { ...items[index].properties, '': '' };
+    items[index] = { ...items[index], properties: props };
+    this.editingScenario = { ...this.editingScenario, items };
+  }
+
+  _updateScenarioItemProperty(itemIndex, oldKey, newKey, newValue) {
+    const items = [...this.editingScenario.items];
+    const props = { ...items[itemIndex].properties };
+    if (oldKey !== newKey) {
+      delete props[oldKey];
+    }
+    props[newKey] = newValue;
+    items[itemIndex] = { ...items[itemIndex], properties: props };
+    this.editingScenario = { ...this.editingScenario, items };
+  }
+
+  _removeScenarioItemProperty(itemIndex, key) {
+    const items = [...this.editingScenario.items];
+    const props = { ...items[itemIndex].properties };
+    delete props[key];
+    items[itemIndex] = { ...items[itemIndex], properties: props };
+    this.editingScenario = { ...this.editingScenario, items };
+  }
+
+  async _loadScenario(scenario, clearFirst = false) {
+    try {
+      if (clearFirst) {
+        await cartAPI.clear();
+      }
+
+      const items = scenario.items.map(item => {
+        const cartItem = {
+          id: parseInt(item.variantId, 10),
+          quantity: item.quantity
+        };
+        if (item.properties && Object.keys(item.properties).length > 0) {
+          cartItem.properties = item.properties;
+        }
+        return cartItem;
+      });
+
+      const response = await fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ items })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || error.description || 'Failed to add items');
+      }
+
+      // Update note and attributes if present
+      const updatePayload = {};
+      if (scenario.note) {
+        updatePayload.note = scenario.note;
+      }
+      if (scenario.attributes && Object.keys(scenario.attributes).length > 0) {
+        updatePayload.attributes = scenario.attributes;
+      }
+
+      if (Object.keys(updatePayload).length > 0) {
+        await fetch('/cart/update.js', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(updatePayload)
+        });
+      }
+
+      await this._refresh();
+      this._showToast(`Loaded "${scenario.name}"`);
+    } catch (err) {
+      this._showToast(`Error: ${err.message}`);
+    }
+  }
+
+  _renderScenarioPanel() {
+    if (!this.showScenarios) return '';
+
+    return html`
+      <div class="scenario-panel">
+        <div class="scenario-header">
+          <span>Cart Scenarios</span>
+          <div class="scenario-header-actions">
+            <span style="font-weight: normal; color: var(--tdt-text-muted);">${this.scenarios.length} saved</span>
+            <button class="scenario-btn" @click=${this._saveCurrentCartAsScenario} title="Save current cart as scenario">
+              Save Current
+            </button>
+            <button class="scenario-btn scenario-btn--primary" @click=${this._createNewScenario}>
+              + New
+            </button>
+          </div>
+        </div>
+
+        ${this.editingScenario ? this._renderScenarioEditor() : html`
+          ${this.scenarios.length === 0 ? html`
+            <div class="scenario-empty">
+              No scenarios saved yet. Save your current cart or create a new scenario.
+            </div>
+          ` : html`
+            <div class="scenario-list">
+              ${this.scenarios.map(scenario => html`
+                <div class="scenario-item">
+                  <div class="scenario-info">
+                    <div class="scenario-name">${scenario.name}</div>
+                    <div class="scenario-meta">
+                      ${scenario.items.length} item${scenario.items.length !== 1 ? 's' : ''}
+                      ${scenario.items.slice(0, 2).map(i => i._title || `#${i.variantId}`).join(', ')}
+                      ${scenario.items.length > 2 ? '...' : ''}
+                    </div>
+                  </div>
+                  <div class="scenario-actions">
+                    <button class="scenario-btn scenario-btn--primary" @click=${() => this._loadScenario(scenario, true)} title="Clear cart and load">
+                      Replace
+                    </button>
+                    <button class="scenario-btn" @click=${() => this._loadScenario(scenario, false)} title="Add to existing cart">
+                      Append
+                    </button>
+                    <button class="scenario-btn" @click=${() => this._editScenario(scenario)} title="Edit scenario">
+                      Edit
+                    </button>
+                    <button class="scenario-btn scenario-btn--danger" @click=${() => this._deleteScenario(scenario.id)} title="Delete">
+                      ×
+                    </button>
+                  </div>
+                </div>
+              `)}
+            </div>
+          `}
+        `}
+      </div>
+    `;
+  }
+
+  _renderScenarioEditor() {
+    return html`
+      <div class="scenario-editor">
+        <div class="scenario-editor-header">
+          <input
+            type="text"
+            placeholder="Scenario name..."
+            .value=${this.scenarioNameInput}
+            @input=${(e) => this.scenarioNameInput = e.target.value}
+          >
+        </div>
+
+        <div class="scenario-items-list">
+          ${this.editingScenario.items.map((item, index) => html`
+            <div class="scenario-item-row">
+              <input
+                type="text"
+                class="variant-input"
+                placeholder="Variant ID"
+                .value=${item.variantId}
+                @input=${(e) => this._updateScenarioItem(index, 'variantId', e.target.value)}
+              >
+              <input
+                type="number"
+                class="qty-input"
+                min="1"
+                .value=${item.quantity}
+                @input=${(e) => this._updateScenarioItem(index, 'quantity', parseInt(e.target.value, 10) || 1)}
+              >
+              <div class="scenario-item-props">
+                ${Object.entries(item.properties).map(([key, value]) => html`
+                  <div class="scenario-item-props-row">
+                    <input
+                      type="text"
+                      placeholder="key"
+                      .value=${key}
+                      @input=${(e) => this._updateScenarioItemProperty(index, key, e.target.value, value)}
+                    >
+                    <input
+                      type="text"
+                      placeholder="value"
+                      .value=${value}
+                      @input=${(e) => this._updateScenarioItemProperty(index, key, key, e.target.value)}
+                    >
+                    <button class="scenario-btn scenario-btn--danger" style="padding: 2px 6px;" @click=${() => this._removeScenarioItemProperty(index, key)}>×</button>
+                  </div>
+                `)}
+                <button class="scenario-add-prop-btn" @click=${() => this._addScenarioItemProperty(index)}>+ property</button>
+              </div>
+              ${this.editingScenario.items.length > 1 ? html`
+                <button class="scenario-btn scenario-btn--danger" @click=${() => this._removeScenarioItem(index)}>×</button>
+              ` : ''}
+            </div>
+          `)}
+        </div>
+
+        <button class="scenario-add-item-btn" @click=${this._addScenarioItem}>
+          + Add Item
+        </button>
+
+        <div class="scenario-editor-actions">
+          <button class="scenario-btn" @click=${this._cancelEditScenario}>Cancel</button>
+          <button class="scenario-btn scenario-btn--primary" @click=${this._saveEditingScenario}>Save Scenario</button>
+        </div>
+      </div>
+    `;
+  }
+
   render() {
     if (!this.cart) {
       return html`<div class="empty-state">Loading cart...</div>`;
@@ -1400,6 +2003,13 @@ export class CartPanel extends LitElement {
         </div>
         <div class="actions">
           <button
+            class="history-toggle ${this.showScenarios ? 'active' : ''}"
+            @click=${this._toggleScenarios}
+            title="Cart scenarios"
+          >
+            Scenarios ${this.scenarios.length > 0 ? `(${this.scenarios.length})` : ''}
+          </button>
+          <button
             class="history-toggle ${this.showHistory ? 'active' : ''}"
             @click=${this._toggleHistory}
             title="View cart history"
@@ -1420,6 +2030,7 @@ export class CartPanel extends LitElement {
       ${this._renderQuickAddRow()}
       ${this._renderMetaRow()}
       ${this._renderMetaPanel()}
+      ${this._renderScenarioPanel()}
       ${this._renderHistoryPanel()}
 
       ${this._toastMessage ? html`<div class="copied-toast">${this._toastMessage}</div>` : ''}
