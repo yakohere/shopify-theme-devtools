@@ -29,9 +29,13 @@ export class ThemeDevtools extends LitElement {
     cart: { type: Object, state: true },
     product: { type: Object, state: true },
     tabOrder: { type: Array, state: true },
+    hiddenTabs: { type: Array, state: true },
     draggedTab: { type: String, state: true },
     dragOverTab: { type: String, state: true },
     showAdminDropdown: { type: Boolean, state: true },
+    showTabContextMenu: { type: Boolean, state: true },
+    tabContextMenuPosition: { type: Object, state: true },
+    contextMenuTabId: { type: String, state: true },
     panelPosition: { type: String, state: true },
     panelHeight: { type: String, state: true },
     floatingX: { type: Number, state: true },
@@ -364,6 +368,65 @@ export class ThemeDevtools extends LitElement {
       .panel--active {
         display: block;
       }
+
+      /* Tab context menu */
+      .tab-context-menu {
+        position: fixed;
+        background: var(--tdt-bg);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        padding: 4px 0;
+        min-width: 180px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        z-index: 2147483647;
+      }
+
+      .tab-context-menu__item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        font-size: calc(11px * var(--tdt-scale, 1));
+        color: var(--tdt-text);
+        cursor: pointer;
+        transition: background 0.1s ease;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        font-family: var(--tdt-font);
+      }
+
+      .tab-context-menu__item:hover {
+        background: var(--tdt-bg-hover);
+      }
+
+      .tab-context-menu__item--danger {
+        color: var(--tdt-error);
+      }
+
+      .tab-context-menu__item--danger:hover {
+        background: rgba(239, 68, 68, 0.1);
+      }
+
+      .tab-context-menu__divider {
+        height: 1px;
+        background: var(--tdt-border);
+        margin: 4px 0;
+      }
+
+      .tab-context-menu__submenu-label {
+        padding: 6px 12px;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .tab-context-menu__hidden-list {
+        max-height: 200px;
+        overflow-y: auto;
+      }
     `
   ];
 
@@ -378,9 +441,13 @@ export class ThemeDevtools extends LitElement {
     this._unsubscribeProduct = null;
     this._unsubscribeSettings = null;
     this.tabOrder = null;
+    this.hiddenTabs = [];
     this.draggedTab = null;
     this.dragOverTab = null;
     this.showAdminDropdown = false;
+    this.showTabContextMenu = false;
+    this.tabContextMenuPosition = { x: 0, y: 0 };
+    this.contextMenuTabId = null;
     this.panelPosition = settingsService.get('panelPosition') || 'bottom';
     this.panelHeight = settingsService.get('panelHeight') || '50';
     this.isDraggingPanel = false;
@@ -621,11 +688,31 @@ export class ThemeDevtools extends LitElement {
     } else {
       this.tabOrder = ThemeDevtools.DEFAULT_TABS.map(t => t.id);
     }
+
+    // Restore hidden tabs
+    const savedHidden = localStorage.getItem('theme-devtools-hidden-tabs');
+    if (savedHidden) {
+      try {
+        const hidden = JSON.parse(savedHidden);
+        this.hiddenTabs = hidden.filter(id => validTabIds.includes(id));
+      } catch {
+        this.hiddenTabs = [];
+      }
+    } else {
+      this.hiddenTabs = [];
+    }
+
+    // Ensure active tab is not hidden, switch to first visible if needed
+    if (this.hiddenTabs.includes(this.activeTab)) {
+      const visibleTabs = this.tabOrder.filter(id => !this.hiddenTabs.includes(id));
+      this.activeTab = visibleTabs[0] || 'objects';
+    }
   }
 
   _getOrderedTabs() {
-    if (!this.tabOrder) return ThemeDevtools.DEFAULT_TABS;
+    if (!this.tabOrder) return ThemeDevtools.DEFAULT_TABS.filter(t => !this.hiddenTabs.includes(t.id));
     return this.tabOrder
+      .filter(id => !this.hiddenTabs.includes(id))
       .map(id => ThemeDevtools.DEFAULT_TABS.find(t => t.id === id))
       .filter(Boolean);
   }
@@ -679,6 +766,135 @@ export class ThemeDevtools extends LitElement {
   _resetTabOrder() {
     this.tabOrder = ThemeDevtools.DEFAULT_TABS.map(t => t.id);
     localStorage.removeItem('theme-devtools-tab-order');
+  }
+
+  // Tab context menu handlers
+  _handleTabContextMenu(tabId, e) {
+    e.preventDefault();
+    this.contextMenuTabId = tabId;
+    this.tabContextMenuPosition = { x: e.clientX, y: e.clientY };
+    this.showTabContextMenu = true;
+
+    // Close on outside click
+    const closeMenu = (event) => {
+      if (!event.target.closest('.tab-context-menu')) {
+        this.showTabContextMenu = false;
+        document.removeEventListener('click', closeMenu);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeMenu), 0);
+  }
+
+  _closeTabContextMenu() {
+    this.showTabContextMenu = false;
+    this.contextMenuTabId = null;
+  }
+
+  _hideTab(tabId) {
+    if (!tabId || tabId === 'preferences') {
+      // Don't allow hiding the preferences tab (need access to restore tabs)
+      this._showActionFeedback('Cannot hide Preferences tab');
+      return;
+    }
+
+    const visibleCount = this.tabOrder.filter(id => !this.hiddenTabs.includes(id)).length;
+    if (visibleCount <= 2) {
+      this._showActionFeedback('Must keep at least 2 tabs visible');
+      return;
+    }
+
+    this.hiddenTabs = [...this.hiddenTabs, tabId];
+    localStorage.setItem('theme-devtools-hidden-tabs', JSON.stringify(this.hiddenTabs));
+
+    // Switch active tab if we hid the current one
+    if (this.activeTab === tabId) {
+      const visibleTabs = this.tabOrder.filter(id => !this.hiddenTabs.includes(id));
+      this.activeTab = visibleTabs[0] || 'objects';
+      localStorage.setItem('theme-devtools-active-tab', this.activeTab);
+    }
+
+    this._closeTabContextMenu();
+  }
+
+  _showTab(tabId) {
+    this.hiddenTabs = this.hiddenTabs.filter(id => id !== tabId);
+    localStorage.setItem('theme-devtools-hidden-tabs', JSON.stringify(this.hiddenTabs));
+    this._closeTabContextMenu();
+  }
+
+  _showAllTabs() {
+    this.hiddenTabs = [];
+    localStorage.removeItem('theme-devtools-hidden-tabs');
+    this._closeTabContextMenu();
+    this._showActionFeedback('All tabs restored');
+  }
+
+  _resetTabsToDefaults() {
+    this.tabOrder = ThemeDevtools.DEFAULT_TABS.map(t => t.id);
+    this.hiddenTabs = [];
+    localStorage.removeItem('theme-devtools-tab-order');
+    localStorage.removeItem('theme-devtools-hidden-tabs');
+    this._closeTabContextMenu();
+    this._showActionFeedback('Tabs reset to defaults');
+  }
+
+  _renderTabContextMenu() {
+    if (!this.showTabContextMenu) return '';
+
+    const tab = ThemeDevtools.DEFAULT_TABS.find(t => t.id === this.contextMenuTabId);
+    const hiddenTabsList = this.hiddenTabs
+      .map(id => ThemeDevtools.DEFAULT_TABS.find(t => t.id === id))
+      .filter(Boolean);
+
+    return html`
+      <div
+        class="tab-context-menu"
+        style="left: ${this.tabContextMenuPosition.x}px; top: ${this.tabContextMenuPosition.y}px;"
+        @click=${(e) => e.stopPropagation()}
+      >
+        ${tab ? html`
+          <button
+            class="tab-context-menu__item tab-context-menu__item--danger"
+            @click=${() => this._hideTab(this.contextMenuTabId)}
+            ?disabled=${this.contextMenuTabId === 'preferences'}
+          >
+            Hide "${tab.label}"
+          </button>
+          <div class="tab-context-menu__divider"></div>
+        ` : ''}
+
+        ${hiddenTabsList.length > 0 ? html`
+          <div class="tab-context-menu__submenu-label">Hidden Tabs</div>
+          <div class="tab-context-menu__hidden-list">
+            ${hiddenTabsList.map(t => html`
+              <button
+                class="tab-context-menu__item"
+                @click=${() => this._showTab(t.id)}
+              >
+                Show "${t.label}"
+              </button>
+            `)}
+          </div>
+          <div class="tab-context-menu__divider"></div>
+        ` : ''}
+
+        ${hiddenTabsList.length > 0 ? html`
+          <button
+            class="tab-context-menu__item"
+            @click=${this._showAllTabs}
+          >
+            Show All Tabs
+          </button>
+        ` : ''}
+
+        <button
+          class="tab-context-menu__item"
+          @click=${this._resetTabsToDefaults}
+        >
+          Reset Tabs to Defaults
+        </button>
+      </div>
+    `;
   }
 
   // Floating panel drag handlers
@@ -1114,10 +1330,11 @@ export class ThemeDevtools extends LitElement {
 
         <div class="tabs">
           ${tabs.map(tab => html`
-            <button 
+            <button
               class="tab ${this.activeTab === tab.id ? 'tab--active' : ''} ${this.draggedTab === tab.id ? 'tab--dragging' : ''} ${this.dragOverTab === tab.id ? 'tab--drag-over' : ''}"
               draggable="true"
               @click=${() => this._setTab(tab.id)}
+              @contextmenu=${(e) => this._handleTabContextMenu(tab.id, e)}
               @dragstart=${(e) => this._handleDragStart(tab.id, e)}
               @dragover=${(e) => this._handleDragOver(tab.id, e)}
               @dragleave=${() => this._handleDragLeave()}
@@ -1128,68 +1345,87 @@ export class ThemeDevtools extends LitElement {
             </button>
           `)}
         </div>
+        ${this._renderTabContextMenu()}
 
         <div class="content">
-          <tdt-objects-panel 
-            class="panel ${this.activeTab === 'objects' ? 'panel--active' : ''}"
-            .objects=${objectsWithLiveCart}
-          ></tdt-objects-panel>
-          
-          <tdt-metafields-panel 
-            class="panel ${this.activeTab === 'metafields' ? 'panel--active' : ''}"
-            .metafields=${metafields}
-            .metafieldsSchema=${metafieldsSchema}
-          ></tdt-metafields-panel>
-          
-          <!-- Sections panels hidden for now
-          <tdt-sections-panel 
-            class="panel ${this.activeTab === 'sections' ? 'panel--active' : ''}"
-          ></tdt-sections-panel>
-          -->
-          
-          <tdt-cart-panel 
-            class="panel ${this.activeTab === 'cart' ? 'panel--active' : ''}"
-            .cart=${this.cart}
-          ></tdt-cart-panel>
-          
-          <tdt-localization-panel 
-            class="panel ${this.activeTab === 'locale' ? 'panel--active' : ''}"
-            .meta=${meta}
-          ></tdt-localization-panel>
-          
-          <tdt-analytics-panel 
-            class="panel ${this.activeTab === 'analytics' ? 'panel--active' : ''}"
-          ></tdt-analytics-panel>
-          
-          <tdt-seo-panel 
-            class="panel ${this.activeTab === 'seo' ? 'panel--active' : ''}"
-          ></tdt-seo-panel>
-          
-          <tdt-apps-panel
-            class="panel ${this.activeTab === 'apps' ? 'panel--active' : ''}"
-          ></tdt-apps-panel>
+          ${!this.hiddenTabs.includes('objects') ? html`
+            <tdt-objects-panel
+              class="panel ${this.activeTab === 'objects' ? 'panel--active' : ''}"
+              .objects=${objectsWithLiveCart}
+            ></tdt-objects-panel>
+          ` : ''}
 
-          <network-panel
-            class="panel ${this.activeTab === 'network' ? 'panel--active' : ''}"
-          ></network-panel>
+          ${!this.hiddenTabs.includes('metafields') ? html`
+            <tdt-metafields-panel
+              class="panel ${this.activeTab === 'metafields' ? 'panel--active' : ''}"
+              .metafields=${metafields}
+              .metafieldsSchema=${metafieldsSchema}
+            ></tdt-metafields-panel>
+          ` : ''}
 
-          <tdt-console-panel
-            class="panel ${this.activeTab === 'console' ? 'panel--active' : ''}"
-            .context=${this.context}
-          ></tdt-console-panel>
-          
-          <tdt-cookies-panel 
-            class="panel ${this.activeTab === 'cookies' ? 'panel--active' : ''}"
-          ></tdt-cookies-panel>
-          
-          <tdt-storage-panel 
-            class="panel ${this.activeTab === 'storage' ? 'panel--active' : ''}"
-          ></tdt-storage-panel>
-          
-          <tdt-info-panel
-            class="panel ${this.activeTab === 'info' ? 'panel--active' : ''}"
-            .meta=${meta}
-          ></tdt-info-panel>
+          ${!this.hiddenTabs.includes('cart') ? html`
+            <tdt-cart-panel
+              class="panel ${this.activeTab === 'cart' ? 'panel--active' : ''}"
+              .cart=${this.cart}
+            ></tdt-cart-panel>
+          ` : ''}
+
+          ${!this.hiddenTabs.includes('locale') ? html`
+            <tdt-localization-panel
+              class="panel ${this.activeTab === 'locale' ? 'panel--active' : ''}"
+              .meta=${meta}
+            ></tdt-localization-panel>
+          ` : ''}
+
+          ${!this.hiddenTabs.includes('analytics') ? html`
+            <tdt-analytics-panel
+              class="panel ${this.activeTab === 'analytics' ? 'panel--active' : ''}"
+            ></tdt-analytics-panel>
+          ` : ''}
+
+          ${!this.hiddenTabs.includes('seo') ? html`
+            <tdt-seo-panel
+              class="panel ${this.activeTab === 'seo' ? 'panel--active' : ''}"
+            ></tdt-seo-panel>
+          ` : ''}
+
+          ${!this.hiddenTabs.includes('apps') ? html`
+            <tdt-apps-panel
+              class="panel ${this.activeTab === 'apps' ? 'panel--active' : ''}"
+            ></tdt-apps-panel>
+          ` : ''}
+
+          ${!this.hiddenTabs.includes('network') ? html`
+            <network-panel
+              class="panel ${this.activeTab === 'network' ? 'panel--active' : ''}"
+            ></network-panel>
+          ` : ''}
+
+          ${!this.hiddenTabs.includes('console') ? html`
+            <tdt-console-panel
+              class="panel ${this.activeTab === 'console' ? 'panel--active' : ''}"
+              .context=${this.context}
+            ></tdt-console-panel>
+          ` : ''}
+
+          ${!this.hiddenTabs.includes('cookies') ? html`
+            <tdt-cookies-panel
+              class="panel ${this.activeTab === 'cookies' ? 'panel--active' : ''}"
+            ></tdt-cookies-panel>
+          ` : ''}
+
+          ${!this.hiddenTabs.includes('storage') ? html`
+            <tdt-storage-panel
+              class="panel ${this.activeTab === 'storage' ? 'panel--active' : ''}"
+            ></tdt-storage-panel>
+          ` : ''}
+
+          ${!this.hiddenTabs.includes('info') ? html`
+            <tdt-info-panel
+              class="panel ${this.activeTab === 'info' ? 'panel--active' : ''}"
+              .meta=${meta}
+            ></tdt-info-panel>
+          ` : ''}
 
           <tdt-preferences-panel
             class="panel ${this.activeTab === 'preferences' ? 'panel--active' : ''}"
