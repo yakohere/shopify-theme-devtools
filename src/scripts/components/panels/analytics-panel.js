@@ -980,6 +980,14 @@ export class AnalyticsPanel extends LitElement {
   }
 
   _formatTime(date) {
+    // Ensure date is a Date object
+    if (!(date instanceof Date)) {
+      date = new Date(date);
+    }
+    // Handle invalid dates
+    if (isNaN(date.getTime())) {
+      return '--:--:--';
+    }
     return date.toLocaleTimeString('en-US', {
       hour12: false,
       hour: '2-digit',
