@@ -1,4 +1,3 @@
-import '../styles/main.css';
 import './components/theme-devtools.js';
 
 const ROOT_ID = '__THEME_DEVTOOLS_ROOT__';

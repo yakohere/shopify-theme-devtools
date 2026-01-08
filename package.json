@@ -5,6 +5,9 @@
   "type": "module",
   "main": "dist/theme-devtools.js",
   "module": "dist/theme-devtools.js",
+  "bin": {
+    "shopify-theme-devtools": "./bin/cli.js"
+  },
   "exports": {
     ".": {
       "import": "./dist/theme-devtools.js",
@@ -14,6 +17,7 @@
     "./dist/*": "./dist/*"
   },
   "files": [
+    "bin",
     "dist",
     "src/liquid",
     "README.md",
