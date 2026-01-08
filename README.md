@@ -6,6 +6,20 @@
 
 A powerful in-browser developer tools panel for Shopify theme development. Inspect Liquid objects, evaluate expressions, explore metafields, manipulate cart state, detect Liquid errors, and much more — all without leaving the browser.
 
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Panel Reference](#panel-reference)
+- [Configuration](#configuration)
+- [Development](#development)
+- [How It Works](#how-it-works)
+- [Tech Stack](#tech-stack)
+- [Browser Support](#browser-support)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Features
 
 ### Core Panels
@@ -118,29 +132,55 @@ Customize your devtools layout like Chrome DevTools:
 
 ## Quick Start
 
-### 1. Add the snippet to your theme
-
-Copy the Liquid bridge to your theme's snippets folder:
+### Option A: Using npm (Recommended)
 
 ```bash
-# Option A: Download directly
-curl -o snippets/theme-devtools-bridge.liquid \
-  https://raw.githubusercontent.com/yakohere/shopify-theme-devtools/main/src/liquid/theme-devtools-bridge.liquid
+# Run directly with npx (no install needed)
+npx shopify-theme-devtools init
 
-# Option B: Copy manually from GitHub
-# Visit: https://github.com/yakohere/shopify-theme-devtools/blob/main/src/liquid/theme-devtools-bridge.liquid
-# Click "Raw" and save the file to your theme's snippets/ folder
+# Or install globally for repeated use
+npm install -g shopify-theme-devtools
+shopify-theme-devtools init
 ```
 
-### 2. Include in your layout
-
-Add this line to `layout/theme.liquid` just before `</body>`:
+This copies the Liquid snippet to your `snippets/` folder. Then add this line to `layout/theme.liquid` just before `</body>`:
 
 ```liquid
 {% render 'theme-devtools-bridge' %}
 ```
 
-### 3. You're done!
+Or use `--inject` to add it automatically:
+
+```bash
+npx shopify-theme-devtools init --inject
+```
+
+#### CLI Options
+
+| Option | Description |
+|--------|-------------|
+| `--local` | Copy JS/CSS to `assets/` folder instead of using CDN |
+| `--inject` | Automatically add render tag to `layout/theme.liquid` |
+| `--force` | Overwrite existing files without prompting |
+
+```bash
+# Examples
+npx shopify-theme-devtools init                    # Uses CDN (recommended)
+npx shopify-theme-devtools init --local            # Self-hosted assets
+npx shopify-theme-devtools init --local --inject   # Self-hosted + auto-inject
+```
+
+### Option B: Manual Download
+
+```bash
+# Download directly
+curl -o snippets/theme-devtools-bridge.liquid \
+  https://raw.githubusercontent.com/yakohere/shopify-theme-devtools/main/src/liquid/theme-devtools-bridge.liquid
+```
+
+Then add `{% render 'theme-devtools-bridge' %}` to `layout/theme.liquid` before `</body>`.
+
+### You're done!
 
 The devtools panel automatically appears on **unpublished/development themes only**. It's safe to commit — it won't render on your live published theme.
 
