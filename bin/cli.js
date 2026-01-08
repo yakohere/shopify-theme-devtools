@@ -47,6 +47,7 @@ ${COLORS.bold}Usage:${COLORS.reset}
 
 ${COLORS.bold}Commands:${COLORS.reset}
   init          Initialize devtools in your Shopify theme
+  sync          Sync metafields schema from .shopify/metafields.json
 
 ${COLORS.bold}Options for init:${COLORS.reset}
   --local       Copy JS/CSS to assets folder instead of using CDN
@@ -58,6 +59,7 @@ ${COLORS.bold}Examples:${COLORS.reset}
   npx shopify-theme-devtools init
   npx shopify-theme-devtools init --local
   npx shopify-theme-devtools init --local --inject
+  npx shopify-theme-devtools sync
 `);
 }
 
@@ -75,6 +77,57 @@ function copyFile(src, dest, force = false) {
   }
   copyFileSync(src, dest);
   return true;
+}
+
+function findMetafieldsSchema(themeRoot) {
+  // Look for metafields.json in common locations
+  const possiblePaths = [
+    join(themeRoot, '.shopify', 'metafields.json'),
+    join(themeRoot, 'metafields.json'),
+    join(themeRoot, 'config', 'metafields.json'),
+  ];
+
+  for (const schemaPath of possiblePaths) {
+    if (existsSync(schemaPath)) {
+      try {
+        const content = readFileSync(schemaPath, 'utf-8');
+        // Validate it's valid JSON
+        JSON.parse(content);
+        return { path: schemaPath, content };
+      } catch {
+        // Invalid JSON, skip
+      }
+    }
+  }
+
+  return null;
+}
+
+function injectMetafieldsSchema(liquidContent, schemaContent) {
+  // Replace the default empty schema with the actual schema
+  const defaultSchema = `{%- capture devtools_metafields_schema -%}
+{
+  "article": [],
+  "blog": [],
+  "collection": [],
+  "company": [],
+  "company_location": [],
+  "location": [],
+  "market": [],
+  "order": [],
+  "page": [],
+  "product": [],
+  "variant": [],
+  "shop": [],
+  "customer": []
+}
+{%- endcapture -%}`;
+
+  const newSchema = `{%- capture devtools_metafields_schema -%}
+${schemaContent.trim()}
+{%- endcapture -%}`;
+
+  return liquidContent.replace(defaultSchema, newSchema);
 }
 
 function patchLiquidForLocal(content) {
@@ -198,6 +251,13 @@ async function init(args) {
     '{%- assign devtools_local = false -%}'
   );
 
+  // Auto-detect and inject metafields schema
+  const metafieldsSchema = findMetafieldsSchema(themeRoot);
+  if (metafieldsSchema) {
+    liquidContent = injectMetafieldsSchema(liquidContent, metafieldsSchema.content);
+    success(`Injected metafields schema from ${metafieldsSchema.path.replace(themeRoot + '/', '')}`);
+  }
+
   if (useLocal) {
     liquidContent = patchLiquidForLocal(liquidContent);
   }
@@ -255,6 +315,67 @@ async function init(args) {
   console.log();
 }
 
+async function sync() {
+  const cwd = process.cwd();
+
+  console.log();
+  log('Shopify Theme Devtools', COLORS.bold);
+  console.log();
+
+  // Detect theme root
+  const themeRoot = detectThemeRoot(cwd);
+
+  if (!themeRoot) {
+    error('Could not detect Shopify theme directory');
+    info('Make sure you run this command from your theme root');
+    info('(should contain layout/, snippets/, templates/ folders)');
+    process.exit(1);
+  }
+
+  const snippetsDir = join(themeRoot, 'snippets');
+  const liquidDest = join(snippetsDir, 'theme-devtools-bridge.liquid');
+
+  // Check if snippet exists
+  if (!existsSync(liquidDest)) {
+    error('Devtools snippet not found');
+    info('Run "npx shopify-theme-devtools init" first');
+    process.exit(1);
+  }
+
+  // Find metafields schema
+  const metafieldsSchema = findMetafieldsSchema(themeRoot);
+
+  if (!metafieldsSchema) {
+    error('No metafields.json found');
+    info('Looked in: .shopify/metafields.json, metafields.json, config/metafields.json');
+    process.exit(1);
+  }
+
+  // Read current snippet
+  let liquidContent = readFileSync(liquidDest, 'utf-8');
+
+  // Replace the metafields schema using a regex that matches any JSON content
+  const schemaRegex = /\{%- capture devtools_metafields_schema -%\}[\s\S]*?\{%- endcapture -%\}/;
+
+  if (!schemaRegex.test(liquidContent)) {
+    error('Could not find metafields schema section in snippet');
+    info('The snippet may be corrupted. Run "npx shopify-theme-devtools init --force" to regenerate');
+    process.exit(1);
+  }
+
+  const newSchema = `{%- capture devtools_metafields_schema -%}
+${metafieldsSchema.content.trim()}
+{%- endcapture -%}`;
+
+  liquidContent = liquidContent.replace(schemaRegex, newSchema);
+
+  // Write updated snippet
+  writeFileSync(liquidDest, liquidContent);
+  success(`Synced metafields schema from ${metafieldsSchema.path.replace(themeRoot + '/', '')}`);
+
+  console.log();
+}
+
 // Parse arguments
 const args = process.argv.slice(2);
 const command = args[0];
@@ -266,6 +387,8 @@ if (!command || command === '--help' || command === '-h') {
 
 if (command === 'init') {
   init(args);
+} else if (command === 'sync') {
+  sync();
 } else {
   error(`Unknown command: ${command}`);
   printHelp();
