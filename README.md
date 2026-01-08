@@ -163,6 +163,16 @@ npx shopify-theme-devtools init --inject
 | `--inject` | Automatically add render tag to `layout/theme.liquid` |
 | `--force` | Overwrite existing files without prompting |
 
+The CLI automatically detects and injects your `metafields.json` schema from `.shopify/metafields.json` (or theme root), enabling devtools to show all defined metafields.
+
+#### Syncing Metafields
+
+When your metafields change over time, run the sync command to update the schema without overwriting other customizations:
+
+```bash
+npx shopify-theme-devtools sync
+```
+
 ```bash
 # Examples
 npx shopify-theme-devtools init                    # Uses CDN (recommended)
