@@ -96,6 +96,28 @@ The Console panel includes an interactive expression evaluator for testing Liqui
 - **Cart History** — View previous cart states with timestamps and restore any snapshot
 - **Attribute Editor** — Modify cart attributes and notes
 - **Diff View** — See what changed between cart states
+- **Scenario Builder** — Create and save cart scenarios for quick testing
+- **Cart Tests** — Write validation rules to automatically test cart items
+
+### Cart Tests
+
+The Cart Tests feature lets you create custom validation rules to ensure cart items meet your business requirements. Tests can be run manually or automatically whenever the cart changes.
+
+**Rule Types:**
+
+| Type | Description | Example |
+|------|-------------|---------|
+| **Property Dependency** | If item has property X, must have properties Y, Z | GWP items require `_gwp_price` and `_gwp_source` |
+| **Field Value** | If field equals X, another field must meet condition | Gift Cards must have quantity = 1 |
+| **Cart Composition** | If item X exists, item Y must also exist | Electronics require warranty item |
+| **Quantity** | Min/max/multiple constraints per-item or cart-total | Max 10 per item, cart total max 50 |
+
+**Features:**
+
+- **Pre-built Templates** — 16 ready-to-use templates for common scenarios
+- **Auto-run** — Toggle to run all tests whenever cart changes
+- **Import/Export** — Save and share test configurations as JSON
+- **Inline Results** — Pass/fail badges show test status at a glance
 
 ### Liquid Error Detection
 
@@ -212,7 +234,7 @@ The devtools panel automatically appears on **unpublished/development themes onl
 |-------|-------------|
 | **Objects** | Inspect all Liquid objects with search and tree navigation |
 | **Metafields** | Browse metafields by resource (product, collection, shop, etc.) |
-| **Cart** | Live cart state, history snapshots, and manipulation tools |
+| **Cart** | Live cart state, history, scenarios, tests, and manipulation tools |
 | **Locale** | Markets, currencies, languages with locale switching |
 | **Analytics** | Detected tracking codes and analytics configuration |
 | **SEO** | Meta tags, Open Graph, Twitter Cards, JSON-LD structured data |
@@ -295,6 +317,8 @@ src/
 │   │   ├── theme-devtools.js         # Main component with tab management
 │   │   ├── object-inspector.js       # Tree view inspector
 │   │   └── panels/                   # Panel components
+│   ├── lib/
+│   │   └── cart-test-templates.js    # Pre-built cart test templates
 │   ├── services/
 │   │   ├── cart.js                   # Cart API with history
 │   │   ├── product.js                # Product API (variants/images)
