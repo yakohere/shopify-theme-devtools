@@ -696,10 +696,11 @@ export class ThemeDevtools extends LitElement {
         const hidden = JSON.parse(savedHidden);
         this.hiddenTabs = hidden.filter(id => validTabIds.includes(id));
       } catch {
-        this.hiddenTabs = [];
+        this.hiddenTabs = ['locale', 'analytics', 'seo', 'apps', 'cookies', 'storage'];
       }
     } else {
-      this.hiddenTabs = [];
+      // Default hidden tabs for first-time users
+      this.hiddenTabs = ['locale', 'analytics', 'seo', 'apps', 'cookies', 'storage'];
     }
 
     // Ensure active tab is not hidden, switch to first visible if needed
