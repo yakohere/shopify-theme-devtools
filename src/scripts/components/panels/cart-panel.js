@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { baseStyles } from '../../styles/theme.js';
 import { cartAPI } from '../../services/cart.js';
+import { CART_TEST_TEMPLATES } from '../../lib/cart-test-templates.js';
 
 export class CartPanel extends LitElement {
   static properties = {
@@ -25,9 +26,18 @@ export class CartPanel extends LitElement {
     scenarios: { type: Array, state: true },
     editingScenario: { type: Object, state: true },
     scenarioNameInput: { type: String, state: true },
+    // Cart Tests
+    showTests: { type: Boolean, state: true },
+    tests: { type: Array, state: true },
+    editingTest: { type: Object, state: true },
+    testResults: { type: Object, state: true },
+    autoRunTests: { type: Boolean, state: true },
+    showTemplatesMenu: { type: Boolean, state: true },
   };
 
   static SCENARIOS_STORAGE_KEY = 'tdt_cart_scenarios';
+  static TESTS_STORAGE_KEY = 'tdt_cart_tests';
+  static TESTS_AUTORUN_KEY = 'tdt_cart_tests_autorun';
 
   static styles = [
     baseStyles,
@@ -923,6 +933,496 @@ export class CartPanel extends LitElement {
         color: var(--tdt-text);
         border-color: var(--tdt-accent);
       }
+
+      /* Cart Tests Styles */
+      .tests-panel {
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        margin-bottom: 12px;
+      }
+
+      .tests-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: var(--tdt-bg);
+        border-bottom: 1px solid var(--tdt-border);
+        font-size: calc(11px * var(--tdt-scale, 1));
+        font-weight: 600;
+      }
+
+      .tests-header-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .tests-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        font-weight: 500;
+      }
+
+      .tests-status--pass {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--tdt-success);
+      }
+
+      .tests-status--fail {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--tdt-danger);
+      }
+
+      .tests-status--idle {
+        background: var(--tdt-bg-secondary);
+        color: var(--tdt-text-muted);
+      }
+
+      .test-list {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .test-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--tdt-border);
+        font-size: calc(11px * var(--tdt-scale, 1));
+        gap: 10px;
+      }
+
+      .test-item:last-child {
+        border-bottom: none;
+      }
+
+      .test-item:hover {
+        background: var(--tdt-bg-hover);
+      }
+
+      .test-item--failed {
+        background: rgba(239, 68, 68, 0.05);
+      }
+
+      .test-toggle {
+        width: 32px;
+        height: 18px;
+        border-radius: 9px;
+        background: var(--tdt-bg-tertiary);
+        border: 1px solid var(--tdt-border);
+        cursor: pointer;
+        position: relative;
+        flex-shrink: 0;
+        transition: background 0.2s;
+      }
+
+      .test-toggle::after {
+        content: '';
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: white;
+        top: 1px;
+        left: 1px;
+        transition: transform 0.2s;
+      }
+
+      .test-toggle.enabled {
+        background: var(--tdt-accent);
+        border-color: var(--tdt-accent);
+      }
+
+      .test-toggle.enabled::after {
+        transform: translateX(14px);
+      }
+
+      .test-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .test-name {
+        font-weight: 600;
+        color: var(--tdt-text);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .test-meta {
+        font-size: calc(10px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        margin-top: 2px;
+      }
+
+      .test-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-size: calc(9px * var(--tdt-scale, 1));
+        font-weight: 500;
+      }
+
+      .test-badge--pass {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--tdt-success);
+      }
+
+      .test-badge--fail {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--tdt-danger);
+      }
+
+      .test-actions {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+
+      .test-btn {
+        padding: 4px 8px;
+        font-size: calc(9px * var(--tdt-scale, 1));
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        color: var(--tdt-text-muted);
+        cursor: pointer;
+      }
+
+      .test-btn:hover {
+        background: var(--tdt-bg-hover);
+        color: var(--tdt-text);
+      }
+
+      .test-btn--primary {
+        background: var(--tdt-accent);
+        border-color: var(--tdt-accent);
+        color: white;
+      }
+
+      .test-btn--primary:hover {
+        opacity: 0.9;
+      }
+
+      .test-btn--danger {
+        color: var(--tdt-danger);
+      }
+
+      .test-btn--danger:hover {
+        background: var(--tdt-danger);
+        border-color: var(--tdt-danger);
+        color: white;
+      }
+
+      .tests-empty {
+        padding: 20px;
+        text-align: center;
+        color: var(--tdt-text-muted);
+        font-size: calc(11px * var(--tdt-scale, 1));
+      }
+
+      /* Test Editor */
+      .test-editor {
+        padding: 12px;
+        background: var(--tdt-bg);
+        border-top: 1px solid var(--tdt-border);
+      }
+
+      .test-editor-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .test-editor-header input {
+        flex: 1;
+        padding: 6px 10px;
+        font-size: calc(11px * var(--tdt-scale, 1));
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        background: var(--tdt-bg-secondary);
+        color: var(--tdt-text);
+      }
+
+      .rules-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+        max-height: 250px;
+        overflow-y: auto;
+      }
+
+      .rule-item {
+        padding: 10px;
+        background: var(--tdt-bg-secondary);
+        border-radius: var(--tdt-radius);
+        border: 1px solid var(--tdt-border);
+      }
+
+      .rule-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .rule-header input {
+        flex: 1;
+        padding: 4px 8px;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        border: 1px solid var(--tdt-border);
+        border-radius: 3px;
+        background: var(--tdt-bg);
+        color: var(--tdt-text);
+      }
+
+      .rule-header select {
+        padding: 4px 8px;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        border: 1px solid var(--tdt-border);
+        border-radius: 3px;
+        background: var(--tdt-bg);
+        color: var(--tdt-text);
+        cursor: pointer;
+      }
+
+      .rule-config {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: calc(10px * var(--tdt-scale, 1));
+      }
+
+      .rule-config-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .rule-config-row label {
+        color: var(--tdt-text-muted);
+        min-width: 50px;
+      }
+
+      .rule-config-row input,
+      .rule-config-row select {
+        padding: 4px 8px;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        border: 1px solid var(--tdt-border);
+        border-radius: 3px;
+        background: var(--tdt-bg);
+        color: var(--tdt-text);
+      }
+
+      .rule-config-row input {
+        flex: 1;
+        min-width: 80px;
+      }
+
+      .rule-props-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 4px;
+      }
+
+      .rule-prop-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 6px;
+        background: var(--tdt-bg);
+        border: 1px solid var(--tdt-border);
+        border-radius: 3px;
+        font-size: calc(9px * var(--tdt-scale, 1));
+      }
+
+      .rule-prop-tag button {
+        background: none;
+        border: none;
+        color: var(--tdt-text-muted);
+        cursor: pointer;
+        padding: 0;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        line-height: 1;
+      }
+
+      .rule-prop-tag button:hover {
+        color: var(--tdt-danger);
+      }
+
+      .add-rule-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+        background: var(--tdt-bg-secondary);
+        border: 1px dashed var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        color: var(--tdt-text-muted);
+        cursor: pointer;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        margin-bottom: 12px;
+      }
+
+      .add-rule-btn:hover {
+        background: var(--tdt-bg-hover);
+        color: var(--tdt-text);
+        border-color: var(--tdt-accent);
+      }
+
+      .test-editor-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        padding-top: 8px;
+        border-top: 1px solid var(--tdt-border);
+      }
+
+      /* Test Results */
+      .test-results {
+        padding: 10px 12px;
+        background: var(--tdt-bg);
+        border-top: 1px solid var(--tdt-border);
+      }
+
+      .test-results-summary {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+        font-size: calc(11px * var(--tdt-scale, 1));
+      }
+
+      .test-failures {
+        font-size: calc(10px * var(--tdt-scale, 1));
+      }
+
+      .test-failure-item {
+        padding: 6px 8px;
+        background: rgba(239, 68, 68, 0.05);
+        border-left: 2px solid var(--tdt-danger);
+        margin-bottom: 4px;
+        border-radius: 0 3px 3px 0;
+      }
+
+      .test-failure-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .failure-rule {
+        font-weight: 600;
+        color: var(--tdt-danger);
+      }
+
+      .failure-message {
+        color: var(--tdt-text);
+        margin-top: 2px;
+      }
+
+      .failure-item-ref {
+        color: var(--tdt-text-muted);
+        font-family: var(--tdt-font-mono);
+        font-size: calc(9px * var(--tdt-scale, 1));
+        margin-top: 2px;
+      }
+
+      /* Templates dropdown */
+      .templates-dropdown {
+        position: relative;
+      }
+
+      .templates-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: var(--tdt-bg);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        min-width: 220px;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 100;
+        margin-top: 4px;
+      }
+
+      .templates-menu-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--tdt-border);
+        font-size: calc(10px * var(--tdt-scale, 1));
+      }
+
+      .templates-menu-item:last-child {
+        border-bottom: none;
+      }
+
+      .templates-menu-item:hover {
+        background: var(--tdt-bg-hover);
+      }
+
+      .templates-menu-item-name {
+        font-weight: 600;
+        color: var(--tdt-text);
+      }
+
+      .templates-menu-item-desc {
+        color: var(--tdt-text-muted);
+        margin-top: 2px;
+      }
+
+      /* Auto-run toggle */
+      .autorun-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: var(--tdt-radius);
+      }
+
+      .autorun-toggle:hover {
+        background: var(--tdt-bg-hover);
+      }
+
+      .autorun-toggle input {
+        cursor: pointer;
+      }
+
+      /* Failed item indicator in cart table */
+      .item-row.test-failed {
+        background: rgba(239, 68, 68, 0.05);
+      }
+
+      .item-row.test-failed td:first-child {
+        border-left: 3px solid var(--tdt-danger);
+      }
+
+      .test-fail-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 1px 5px;
+        background: rgba(239, 68, 68, 0.15);
+        border-radius: 3px;
+        font-size: calc(9px * var(--tdt-scale, 1));
+        color: var(--tdt-danger);
+        margin-left: 6px;
+      }
     `
   ];
 
@@ -951,6 +1451,16 @@ export class CartPanel extends LitElement {
     this.editingScenario = null;
     this.scenarioNameInput = '';
     this._loadScenarios();
+    // Cart Tests
+    this.showTests = false;
+    this.tests = [];
+    this.editingTest = null;
+    this.testResults = null;
+    this.autoRunTests = false;
+    this.showTemplatesMenu = false;
+    this._testNameInput = '';
+    this._newPropInput = '';
+    this._loadTests();
   }
 
   _loadScenarios() {
@@ -972,6 +1482,71 @@ export class CartPanel extends LitElement {
     }
   }
 
+  _loadTests() {
+    try {
+      const stored = localStorage.getItem(CartPanel.TESTS_STORAGE_KEY);
+      if (stored) {
+        this.tests = JSON.parse(stored);
+      }
+      const autoRun = localStorage.getItem(CartPanel.TESTS_AUTORUN_KEY);
+      this.autoRunTests = autoRun === 'true';
+    } catch (err) {
+      console.warn('[TDT] Failed to load tests:', err);
+    }
+  }
+
+  _saveTests() {
+    try {
+      localStorage.setItem(CartPanel.TESTS_STORAGE_KEY, JSON.stringify(this.tests));
+      localStorage.setItem(CartPanel.TESTS_AUTORUN_KEY, String(this.autoRunTests));
+    } catch (err) {
+      console.warn('[TDT] Failed to save tests:', err);
+    }
+  }
+
+  _exportTests() {
+    if (this.tests.length === 0) {
+      this._showToast('No tests to export');
+      return;
+    }
+    const data = JSON.stringify(this.tests, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cart-tests-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    this._showToast('Tests exported!');
+  }
+
+  async _handleImportFile(e) {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const text = await file.text();
+        const imported = JSON.parse(text);
+        if (!Array.isArray(imported)) {
+          throw new Error('Invalid format: expected array of tests');
+        }
+        const newTests = imported.map(test => ({
+          ...test,
+          id: Date.now() + Math.random(),
+          createdAt: test.createdAt || new Date().toISOString()
+        }));
+        this.tests = [...this.tests, ...newTests];
+        this._saveTests();
+        this._showToast(`Imported ${newTests.length} test(s)`);
+      } catch (err) {
+        this._showToast(`Import failed: ${err.message}`);
+      }
+    }
+    // Reset so same file can be selected again
+    e.target.value = '';
+  }
+
   updated(changedProps) {
     if (changedProps.has('cart') && this.cart) {
       const oldCart = changedProps.get('cart');
@@ -982,6 +1557,10 @@ export class CartPanel extends LitElement {
       // Refresh history panel if it's open
       if (this.showHistory) {
         this.cartHistory = [...cartAPI.cartHistory].reverse();
+      }
+      // Auto-run tests if enabled
+      if (this.autoRunTests && this.tests.length > 0) {
+        this._runAllTests();
       }
     }
   }
@@ -1411,6 +1990,483 @@ export class CartPanel extends LitElement {
   _getDiscountPercent(originalPrice, finalPrice) {
     if (!originalPrice || originalPrice <= finalPrice) return 0;
     return Math.round((1 - finalPrice / originalPrice) * 100);
+  }
+
+  // ============ Cart Tests Methods ============
+
+  _toggleTests() {
+    this.showTests = !this.showTests;
+    if (!this.showTests) {
+      this.editingTest = null;
+      this.showTemplatesMenu = false;
+    }
+  }
+
+  _toggleAutoRun() {
+    this.autoRunTests = !this.autoRunTests;
+    this._saveTests();
+    if (this.autoRunTests && this.cart) {
+      this._runAllTests();
+    }
+  }
+
+  _createNewTest() {
+    this.editingTest = {
+      id: null,
+      name: '',
+      enabled: true,
+      rules: [{
+        id: Date.now(),
+        name: 'New Rule',
+        type: 'property-dependency',
+        config: {
+          ifProperty: { key: '', value: '', operator: 'equals' },
+          requiredProperties: []
+        }
+      }]
+    };
+    this._testNameInput = '';
+  }
+
+  _createTestFromTemplate(template) {
+    this.editingTest = {
+      id: null,
+      name: template.name,
+      enabled: true,
+      rules: template.rules.map(r => ({ ...r, id: Date.now() + Math.random() }))
+    };
+    this._testNameInput = template.name;
+    this.showTemplatesMenu = false;
+  }
+
+  _editTest(test) {
+    this.editingTest = {
+      ...test,
+      rules: test.rules.map(r => ({
+        ...r,
+        config: JSON.parse(JSON.stringify(r.config))
+      }))
+    };
+    this._testNameInput = test.name;
+  }
+
+  _deleteTest(testId) {
+    if (!confirm('Delete this test?')) return;
+    this.tests = this.tests.filter(t => t.id !== testId);
+    this._saveTests();
+    this._showToast('Test deleted');
+    // Clear results for deleted test
+    if (this.testResults) {
+      const newResults = { ...this.testResults };
+      delete newResults[testId];
+      this.testResults = newResults;
+    }
+  }
+
+  _cancelEditTest() {
+    this.editingTest = null;
+    this._testNameInput = '';
+  }
+
+  _saveEditingTest() {
+    if (!this._testNameInput.trim()) {
+      this._showToast('Please enter a test name');
+      return;
+    }
+
+    const validRules = this.editingTest.rules.filter(r => r.name.trim());
+    if (validRules.length === 0) {
+      this._showToast('Add at least one rule');
+      return;
+    }
+
+    const test = {
+      ...this.editingTest,
+      name: this._testNameInput.trim(),
+      rules: validRules,
+      id: this.editingTest.id || Date.now(),
+      createdAt: this.editingTest.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    if (this.editingTest.id) {
+      this.tests = this.tests.map(t => t.id === test.id ? test : t);
+    } else {
+      this.tests = [...this.tests, test];
+    }
+
+    this._saveTests();
+    this.editingTest = null;
+    this._testNameInput = '';
+    this._showToast('Test saved!');
+
+    // Run tests after save
+    if (this.cart) {
+      this._runAllTests();
+    }
+  }
+
+  _toggleTestEnabled(testId) {
+    this.tests = this.tests.map(t =>
+      t.id === testId ? { ...t, enabled: !t.enabled } : t
+    );
+    this._saveTests();
+    if (this.cart) {
+      this._runAllTests();
+    }
+  }
+
+  _addRule() {
+    const newRule = {
+      id: Date.now(),
+      name: 'New Rule',
+      type: 'property-dependency',
+      config: {
+        ifProperty: { key: '', value: '', operator: 'equals' },
+        requiredProperties: []
+      }
+    };
+    this.editingTest = {
+      ...this.editingTest,
+      rules: [...this.editingTest.rules, newRule]
+    };
+  }
+
+  _removeRule(ruleId) {
+    this.editingTest = {
+      ...this.editingTest,
+      rules: this.editingTest.rules.filter(r => r.id !== ruleId)
+    };
+  }
+
+  _updateRule(ruleId, updates) {
+    this.editingTest = {
+      ...this.editingTest,
+      rules: this.editingTest.rules.map(r =>
+        r.id === ruleId ? { ...r, ...updates } : r
+      )
+    };
+  }
+
+  _updateRuleConfig(ruleId, configPath, value) {
+    this.editingTest = {
+      ...this.editingTest,
+      rules: this.editingTest.rules.map(r => {
+        if (r.id !== ruleId) return r;
+        const newConfig = JSON.parse(JSON.stringify(r.config));
+        const parts = configPath.split('.');
+        let obj = newConfig;
+        for (let i = 0; i < parts.length - 1; i++) {
+          obj = obj[parts[i]];
+        }
+        obj[parts[parts.length - 1]] = value;
+        return { ...r, config: newConfig };
+      })
+    };
+  }
+
+  _changeRuleType(ruleId, newType) {
+    const defaultConfigs = {
+      'property-dependency': {
+        ifProperty: { key: '', value: '', operator: 'equals' },
+        requiredProperties: []
+      },
+      'field-value': {
+        ifField: { field: '', value: '', operator: 'equals' },
+        thenField: { field: '', value: '', operator: 'equals' }
+      },
+      'cart-composition': {
+        ifItem: { field: 'handle', value: '' },
+        requiresItem: { field: 'handle', value: '' }
+      },
+      'quantity': {
+        scope: 'per-item',
+        min: null,
+        max: null,
+        multiple: null,
+        filterField: '',
+        filterValue: ''
+      }
+    };
+
+    this.editingTest = {
+      ...this.editingTest,
+      rules: this.editingTest.rules.map(r =>
+        r.id === ruleId ? { ...r, type: newType, config: defaultConfigs[newType] } : r
+      )
+    };
+  }
+
+  _addRequiredProperty(ruleId, value) {
+    const propValue = (value || this._newPropInput || '').trim();
+    if (!propValue) return;
+    this.editingTest = {
+      ...this.editingTest,
+      rules: this.editingTest.rules.map(r => {
+        if (r.id !== ruleId) return r;
+        return {
+          ...r,
+          config: {
+            ...r.config,
+            requiredProperties: [...(r.config.requiredProperties || []), propValue]
+          }
+        };
+      })
+    };
+    this._newPropInput = '';
+  }
+
+  _removeRequiredProperty(ruleId, prop) {
+    this.editingTest = {
+      ...this.editingTest,
+      rules: this.editingTest.rules.map(r => {
+        if (r.id !== ruleId) return r;
+        return {
+          ...r,
+          config: {
+            ...r.config,
+            requiredProperties: r.config.requiredProperties.filter(p => p !== prop)
+          }
+        };
+      })
+    };
+  }
+
+  // Test Runner
+  _runAllTests() {
+    if (!this.cart) return;
+
+    const results = {};
+    const enabledTests = this.tests.filter(t => t.enabled);
+
+    enabledTests.forEach(test => {
+      results[test.id] = this._runTest(test);
+    });
+
+    this.testResults = results;
+  }
+
+  _runTest(test) {
+    const failures = [];
+
+    test.rules.forEach(rule => {
+      const ruleFailures = this._evaluateRule(rule);
+      failures.push(...ruleFailures);
+    });
+
+    return {
+      testId: test.id,
+      passed: failures.length === 0,
+      timestamp: new Date().toISOString(),
+      failures
+    };
+  }
+
+  _evaluateRule(rule) {
+    const failures = [];
+    const items = this.cart?.items || [];
+
+    switch (rule.type) {
+      case 'property-dependency':
+        items.forEach(item => {
+          if (this._matchesCondition(item, rule.config.ifProperty, 'property')) {
+            const properties = item.properties || {};
+            const missing = rule.config.requiredProperties.filter(
+              prop => !(prop in properties)
+            );
+            if (missing.length > 0) {
+              failures.push({
+                ruleId: rule.id,
+                ruleName: rule.name,
+                message: `Missing required properties: ${missing.join(', ')}`,
+                itemKey: item.key,
+                itemTitle: item.product_title
+              });
+            }
+          }
+        });
+        break;
+
+      case 'field-value':
+        items.forEach(item => {
+          if (this._matchesCondition(item, rule.config.ifField, 'field')) {
+            if (!this._matchesCondition(item, rule.config.thenField, 'field')) {
+              const expected = rule.config.thenField;
+              failures.push({
+                ruleId: rule.id,
+                ruleName: rule.name,
+                message: `${expected.field} should ${expected.operator} "${expected.value}"`,
+                itemKey: item.key,
+                itemTitle: item.product_title
+              });
+            }
+          }
+        });
+        break;
+
+      case 'cart-composition':
+        const matchingItems = items.filter(item =>
+          this._getNestedValue(item, rule.config.ifItem.field) === rule.config.ifItem.value
+        );
+        if (matchingItems.length > 0) {
+          const hasRequired = items.some(item =>
+            this._getNestedValue(item, rule.config.requiresItem.field) === rule.config.requiresItem.value
+          );
+          if (!hasRequired) {
+            failures.push({
+              ruleId: rule.id,
+              ruleName: rule.name,
+              message: `Cart should contain item with ${rule.config.requiresItem.field}="${rule.config.requiresItem.value}"`,
+              itemKey: matchingItems[0].key,
+              itemTitle: matchingItems[0].product_title
+            });
+          }
+        }
+        break;
+
+      case 'quantity':
+        const { scope, min, max, multiple, filterField, filterValue } = rule.config;
+
+        // Filter items if filter is specified
+        let targetItems = items;
+        if (filterField && filterValue) {
+          targetItems = items.filter(item =>
+            String(this._getNestedValue(item, filterField)) === String(filterValue)
+          );
+        }
+
+        if (scope === 'per-item') {
+          // Check each item individually
+          targetItems.forEach(item => {
+            const qty = item.quantity;
+
+            if (min !== null && min !== '' && qty < Number(min)) {
+              failures.push({
+                ruleId: rule.id,
+                ruleName: rule.name,
+                message: `Quantity ${qty} is below minimum ${min}`,
+                itemKey: item.key,
+                itemTitle: item.product_title
+              });
+            }
+
+            if (max !== null && max !== '' && qty > Number(max)) {
+              failures.push({
+                ruleId: rule.id,
+                ruleName: rule.name,
+                message: `Quantity ${qty} exceeds maximum ${max}`,
+                itemKey: item.key,
+                itemTitle: item.product_title
+              });
+            }
+
+            if (multiple !== null && multiple !== '' && qty % Number(multiple) !== 0) {
+              failures.push({
+                ruleId: rule.id,
+                ruleName: rule.name,
+                message: `Quantity ${qty} must be a multiple of ${multiple}`,
+                itemKey: item.key,
+                itemTitle: item.product_title
+              });
+            }
+          });
+        } else if (scope === 'cart-total') {
+          // Check total quantity across all (filtered) items
+          const totalQty = targetItems.reduce((sum, item) => sum + item.quantity, 0);
+
+          if (min !== null && min !== '' && totalQty < Number(min)) {
+            failures.push({
+              ruleId: rule.id,
+              ruleName: rule.name,
+              message: `Cart total quantity ${totalQty} is below minimum ${min}`,
+              itemKey: targetItems[0]?.key || 'cart',
+              itemTitle: 'Cart Total'
+            });
+          }
+
+          if (max !== null && max !== '' && totalQty > Number(max)) {
+            failures.push({
+              ruleId: rule.id,
+              ruleName: rule.name,
+              message: `Cart total quantity ${totalQty} exceeds maximum ${max}`,
+              itemKey: targetItems[0]?.key || 'cart',
+              itemTitle: 'Cart Total'
+            });
+          }
+
+          if (multiple !== null && multiple !== '' && totalQty % Number(multiple) !== 0) {
+            failures.push({
+              ruleId: rule.id,
+              ruleName: rule.name,
+              message: `Cart total quantity ${totalQty} must be a multiple of ${multiple}`,
+              itemKey: targetItems[0]?.key || 'cart',
+              itemTitle: 'Cart Total'
+            });
+          }
+        }
+        break;
+    }
+
+    return failures;
+  }
+
+  _matchesCondition(item, condition, type) {
+    let value;
+    if (type === 'property') {
+      value = (item.properties || {})[condition.key];
+    } else {
+      value = this._getNestedValue(item, condition.field);
+    }
+
+    switch (condition.operator) {
+      case 'equals':
+        return String(value) === String(condition.value);
+      case 'not-equals':
+        return String(value) !== String(condition.value);
+      case 'contains':
+        return String(value || '').includes(condition.value);
+      case 'exists':
+        return value !== undefined && value !== null && value !== '';
+      case 'less-than':
+        return Number(value) < Number(condition.value);
+      case 'greater-than':
+        return Number(value) > Number(condition.value);
+      default:
+        return false;
+    }
+  }
+
+  _getNestedValue(obj, path) {
+    if (!path) return undefined;
+    return path.split('.').reduce((o, k) => (o || {})[k], obj);
+  }
+
+  _getFailedItemKeys() {
+    if (!this.testResults) return new Set();
+    const keys = new Set();
+    Object.values(this.testResults).forEach(result => {
+      result.failures.forEach(f => keys.add(f.itemKey));
+    });
+    return keys;
+  }
+
+  _getTestsSummary() {
+    if (!this.testResults) return { total: 0, passed: 0, failed: 0 };
+    const results = Object.values(this.testResults);
+    return {
+      total: results.length,
+      passed: results.filter(r => r.passed).length,
+      failed: results.filter(r => !r.passed).length
+    };
+  }
+
+  _getAllFailures() {
+    if (!this.testResults) return [];
+    const failures = [];
+    Object.values(this.testResults).forEach(result => {
+      failures.push(...result.failures);
+    });
+    return failures;
   }
 
   // Render compact inline sections
@@ -1978,13 +3034,14 @@ export class CartPanel extends LitElement {
                 @input=${(e) => this._updateScenarioItem(index, 'quantity', parseInt(e.target.value, 10) || 1)}
               >
               <div class="scenario-item-props">
-                ${Object.entries(item.properties).map(([key, value]) => html`
-                  <div class="scenario-item-props-row">
+                ${Object.entries(item.properties).map(([key, value], propIndex) => html`
+                  <div class="scenario-item-props-row" data-prop-index="${propIndex}">
                     <input
                       type="text"
                       placeholder="key"
                       .value=${key}
-                      @input=${(e) => this._updateScenarioItemProperty(index, key, e.target.value, value)}
+                      @change=${(e) => this._updateScenarioItemProperty(index, key, e.target.value, value)}
+                      @blur=${(e) => this._updateScenarioItemProperty(index, key, e.target.value, value)}
                     >
                     <input
                       type="text"
@@ -2016,6 +3073,404 @@ export class CartPanel extends LitElement {
     `;
   }
 
+  // ============ Tests Panel Rendering ============
+
+  _renderTestsPanel() {
+    if (!this.showTests) return '';
+
+    const summary = this._getTestsSummary();
+    const allFailures = this._getAllFailures();
+
+    return html`
+      <div class="tests-panel">
+        <div class="tests-header">
+          <span>Cart Tests</span>
+          <div class="tests-header-actions">
+            ${summary.total > 0 ? html`
+              <span class="tests-status ${summary.failed > 0 ? 'tests-status--fail' : 'tests-status--pass'}">
+                ${summary.failed > 0 ? `${summary.failed} failed` : `${summary.passed} passed`}
+              </span>
+            ` : html`
+              <span class="tests-status tests-status--idle">No tests</span>
+            `}
+            <label class="autorun-toggle" title="Auto-run tests when cart changes">
+              <input type="checkbox" ?checked=${this.autoRunTests} @change=${this._toggleAutoRun}>
+              Auto
+            </label>
+            <button class="test-btn" @click=${this._runAllTests} title="Run all tests">
+              Run
+            </button>
+            <div class="templates-dropdown">
+              <button class="test-btn" @click=${() => this.showTemplatesMenu = !this.showTemplatesMenu}>
+                Templates ▾
+              </button>
+              ${this.showTemplatesMenu ? html`
+                <div class="templates-menu">
+                  ${CART_TEST_TEMPLATES.map(t => html`
+                    <div class="templates-menu-item" @click=${() => this._createTestFromTemplate(t)}>
+                      <div class="templates-menu-item-name">${t.name}</div>
+                      <div class="templates-menu-item-desc">${t.description}</div>
+                    </div>
+                  `)}
+                </div>
+              ` : ''}
+            </div>
+            <label class="test-btn" title="Import tests" style="cursor:pointer;">
+              Import
+              <input
+                type="file"
+                accept=".json"
+                style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;"
+                @change=${this._handleImportFile}
+              >
+            </label>
+            <button class="test-btn" @click=${this._exportTests} title="Export tests">
+              Export
+            </button>
+            <button class="test-btn test-btn--primary" @click=${this._createNewTest}>
+              + New
+            </button>
+          </div>
+        </div>
+
+        ${this.editingTest ? this._renderTestEditor() : html`
+          ${this.tests.length === 0 ? html`
+            <div class="tests-empty">
+              No tests created yet. Create a new test or use a template.
+            </div>
+          ` : html`
+            <div class="test-list">
+              ${this.tests.map(test => {
+                const result = this.testResults?.[test.id];
+                const hasFailed = result && !result.passed;
+                return html`
+                  <div class="test-item ${hasFailed ? 'test-item--failed' : ''}">
+                    <div
+                      class="test-toggle ${test.enabled ? 'enabled' : ''}"
+                      @click=${() => this._toggleTestEnabled(test.id)}
+                      title="${test.enabled ? 'Disable test' : 'Enable test'}"
+                    ></div>
+                    <div class="test-info">
+                      <div class="test-name">
+                        ${test.name}
+                        ${result ? html`
+                          <span class="test-badge ${result.passed ? 'test-badge--pass' : 'test-badge--fail'}">
+                            ${result.passed ? '✓ Pass' : `✗ ${result.failures.length} fail`}
+                          </span>
+                        ` : ''}
+                      </div>
+                      <div class="test-meta">
+                        ${test.rules.length} rule${test.rules.length !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                    <div class="test-actions">
+                      <button class="test-btn" @click=${() => this._editTest(test)} title="Edit test">
+                        Edit
+                      </button>
+                      <button class="test-btn test-btn--danger" @click=${() => this._deleteTest(test.id)} title="Delete">
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                `;
+              })}
+            </div>
+          `}
+        `}
+
+        ${allFailures.length > 0 && !this.editingTest ? html`
+          <div class="test-results">
+            <div class="test-results-summary">
+              <span style="color: var(--tdt-danger); font-weight: 600;">
+                ${allFailures.length} failure${allFailures.length !== 1 ? 's' : ''} found
+              </span>
+            </div>
+            <div class="test-failures">
+              ${allFailures.slice(0, 5).map(f => html`
+                <div class="test-failure-item">
+                  <div class="failure-rule">${f.ruleName}</div>
+                  <div class="failure-message">${f.message}</div>
+                  <div class="failure-item-ref">Item: ${f.itemTitle}</div>
+                </div>
+              `)}
+              ${allFailures.length > 5 ? html`
+                <div style="padding: 6px 8px; color: var(--tdt-text-muted); font-size: calc(10px * var(--tdt-scale, 1));">
+                  ... and ${allFailures.length - 5} more
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  _renderTestEditor() {
+    return html`
+      <div class="test-editor">
+        <div class="test-editor-header">
+          <input
+            type="text"
+            placeholder="Test name..."
+            .value=${this._testNameInput}
+            @input=${(e) => this._testNameInput = e.target.value}
+          >
+        </div>
+
+        <div class="rules-list">
+          ${this.editingTest.rules.map(rule => html`
+            <div class="rule-item">
+              <div class="rule-header">
+                <input
+                  type="text"
+                  placeholder="Rule name"
+                  .value=${rule.name}
+                  @input=${(e) => this._updateRule(rule.id, { name: e.target.value })}
+                >
+                <select
+                  .value=${rule.type}
+                  @change=${(e) => this._changeRuleType(rule.id, e.target.value)}
+                >
+                  <option value="property-dependency">Property Dependency</option>
+                  <option value="field-value">Field Value</option>
+                  <option value="cart-composition">Cart Composition</option>
+                  <option value="quantity">Quantity</option>
+                </select>
+                ${this.editingTest.rules.length > 1 ? html`
+                  <button class="test-btn test-btn--danger" @click=${() => this._removeRule(rule.id)}>×</button>
+                ` : ''}
+              </div>
+
+              <div class="rule-config">
+                ${this._renderRuleConfig(rule)}
+              </div>
+            </div>
+          `)}
+        </div>
+
+        <button class="add-rule-btn" @click=${this._addRule}>
+          + Add Rule
+        </button>
+
+        <div class="test-editor-actions">
+          <button class="test-btn" @click=${this._cancelEditTest}>Cancel</button>
+          <button class="test-btn test-btn--primary" @click=${this._saveEditingTest}>Save Test</button>
+        </div>
+      </div>
+    `;
+  }
+
+  _renderRuleConfig(rule) {
+    switch (rule.type) {
+      case 'property-dependency':
+        return html`
+          <div class="rule-config-row">
+            <label>IF property</label>
+            <input
+              type="text"
+              placeholder="key"
+              style="max-width: 100px;"
+              .value=${rule.config.ifProperty?.key || ''}
+              @input=${(e) => this._updateRuleConfig(rule.id, 'ifProperty.key', e.target.value)}
+            >
+            <select
+              .value=${rule.config.ifProperty?.operator || 'equals'}
+              @change=${(e) => this._updateRuleConfig(rule.id, 'ifProperty.operator', e.target.value)}
+            >
+              <option value="equals">equals</option>
+              <option value="exists">exists</option>
+              <option value="contains">contains</option>
+            </select>
+            ${rule.config.ifProperty?.operator !== 'exists' ? html`
+              <input
+                type="text"
+                placeholder="value"
+                .value=${rule.config.ifProperty?.value || ''}
+                @input=${(e) => this._updateRuleConfig(rule.id, 'ifProperty.value', e.target.value)}
+              >
+            ` : ''}
+          </div>
+          <div class="rule-config-row">
+            <label>THEN require properties:</label>
+          </div>
+          <div class="rule-props-list">
+            ${(rule.config.requiredProperties || []).map(prop => html`
+              <span class="rule-prop-tag">
+                ${prop}
+                <button @click=${() => this._removeRequiredProperty(rule.id, prop)}>×</button>
+              </span>
+            `)}
+            <input
+              type="text"
+              placeholder="+ add property"
+              style="width: 100px; font-size: calc(9px * var(--tdt-scale, 1));"
+              @keypress=${(e) => {
+                if (e.key === 'Enter' && e.target.value.trim()) {
+                  this._addRequiredProperty(rule.id, e.target.value);
+                  e.target.value = '';
+                }
+              }}
+            >
+          </div>
+        `;
+
+      case 'field-value':
+        return html`
+          <div class="rule-config-row">
+            <label>IF field</label>
+            <input
+              type="text"
+              placeholder="field (e.g. product_type)"
+              .value=${rule.config.ifField?.field || ''}
+              @input=${(e) => this._updateRuleConfig(rule.id, 'ifField.field', e.target.value)}
+            >
+            <select
+              .value=${rule.config.ifField?.operator || 'equals'}
+              @change=${(e) => this._updateRuleConfig(rule.id, 'ifField.operator', e.target.value)}
+            >
+              <option value="equals">equals</option>
+              <option value="not-equals">not equals</option>
+              <option value="contains">contains</option>
+              <option value="exists">exists</option>
+            </select>
+            ${rule.config.ifField?.operator !== 'exists' ? html`
+              <input
+                type="text"
+                placeholder="value"
+                .value=${rule.config.ifField?.value || ''}
+                @input=${(e) => this._updateRuleConfig(rule.id, 'ifField.value', e.target.value)}
+              >
+            ` : ''}
+          </div>
+          <div class="rule-config-row">
+            <label>THEN field</label>
+            <input
+              type="text"
+              placeholder="field (e.g. quantity)"
+              .value=${rule.config.thenField?.field || ''}
+              @input=${(e) => this._updateRuleConfig(rule.id, 'thenField.field', e.target.value)}
+            >
+            <select
+              .value=${rule.config.thenField?.operator || 'equals'}
+              @change=${(e) => this._updateRuleConfig(rule.id, 'thenField.operator', e.target.value)}
+            >
+              <option value="equals">equals</option>
+              <option value="not-equals">not equals</option>
+              <option value="less-than">less than</option>
+              <option value="greater-than">greater than</option>
+              <option value="exists">exists</option>
+            </select>
+            ${rule.config.thenField?.operator !== 'exists' ? html`
+              <input
+                type="text"
+                placeholder="value"
+                .value=${rule.config.thenField?.value || ''}
+                @input=${(e) => this._updateRuleConfig(rule.id, 'thenField.value', e.target.value)}
+              >
+            ` : ''}
+          </div>
+        `;
+
+      case 'cart-composition':
+        return html`
+          <div class="rule-config-row">
+            <label>IF cart has item with</label>
+            <input
+              type="text"
+              placeholder="field"
+              style="max-width: 80px;"
+              .value=${rule.config.ifItem?.field || ''}
+              @input=${(e) => this._updateRuleConfig(rule.id, 'ifItem.field', e.target.value)}
+            >
+            <span>=</span>
+            <input
+              type="text"
+              placeholder="value"
+              .value=${rule.config.ifItem?.value || ''}
+              @input=${(e) => this._updateRuleConfig(rule.id, 'ifItem.value', e.target.value)}
+            >
+          </div>
+          <div class="rule-config-row">
+            <label>THEN cart must also have item with</label>
+            <input
+              type="text"
+              placeholder="field"
+              style="max-width: 80px;"
+              .value=${rule.config.requiresItem?.field || ''}
+              @input=${(e) => this._updateRuleConfig(rule.id, 'requiresItem.field', e.target.value)}
+            >
+            <span>=</span>
+            <input
+              type="text"
+              placeholder="value"
+              .value=${rule.config.requiresItem?.value || ''}
+              @input=${(e) => this._updateRuleConfig(rule.id, 'requiresItem.value', e.target.value)}
+            >
+          </div>
+        `;
+
+      case 'quantity':
+        return html`
+          <div class="rule-config-row">
+            <label>Scope</label>
+            <select
+              .value=${rule.config.scope || 'per-item'}
+              @change=${(e) => this._updateRuleConfig(rule.id, 'scope', e.target.value)}
+            >
+              <option value="per-item">Per Item</option>
+              <option value="cart-total">Cart Total</option>
+            </select>
+          </div>
+          <div class="rule-config-row">
+            <label>Min</label>
+            <input
+              type="number"
+              placeholder="—"
+              style="width: 60px;"
+              .value=${rule.config.min ?? ''}
+              @input=${(e) => this._updateRuleConfig(rule.id, 'min', e.target.value ? Number(e.target.value) : null)}
+            >
+            <label>Max</label>
+            <input
+              type="number"
+              placeholder="—"
+              style="width: 60px;"
+              .value=${rule.config.max ?? ''}
+              @input=${(e) => this._updateRuleConfig(rule.id, 'max', e.target.value ? Number(e.target.value) : null)}
+            >
+            <label>Multiple of</label>
+            <input
+              type="number"
+              placeholder="—"
+              style="width: 60px;"
+              .value=${rule.config.multiple ?? ''}
+              @input=${(e) => this._updateRuleConfig(rule.id, 'multiple', e.target.value ? Number(e.target.value) : null)}
+            >
+          </div>
+          <div class="rule-config-row">
+            <label>Filter (optional)</label>
+            <input
+              type="text"
+              placeholder="field"
+              style="width: 80px;"
+              .value=${rule.config.filterField || ''}
+              @input=${(e) => this._updateRuleConfig(rule.id, 'filterField', e.target.value)}
+            >
+            <span>=</span>
+            <input
+              type="text"
+              placeholder="value"
+              .value=${rule.config.filterValue || ''}
+              @input=${(e) => this._updateRuleConfig(rule.id, 'filterValue', e.target.value)}
+            >
+          </div>
+        `;
+
+      default:
+        return html`<div>Unknown rule type</div>`;
+    }
+  }
+
   render() {
     if (!this.cart) {
       return html`<div class="empty-state">Loading cart...</div>`;
@@ -2036,6 +3491,14 @@ export class CartPanel extends LitElement {
           ${this._renderInlineDiscounts()}
         </div>
         <div class="actions">
+          <button
+            class="history-toggle ${this.showTests ? 'active' : ''}"
+            @click=${this._toggleTests}
+            title="Cart tests"
+          >
+            Tests ${this.tests.length > 0 ? `(${this.tests.length})` : ''}
+            ${this._getTestsSummary().failed > 0 ? html`<span style="color: var(--tdt-danger);">!</span>` : ''}
+          </button>
           <button
             class="history-toggle ${this.showScenarios ? 'active' : ''}"
             @click=${this._toggleScenarios}
@@ -2064,6 +3527,7 @@ export class CartPanel extends LitElement {
       ${this._renderQuickAddRow()}
       ${this._renderMetaRow()}
       ${this._renderMetaPanel()}
+      ${this._renderTestsPanel()}
       ${this._renderScenarioPanel()}
       ${this._renderHistoryPanel()}
 
@@ -2104,9 +3568,11 @@ export class CartPanel extends LitElement {
                 const discountPercent = this._getDiscountPercent(item.original_line_price, item.line_price);
                 const hasProperties = item.properties && Object.keys(item.properties).length > 0;
                 const hasSellingPlan = !!item.selling_plan_allocation;
+                const failedItemKeys = this._getFailedItemKeys();
+                const isTestFailed = failedItemKeys.has(item.key);
 
                 return html`
-                  <tr class="item-row ${isExpanded ? 'expanded' : ''}" @click=${() => this._toggleItemExpand(item.key)}>
+                  <tr class="item-row ${isExpanded ? 'expanded' : ''} ${isTestFailed ? 'test-failed' : ''}" @click=${() => this._toggleItemExpand(item.key)}>
                     <td class="col-img">
                       ${item.image
                         ? html`<img class="item-img" src="${item.image.replace(/(\.[^.]+)$/, '_60x60$1')}" alt="">`
@@ -2114,7 +3580,10 @@ export class CartPanel extends LitElement {
                       }
                     </td>
                     <td>
-                      <div class="item-title" title="${item.product_title}">${item.product_title}</div>
+                      <div class="item-title" title="${item.product_title}">
+                        ${item.product_title}
+                        ${isTestFailed ? html`<span class="test-fail-indicator">✗ Test failed</span>` : ''}
+                      </div>
                       ${item.variant_title ? html`<div class="item-variant">${item.variant_title}</div>` : ''}
                       ${hasSellingPlan ? html`
                         <span class="selling-plan-badge" style="margin-top: 2px;">
