@@ -662,8 +662,8 @@ export class ThemeDevtools extends LitElement {
 
   _restoreState() {
     const saved = localStorage.getItem('theme-devtools-collapsed');
-    if (saved === 'true') {
-      this.isCollapsed = true;
+    if (saved !== null) {
+      this.isCollapsed = saved === 'true';
     }
 
     // Only restore saved tab if it exists, otherwise use the default from settings
