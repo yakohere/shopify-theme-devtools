@@ -546,15 +546,45 @@ export class CartPanel extends LitElement {
 
       .item-properties {
         margin-top: 6px;
-        padding: 6px 8px;
         background: var(--tdt-bg-secondary);
         border-radius: var(--tdt-radius);
+        overflow: hidden;
       }
 
       .item-properties-title {
         font-weight: 600;
         color: var(--tdt-text-muted);
-        margin-bottom: 4px;
+        padding: 4px 8px;
+        background: var(--tdt-bg-tertiary);
+        font-size: calc(10px * var(--tdt-scale, 1));
+      }
+
+      .item-properties-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: calc(10px * var(--tdt-scale, 1));
+      }
+
+      .item-properties-table td {
+        padding: 3px 8px;
+        border-bottom: 1px solid var(--tdt-border);
+      }
+
+      .item-properties-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .item-properties-table .prop-key {
+        color: var(--tdt-text-muted);
+        white-space: nowrap;
+        width: 1%;
+        padding-right: 12px;
+      }
+
+      .item-properties-table .prop-value {
+        color: var(--tdt-text);
+        font-family: var(--tdt-font-mono);
+        word-break: break-all;
       }
 
       .selling-plan-badge {
@@ -1620,13 +1650,17 @@ export class CartPanel extends LitElement {
 
         ${hasProperties ? html`
           <div class="item-properties">
-            <div class="item-properties-title">Line Item Properties:</div>
-            ${Object.entries(properties).map(([key, value]) => html`
-              <div class="item-detail-row">
-                <span class="item-detail-label">${key}:</span>
-                <span class="item-detail-value">${value}</span>
-              </div>
-            `)}
+            <div class="item-properties-title">Properties</div>
+            <table class="item-properties-table">
+              <tbody>
+                ${Object.entries(properties).map(([key, value]) => html`
+                  <tr>
+                    <td class="prop-key">${key}</td>
+                    <td class="prop-value">${value}</td>
+                  </tr>
+                `)}
+              </tbody>
+            </table>
           </div>
         ` : ''}
 
