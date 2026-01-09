@@ -432,7 +432,7 @@ export class ThemeDevtools extends LitElement {
 
   constructor() {
     super();
-    this.isCollapsed = false;
+    this.isCollapsed = true;
     this.activeTab = settingsService.get('defaultTab') || 'objects';
     this.context = null;
     this.cart = null;
