@@ -1482,6 +1482,49 @@ export class CartPanel extends LitElement {
     }
   }
 
+  _exportScenarios() {
+    if (this.scenarios.length === 0) {
+      this._showToast('No scenarios to export');
+      return;
+    }
+    const data = JSON.stringify(this.scenarios, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cart-scenarios-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    this._showToast('Scenarios exported!');
+  }
+
+  async _handleImportScenariosFile(e) {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const text = await file.text();
+        const imported = JSON.parse(text);
+        if (!Array.isArray(imported)) {
+          throw new Error('Invalid format: expected array of scenarios');
+        }
+        const newScenarios = imported.map(scenario => ({
+          ...scenario,
+          id: Date.now() + Math.random(),
+          createdAt: scenario.createdAt || new Date().toISOString()
+        }));
+        this.scenarios = [...this.scenarios, ...newScenarios];
+        this._saveScenarios();
+        this._showToast(`Imported ${newScenarios.length} scenario(s)`);
+      } catch (err) {
+        this._showToast(`Import failed: ${err.message}`);
+      }
+    }
+    // Reset so same file can be selected again
+    e.target.value = '';
+  }
+
   _loadTests() {
     try {
       const stored = localStorage.getItem(CartPanel.TESTS_STORAGE_KEY);
@@ -2955,6 +2998,18 @@ export class CartPanel extends LitElement {
           <span>Cart Scenarios</span>
           <div class="scenario-header-actions">
             <span style="font-weight: normal; color: var(--tdt-text-muted);">${this.scenarios.length} saved</span>
+            <label class="scenario-btn" title="Import scenarios" style="cursor:pointer;">
+              Import
+              <input
+                type="file"
+                accept=".json"
+                style="display:none;"
+                @change=${this._handleImportScenariosFile}
+              />
+            </label>
+            <button class="scenario-btn" @click=${this._exportScenarios} title="Export scenarios">
+              Export
+            </button>
             <button class="scenario-btn" @click=${this._saveCurrentCartAsScenario} title="Save current cart as scenario">
               Save Current
             </button>
