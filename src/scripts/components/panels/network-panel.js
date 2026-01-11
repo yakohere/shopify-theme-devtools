@@ -15,6 +15,9 @@ export class NetworkPanel extends LitElement {
     // Request editor state
     editingId: { type: String, state: true },
     editData: { type: Object, state: true },
+    // Blocked sources state
+    blockedSources: { type: Array, state: true },
+    showBlockedPanel: { type: Boolean, state: true },
   };
 
   static styles = [
@@ -1071,6 +1074,208 @@ export class NetworkPanel extends LitElement {
         color: var(--tdt-text);
         border-color: var(--tdt-accent);
       }
+
+      /* Source Blocking Styles */
+      .btn-block {
+        background: transparent;
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        padding: 2px 6px;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        cursor: pointer;
+        font-family: var(--tdt-font);
+        transition: all 0.15s ease;
+      }
+
+      .btn-block:hover {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--tdt-error);
+        border-color: var(--tdt-error);
+      }
+
+      .btn-block--blocked {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--tdt-error);
+        border-color: var(--tdt-error);
+      }
+
+      .blocked-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        padding: 6px 10px;
+        font-size: calc(11px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        cursor: pointer;
+        font-family: var(--tdt-font);
+      }
+
+      .blocked-toggle:hover {
+        background: var(--tdt-bg-hover);
+        color: var(--tdt-text);
+      }
+
+      .blocked-toggle--active {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: var(--tdt-error);
+        color: var(--tdt-error);
+      }
+
+      .blocked-count {
+        background: var(--tdt-error);
+        color: white;
+        font-size: calc(9px * var(--tdt-scale, 1));
+        padding: 1px 5px;
+        border-radius: 10px;
+        font-weight: 600;
+      }
+
+      .blocked-panel {
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        margin-bottom: 12px;
+        overflow: hidden;
+      }
+
+      .blocked-panel__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        background: rgba(239, 68, 68, 0.05);
+        border-bottom: 1px solid var(--tdt-border);
+      }
+
+      .blocked-panel__title {
+        font-size: calc(12px * var(--tdt-scale, 1));
+        font-weight: 600;
+        color: var(--tdt-text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .blocked-panel__clear {
+        background: transparent;
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        padding: 4px 8px;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        cursor: pointer;
+        font-family: var(--tdt-font);
+      }
+
+      .blocked-panel__clear:hover {
+        color: var(--tdt-error);
+        border-color: var(--tdt-error);
+      }
+
+      .blocked-panel__list {
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .blocked-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px 10px;
+        background: var(--tdt-bg);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        font-size: calc(11px * var(--tdt-scale, 1));
+      }
+
+      .blocked-item__info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .blocked-item__label {
+        color: var(--tdt-text);
+        font-weight: 500;
+        margin-bottom: 4px;
+        word-break: break-all;
+      }
+
+      .blocked-item__source {
+        color: var(--tdt-text-muted);
+        font-size: calc(10px * var(--tdt-scale, 1));
+        font-family: var(--tdt-font);
+        word-break: break-all;
+        opacity: 0.8;
+      }
+
+      .blocked-item__unblock {
+        background: transparent;
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        padding: 4px 8px;
+        font-size: calc(10px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        cursor: pointer;
+        font-family: var(--tdt-font);
+        white-space: nowrap;
+      }
+
+      .blocked-item__unblock:hover {
+        color: var(--tdt-success);
+        border-color: var(--tdt-success);
+      }
+
+      .blocked-panel__empty {
+        padding: 20px;
+        text-align: center;
+        color: var(--tdt-text-muted);
+        font-size: calc(11px * var(--tdt-scale, 1));
+      }
+
+      /* Source info in request details */
+      .source-info {
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        padding: 10px;
+        margin-bottom: 12px;
+        font-size: calc(11px * var(--tdt-scale, 1));
+      }
+
+      .source-info__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+
+      .source-info__title {
+        color: var(--tdt-text-muted);
+        font-size: calc(10px * var(--tdt-scale, 1));
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .source-info__stack {
+        color: var(--tdt-text);
+        font-family: var(--tdt-font);
+        word-break: break-all;
+        line-height: 1.5;
+      }
+
+      .source-info__id {
+        color: var(--tdt-text-muted);
+        font-size: calc(10px * var(--tdt-scale, 1));
+        margin-top: 6px;
+      }
     `,
   ];
 
@@ -1087,6 +1292,9 @@ export class NetworkPanel extends LitElement {
     this.editingId = null;
     this.editData = null;
     this._unsubscribe = null;
+    this._unsubscribeBlocked = null;
+    this.blockedSources = [];
+    this.showBlockedPanel = false;
   }
 
   connectedCallback() {
@@ -1096,14 +1304,21 @@ export class NetworkPanel extends LitElement {
     this._unsubscribe = networkInterceptor.subscribe((requests) => {
       this.requests = [...requests];
     });
+    this._unsubscribeBlocked = networkInterceptor.subscribeToBlockedSources((blockedSources) => {
+      this.blockedSources = [...blockedSources];
+    });
     // Get initial state
     this.requests = [...networkInterceptor.getRequests()];
+    this.blockedSources = [...networkInterceptor.getBlockedSources()];
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     if (this._unsubscribe) {
       this._unsubscribe();
+    }
+    if (this._unsubscribeBlocked) {
+      this._unsubscribeBlocked();
     }
   }
 
@@ -1515,6 +1730,104 @@ ${parts.join(',\n')}
     if (e.target.classList.contains('editor-overlay')) {
       this._closeEditor();
     }
+  }
+
+  // ============ Source Blocking Methods ============
+
+  _toggleBlockedPanel() {
+    this.showBlockedPanel = !this.showBlockedPanel;
+  }
+
+  _blockSource(req, e) {
+    e?.stopPropagation();
+    if (!req.sourceId) {
+      this._showToast('No source info available');
+      return;
+    }
+
+    const label = `${req.method} ${req.displayName}`;
+    networkInterceptor.blockSource(req.sourceId, req.callStack, label);
+    this._showToast('Source blocked');
+  }
+
+  _unblockSource(sourceId, e) {
+    e?.stopPropagation();
+    networkInterceptor.unblockSource(sourceId);
+    this._showToast('Source unblocked');
+  }
+
+  _clearAllBlocked() {
+    networkInterceptor.clearBlockedSources();
+    this._showToast('All sources unblocked');
+  }
+
+  _renderBlockedPanel() {
+    if (!this.showBlockedPanel) return '';
+
+    return html`
+      <div class="blocked-panel">
+        <div class="blocked-panel__header">
+          <div class="blocked-panel__title">
+            <span>Blocked Sources</span>
+            <span class="blocked-count">${this.blockedSources.length}</span>
+          </div>
+          ${this.blockedSources.length > 0 ? html`
+            <button class="blocked-panel__clear" @click=${() => this._clearAllBlocked()}>
+              Unblock All
+            </button>
+          ` : ''}
+        </div>
+        ${this.blockedSources.length === 0 ? html`
+          <div class="blocked-panel__empty">
+            No blocked sources. Click "Block" on a request to hide all requests from that code location.
+          </div>
+        ` : html`
+          <div class="blocked-panel__list">
+            ${this.blockedSources.map(blocked => html`
+              <div class="blocked-item">
+                <div class="blocked-item__info">
+                  <div class="blocked-item__label">${blocked.label}</div>
+                  <div class="blocked-item__source">${blocked.source}</div>
+                </div>
+                <button
+                  class="blocked-item__unblock"
+                  @click=${(e) => this._unblockSource(blocked.id, e)}
+                >
+                  Unblock
+                </button>
+              </div>
+            `)}
+          </div>
+        `}
+      </div>
+    `;
+  }
+
+  _renderSourceInfo(req) {
+    if (!req.callStack && !req.sourceId) return '';
+
+    const isBlocked = networkInterceptor.isBlocked(req.sourceId);
+
+    return html`
+      <div class="source-info">
+        <div class="source-info__header">
+          <span class="source-info__title">Request Source</span>
+          <button
+            class="btn-block ${isBlocked ? 'btn-block--blocked' : ''}"
+            @click=${(e) => isBlocked ? this._unblockSource(req.sourceId, e) : this._blockSource(req, e)}
+            title="${isBlocked ? 'Unblock this source' : 'Block all requests from this source'}"
+          >
+            ${isBlocked ? 'Unblock' : 'Block Source'}
+          </button>
+        </div>
+        ${req.callStack ? html`
+          <div class="source-info__stack">${req.callStack}</div>
+        ` : ''}
+        ${req.sourceId ? html`
+          <div class="source-info__id">ID: ${req.sourceId}</div>
+        ` : ''}
+      </div>
+    `;
   }
 
   _renderEditorModal() {
@@ -2431,6 +2744,14 @@ ${parts.join(',\n')}
                 </div>
               ` : ''}
             </div>
+
+            ${req.sourceId ? html`
+              <button
+                class="btn-block"
+                @click=${(e) => this._blockSource(req, e)}
+                title="Block all requests from this source"
+              >Block</button>
+            ` : ''}
           </div>
         </div>
         ${isExpanded ? this._renderDetails(req) : ''}
@@ -2441,6 +2762,7 @@ ${parts.join(',\n')}
   _renderDetails(req) {
     return html`
       <div class="request-details">
+        ${this._renderSourceInfo(req)}
         ${this._renderCartDiff(req)}
         ${this._renderErrorDiagnosis(req)}
 
@@ -2517,9 +2839,21 @@ ${Object.entries(req.responseHeaders || {}).map(([k, v]) => `${k}: ${v}`).join('
             <button class="search-clear" @click=${this._clearSearch} title="Clear search">x</button>
           ` : ''}
         </div>
+        <button
+          class="blocked-toggle ${this.showBlockedPanel ? 'blocked-toggle--active' : ''}"
+          @click=${() => this._toggleBlockedPanel()}
+          title="Manage blocked sources"
+        >
+          Blocked
+          ${this.blockedSources.length > 0 ? html`
+            <span class="blocked-count">${this.blockedSources.length}</span>
+          ` : ''}
+        </button>
         <span class="request-count">${filteredRequests.length} request${filteredRequests.length !== 1 ? 's' : ''}</span>
         <button class="btn-clear" @click=${this._handleClear}>Clear</button>
       </div>
+
+      ${this._renderBlockedPanel()}
 
       ${filteredRequests.length === 0
         ? html`

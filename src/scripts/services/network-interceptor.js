@@ -116,20 +116,79 @@ function generateId() {
 
 // Storage key for persisted requests
 const STORAGE_KEY = 'tdt_network_requests';
+const BLOCKED_SOURCES_KEY = 'tdt_blocked_sources';
 const MAX_PERSISTED_REQUESTS = 32;
+
+/**
+ * Capture and normalize call stack to identify request origin
+ * Returns a simplified stack trace that can be used to identify the source
+ */
+function captureCallStack() {
+  const stack = new Error().stack || '';
+  const lines = stack.split('\n').slice(2); // Skip Error and captureCallStack frames
+
+  // Filter out our interceptor frames and browser internals
+  const filteredLines = lines.filter(line => {
+    const lineLower = line.toLowerCase();
+    return !lineLower.includes('network-interceptor') &&
+           !lineLower.includes('theme-devtools') &&
+           !lineLower.includes('native code') &&
+           !lineLower.includes('<anonymous>') &&
+           line.trim().length > 0;
+  });
+
+  // Take up to 5 meaningful stack frames
+  const meaningfulFrames = filteredLines.slice(0, 5);
+
+  // Create a normalized source identifier
+  // This helps group requests from the same code location
+  return meaningfulFrames.map(frame => {
+    // Extract the meaningful part of the stack frame
+    // Formats vary: "at functionName (url:line:col)" or "functionName@url:line:col"
+    const match = frame.match(/(?:at\s+)?([^\s@]+)?(?:\s+\(|\@)?([^:]+:\d+:\d+)/);
+    if (match) {
+      const funcName = match[1] || 'anonymous';
+      const location = match[2] || '';
+      // Simplify the location - just keep filename and line
+      const locMatch = location.match(/([^/]+:\d+):\d+$/);
+      return locMatch ? `${funcName}@${locMatch[1]}` : `${funcName}@${location}`;
+    }
+    return frame.trim().substring(0, 100);
+  }).join(' -> ');
+}
+
+/**
+ * Generate a short hash for a source identifier
+ * Used as a stable ID for blocking
+ */
+function hashSource(source) {
+  if (!source) return 'unknown';
+  let hash = 0;
+  for (let i = 0; i < source.length; i++) {
+    const char = source.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return 'src_' + Math.abs(hash).toString(36);
+}
 
 class NetworkInterceptor {
   constructor() {
     this.requests = [];
     this.listeners = new Set();
+    this.blockedSourceListeners = new Set();
     this._originalFetch = null;
     this._originalXHROpen = null;
     this._originalXHRSend = null;
     this._installed = false;
     this._staleTimeout = 30000; // 30 seconds
 
-    // Load persisted requests on init
+    // Blocked sources: Map of sourceId -> { source: string, label: string, blockedAt: Date }
+    this.blockedSources = new Map();
+
+    // Load persisted requests and blocked sources on init
     this._loadFromStorage();
+    this._loadBlockedSources();
   }
 
   /**
@@ -152,6 +211,52 @@ class NetworkInterceptor {
       console.error('[TDT Network] Failed to load from storage:', e);
       this.requests = [];
     }
+  }
+
+  /**
+   * Load blocked sources from localStorage
+   */
+  _loadBlockedSources() {
+    try {
+      const stored = localStorage.getItem(BLOCKED_SOURCES_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        this.blockedSources = new Map(
+          parsed.map(item => [item.id, {
+            source: item.source,
+            label: item.label,
+            blockedAt: new Date(item.blockedAt),
+          }])
+        );
+      }
+    } catch (e) {
+      console.error('[TDT Network] Failed to load blocked sources:', e);
+      this.blockedSources = new Map();
+    }
+  }
+
+  /**
+   * Save blocked sources to localStorage
+   */
+  _saveBlockedSources() {
+    try {
+      const toSave = Array.from(this.blockedSources.entries()).map(([id, data]) => ({
+        id,
+        source: data.source,
+        label: data.label,
+        blockedAt: data.blockedAt.toISOString(),
+      }));
+      localStorage.setItem(BLOCKED_SOURCES_KEY, JSON.stringify(toSave));
+    } catch (e) {
+      console.error('[TDT Network] Failed to save blocked sources:', e);
+    }
+  }
+
+  /**
+   * Check if a source is blocked
+   */
+  _isSourceBlocked(sourceId) {
+    return this.blockedSources.has(sourceId);
   }
 
   /**
@@ -234,6 +339,15 @@ class NetworkInterceptor {
         return self._originalFetch.apply(this, arguments);
       }
 
+      // Capture call stack to identify the source
+      const callStack = captureCallStack();
+      const sourceId = hashSource(callStack);
+
+      // Check if this source is blocked - if so, still make the request but don't log it
+      if (self._isSourceBlocked(sourceId)) {
+        return self._originalFetch.apply(this, arguments);
+      }
+
       const requestId = generateId();
       const method = init.method || 'GET';
       let requestBody = null;
@@ -282,6 +396,9 @@ class NetworkInterceptor {
         cartBefore: cartBefore,
         cartAfter: null,
         cartDiff: null,
+        // Source tracking for blocking
+        sourceId: sourceId,
+        callStack: callStack,
       };
 
       self._addRequest(request);
@@ -355,6 +472,15 @@ class NetworkInterceptor {
         return self._originalXHRSend.apply(this, arguments);
       }
 
+      // Capture call stack to identify the source
+      const callStack = captureCallStack();
+      const sourceId = hashSource(callStack);
+
+      // Check if this source is blocked - if so, still make the request but don't log it
+      if (self._isSourceBlocked(sourceId)) {
+        return self._originalXHRSend.apply(this, arguments);
+      }
+
       const requestId = generateId();
       let requestBody = null;
 
@@ -388,6 +514,9 @@ class NetworkInterceptor {
         responseBody: null,
         responseHeaders: {},
         error: null,
+        // Source tracking for blocking
+        sourceId: sourceId,
+        callStack: callStack,
       };
 
       self._addRequest(request);
@@ -604,10 +733,10 @@ class NetworkInterceptor {
    * Add a new request
    */
   _addRequest(request) {
-    this.requests.unshift(request);
+    this.requests.push(request);
     // Keep last 100 requests
     if (this.requests.length > 100) {
-      this.requests = this.requests.slice(0, 100);
+      this.requests = this.requests.slice(-100);
     }
     this._notify();
   }
@@ -696,6 +825,92 @@ class NetworkInterceptor {
   getRequestsByCategory(category) {
     if (category === 'all') return this.requests;
     return this.requests.filter(r => r.category === category);
+  }
+
+  // ============ Source Blocking API ============
+
+  /**
+   * Block a source by its ID
+   * @param {string} sourceId - The source ID to block
+   * @param {string} source - The full source/callstack string for display
+   * @param {string} label - A friendly label (e.g., URL or description)
+   */
+  blockSource(sourceId, source, label) {
+    if (!sourceId) return;
+
+    this.blockedSources.set(sourceId, {
+      source: source || sourceId,
+      label: label || 'Unknown source',
+      blockedAt: new Date(),
+    });
+
+    this._saveBlockedSources();
+    this._notifyBlockedSourcesChange();
+  }
+
+  /**
+   * Unblock a source by its ID
+   * @param {string} sourceId - The source ID to unblock
+   */
+  unblockSource(sourceId) {
+    if (!sourceId) return;
+
+    const deleted = this.blockedSources.delete(sourceId);
+    if (deleted) {
+      this._saveBlockedSources();
+      this._notifyBlockedSourcesChange();
+    }
+  }
+
+  /**
+   * Get all blocked sources
+   * @returns {Array} Array of { id, source, label, blockedAt }
+   */
+  getBlockedSources() {
+    return Array.from(this.blockedSources.entries()).map(([id, data]) => ({
+      id,
+      ...data,
+    }));
+  }
+
+  /**
+   * Check if a specific source ID is blocked
+   * @param {string} sourceId
+   * @returns {boolean}
+   */
+  isBlocked(sourceId) {
+    return this.blockedSources.has(sourceId);
+  }
+
+  /**
+   * Clear all blocked sources
+   */
+  clearBlockedSources() {
+    this.blockedSources.clear();
+    this._saveBlockedSources();
+    this._notifyBlockedSourcesChange();
+  }
+
+  /**
+   * Subscribe to blocked sources changes
+   */
+  subscribeToBlockedSources(callback) {
+    this.blockedSourceListeners.add(callback);
+    return () => this.blockedSourceListeners.delete(callback);
+  }
+
+  /**
+   * Notify blocked sources listeners
+   */
+  _notifyBlockedSourcesChange() {
+    const blockedSources = this.getBlockedSources();
+    this.blockedSourceListeners.forEach(callback => {
+      try {
+        callback(blockedSources);
+      } catch (e) {
+        console.error('[TDT Network] Blocked source listener error:', e);
+      }
+    });
   }
 }
 
