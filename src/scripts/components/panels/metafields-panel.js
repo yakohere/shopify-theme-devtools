@@ -10,6 +10,7 @@ export class MetafieldsPanel extends LitElement {
     copiedPath: { type: String, state: true },
     showEmptyFields: { type: Boolean, state: true },
     activeResource: { type: String, state: true },
+    snippetMode: { type: String, state: true }, // 'path' | 'safe' | 'assign'
   };
 
   static styles = [
@@ -388,6 +389,76 @@ export class MetafieldsPanel extends LitElement {
         margin-bottom: 4px;
         color: var(--tdt-accent);
       }
+
+      /* Snippet Mode Selector */
+      .snippet-mode {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .snippet-mode__label {
+        font-size: calc(10px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        margin-right: 4px;
+      }
+
+      .snippet-mode__btn {
+        background: var(--tdt-bg-secondary);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        padding: 4px 8px;
+        color: var(--tdt-text-muted);
+        font-family: var(--tdt-font);
+        font-size: calc(10px * var(--tdt-scale, 1));
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+      }
+
+      .snippet-mode__btn:hover {
+        background: var(--tdt-bg-hover);
+        color: var(--tdt-text);
+      }
+
+      .snippet-mode__btn--active {
+        background: var(--tdt-accent);
+        border-color: var(--tdt-accent);
+        color: white;
+      }
+
+      .snippet-preview {
+        margin-top: 8px;
+        padding: 8px 10px;
+        background: var(--tdt-bg);
+        border: 1px solid var(--tdt-border);
+        border-radius: var(--tdt-radius);
+        font-size: calc(10px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        font-family: var(--tdt-font-mono);
+        line-height: 1.5;
+      }
+
+      .snippet-preview__title {
+        font-size: calc(9px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        font-family: var(--tdt-font);
+      }
+
+      .snippet-preview code {
+        display: block;
+        color: var(--tdt-text);
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+
+      .snippet-preview--copied {
+        border-color: var(--tdt-success);
+        background: rgba(34, 197, 94, 0.1);
+      }
     `
   ];
 
@@ -400,6 +471,7 @@ export class MetafieldsPanel extends LitElement {
     this.copiedPath = null;
     this.showEmptyFields = true;
     this.activeResource = null;
+    this.snippetMode = 'path'; // 'path' | 'safe' | 'assign'
   }
 
   _getMergedData() {
@@ -508,12 +580,50 @@ export class MetafieldsPanel extends LitElement {
     this.expandedPaths = newExpanded;
   }
 
+  /**
+   * Generate Liquid snippet based on current mode
+   */
+  _generateSnippet(resource, namespace, key) {
+    const path = `${resource}.metafields.${namespace}.${key}`;
+
+    switch (this.snippetMode) {
+      case 'safe':
+        // Safe access with blank check
+        return `{%- if ${path} != blank -%}\n  {{ ${path} }}\n{%- endif -%}`;
+
+      case 'assign':
+        // Assign to variable with default
+        const varName = key.replace(/[^a-zA-Z0-9_]/g, '_');
+        return `{%- assign ${varName} = ${path} | default: '' -%}\n{%- if ${varName} != blank -%}\n  {{ ${varName} }}\n{%- endif -%}`;
+
+      case 'path':
+      default:
+        // Simple output
+        return `{{ ${path} }}`;
+    }
+  }
+
+  /**
+   * Get snippet mode description for tooltip
+   */
+  _getSnippetModeTitle() {
+    switch (this.snippetMode) {
+      case 'safe':
+        return 'Copies: {% if field != blank %}{{ field }}{% endif %}';
+      case 'assign':
+        return 'Copies: {% assign var = field | default: \'\' %}{% if var != blank %}{{ var }}{% endif %}';
+      case 'path':
+      default:
+        return 'Copies: {{ field }}';
+    }
+  }
+
   async _copyLiquidPath(resource, namespace, key, e) {
     e?.stopPropagation();
-    const liquidPath = `{{ ${resource}.metafields.${namespace}.${key} }}`;
-    
+    const snippet = this._generateSnippet(resource, namespace, key);
+
     try {
-      await navigator.clipboard.writeText(liquidPath);
+      await navigator.clipboard.writeText(snippet);
       this.copiedPath = `${resource}.${namespace}.${key}`;
       setTimeout(() => {
         this.copiedPath = null;
@@ -620,30 +730,32 @@ export class MetafieldsPanel extends LitElement {
     const fullPath = `${resource}.${field.namespace}.${field.key}`;
     const isCopied = this.copiedPath === fullPath;
     const typeName = field.type?.name || field.actualType || 'unknown';
-    
+    const snippet = this._generateSnippet(resource, field.namespace, field.key);
+    const copyTitle = `Click to copy:\n${snippet}`;
+
     if (!this.showEmptyFields && !field.hasValue) return '';
-    
+
     return html`
       <div class="metafield ${field.hasValue ? '' : 'metafield--empty'}">
         <div class="metafield__header">
-          <span 
+          <span
             class="metafield__key ${isCopied ? 'metafield__key--copied' : ''}"
             @click=${(e) => this._copyLiquidPath(resource, field.namespace, field.key, e)}
-            title="Click to copy Liquid path"
+            title="${copyTitle}"
           >${field.key}</span>
           <span class="metafield__type type--${this._getTypeClass(typeName)}">${typeName}</span>
           ${field.type?.category ? html`
             <span class="metafield__category">${field.type.category}</span>
           ` : ''}
           <div class="metafield__actions">
-            <button 
-              class="action-btn" 
+            <button
+              class="action-btn"
               @click=${(e) => this._copyLiquidPath(resource, field.namespace, field.key, e)}
-              title="Copy Liquid path"
+              title="${copyTitle}"
             >${isCopied ? '✓' : '📋'}</button>
             ${field.hasValue ? html`
-              <button 
-                class="action-btn" 
+              <button
+                class="action-btn"
                 @click=${(e) => this._copyValue(field.actualValue, e)}
                 title="Copy value"
               >📄</button>
@@ -657,7 +769,7 @@ export class MetafieldsPanel extends LitElement {
           <div class="metafield__description">${field.description}</div>
         ` : ''}
         <div class="metafield__value ${field.hasValue ? '' : 'metafield__value--empty'}">
-          ${field.hasValue 
+          ${field.hasValue
             ? this._formatValue(field.actualValue)
             : html`No value set`
           }
@@ -748,7 +860,25 @@ export class MetafieldsPanel extends LitElement {
           .value=${this.searchQuery}
           @input=${(e) => this.searchQuery = e.target.value}
         >
-        <button 
+        <div class="snippet-mode" title="${this._getSnippetModeTitle()}">
+          <span class="snippet-mode__label">Copy as:</span>
+          <button
+            class="snippet-mode__btn ${this.snippetMode === 'path' ? 'snippet-mode__btn--active' : ''}"
+            @click=${() => this.snippetMode = 'path'}
+            title="Simple path: {{ field }}"
+          >Path</button>
+          <button
+            class="snippet-mode__btn ${this.snippetMode === 'safe' ? 'snippet-mode__btn--active' : ''}"
+            @click=${() => this.snippetMode = 'safe'}
+            title="Safe access: {% if field != blank %}{{ field }}{% endif %}"
+          >Safe</button>
+          <button
+            class="snippet-mode__btn ${this.snippetMode === 'assign' ? 'snippet-mode__btn--active' : ''}"
+            @click=${() => this.snippetMode = 'assign'}
+            title="Assign to variable with default"
+          >Assign</button>
+        </div>
+        <button
           class="toggle-btn ${this.showEmptyFields ? 'toggle-btn--active' : ''}"
           @click=${() => this.showEmptyFields = !this.showEmptyFields}
         >
