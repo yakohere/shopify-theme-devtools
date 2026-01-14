@@ -4,6 +4,7 @@ src/styles/
 
 # Development files
 demo/
+guides/
 index.html
 vite.config.js
 .gitignore
