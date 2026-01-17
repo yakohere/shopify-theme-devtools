@@ -2817,10 +2817,13 @@ export class CartPanel extends LitElement {
         variantId: String(item.variant_id),
         quantity: item.quantity,
         properties: item.properties || {},
+        // Store selling plan ID if present
+        sellingPlan: item.selling_plan_allocation?.selling_plan?.id || null,
         // Store metadata for display
         _title: item.product_title,
         _variant: item.variant_title,
-        _sku: item.sku
+        _sku: item.sku,
+        _sellingPlanName: item.selling_plan_allocation?.selling_plan?.name || null
       })),
       note: this.cart.note || '',
       attributes: this.cart.attributes || {},
@@ -2889,7 +2892,7 @@ export class CartPanel extends LitElement {
   _addScenarioItem() {
     this.editingScenario = {
       ...this.editingScenario,
-      items: [...this.editingScenario.items, { variantId: '', quantity: 1, properties: {} }]
+      items: [...this.editingScenario.items, { variantId: '', quantity: 1, properties: {}, sellingPlan: null }]
     };
   }
 
@@ -2944,6 +2947,9 @@ export class CartPanel extends LitElement {
         };
         if (item.properties && Object.keys(item.properties).length > 0) {
           cartItem.properties = item.properties;
+        }
+        if (item.sellingPlan) {
+          cartItem.selling_plan = item.sellingPlan;
         }
         return cartItem;
       });
@@ -3032,6 +3038,7 @@ export class CartPanel extends LitElement {
                     <div class="scenario-name">${scenario.name}</div>
                     <div class="scenario-meta">
                       ${scenario.items.length} item${scenario.items.length !== 1 ? 's' : ''}
+                      ${scenario.items.some(i => i.sellingPlan) ? html`<span class="selling-plan-badge" style="margin-left: 4px; font-size: 10px;">🔄</span>` : ''}
                       ${scenario.items.slice(0, 2).map(i => i._title || `#${i.variantId}`).join(', ')}
                       ${scenario.items.length > 2 ? '...' : ''}
                     </div>
@@ -3087,6 +3094,15 @@ export class CartPanel extends LitElement {
                 min="1"
                 .value=${item.quantity}
                 @input=${(e) => this._updateScenarioItem(index, 'quantity', parseInt(e.target.value, 10) || 1)}
+              >
+              <input
+                type="text"
+                class="selling-plan-input"
+                placeholder="Selling Plan ID"
+                .value=${item.sellingPlan || ''}
+                @input=${(e) => this._updateScenarioItem(index, 'sellingPlan', e.target.value || null)}
+                title="Selling Plan ID (for subscriptions)"
+                style="width: 100px;"
               >
               <div class="scenario-item-props">
                 ${Object.entries(item.properties).map(([key, value], propIndex) => html`
