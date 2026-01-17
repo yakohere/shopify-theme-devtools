@@ -20,6 +20,7 @@ import './panels/seo-panel.js';
 import './panels/apps-panel.js';
 import './panels/network-panel.js';
 import './panels/preferences-panel.js';
+import './panels/accessibility-panel.js';
 
 export class ThemeDevtools extends LitElement {
   static properties = {
@@ -47,6 +48,7 @@ export class ThemeDevtools extends LitElement {
     { id: 'objects', label: 'Objects' },
     { id: 'metafields', label: 'Metafields' },
     { id: 'cart', label: 'Cart' },
+    { id: 'a11y', label: 'Accessibility' },
     { id: 'locale', label: 'Locale' },
     { id: 'analytics', label: 'Analytics' },
     { id: 'seo', label: 'SEO' },
@@ -1368,6 +1370,12 @@ export class ThemeDevtools extends LitElement {
               class="panel ${this.activeTab === 'cart' ? 'panel--active' : ''}"
               .cart=${this.cart}
             ></tdt-cart-panel>
+          ` : ''}
+
+          ${!this.hiddenTabs.includes('a11y') ? html`
+            <tdt-accessibility-panel
+              class="panel ${this.activeTab === 'a11y' ? 'panel--active' : ''}"
+            ></tdt-accessibility-panel>
           ` : ''}
 
           ${!this.hiddenTabs.includes('locale') ? html`
