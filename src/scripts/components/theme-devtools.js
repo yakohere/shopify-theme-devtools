@@ -309,7 +309,6 @@ export class ThemeDevtools extends LitElement {
 
       .action-dropdown__menu {
         position: absolute;
-        bottom: 100%;
         left: 0;
         background: var(--tdt-bg);
         border: 1px solid var(--tdt-border);
