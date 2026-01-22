@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { baseStyles } from '../../styles/theme.js';
+import { accessibilityService } from '../../services/accessibility.js';
 
 export class AccessibilityPanel extends LitElement {
   static properties = {
@@ -562,6 +563,12 @@ export class AccessibilityPanel extends LitElement {
       this._calculateScore();
       this.lastScanTime = new Date();
       this.hasScanned = true;
+
+      // Store results in shared service so AI panel can access them
+      accessibilityService.setResults({
+        score: this.score,
+        issues: this.issues,
+      });
     } finally {
       this.isScanning = false;
     }

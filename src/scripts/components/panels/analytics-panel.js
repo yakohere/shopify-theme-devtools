@@ -1,15 +1,16 @@
 import { LitElement, html, css } from 'lit';
 import { baseStyles } from '../../styles/theme.js';
 import '../object-inspector.js';
+import { analyticsService, ANALYTICS_PROVIDERS } from '../../services/analytics.js';
 
 export class AnalyticsPanel extends LitElement {
   static properties = {
     events: { type: Array, state: true },
-    dataLayerSnapshots: { type: Array, state: true },
     filter: { type: String, state: true },
     activeFilter: { type: String, state: true },
     expandedEvents: { type: Set, state: true },
     isPaused: { type: Boolean, state: true },
+    _detectedProviders: { type: Object, state: true },
   };
 
   static styles = [
@@ -452,480 +453,59 @@ export class AnalyticsPanel extends LitElement {
     `
   ];
 
-  static CONVERSION_EVENTS = [
-    'purchase', 'add_to_cart', 'begin_checkout', 'add_payment_info',
-    'add_shipping_info', 'view_item', 'view_item_list', 'select_item',
-    'remove_from_cart', 'view_cart', 'sign_up', 'login', 'search',
-    'Purchase', 'AddToCart', 'InitiateCheckout', 'AddPaymentInfo',
-    'ViewContent', 'Lead', 'CompleteRegistration', 'Subscribe'
-  ];
-
-  static PROVIDERS = {
-    ga4: { name: 'GA4', color: '#4285f4' },
-    ga: { name: 'GA Universal', color: '#e37400' },
-    fbpixel: { name: 'FB Pixel', color: '#1877f2' },
-    tiktok: { name: 'TikTok', color: '#000000' },
-    pinterest: { name: 'Pinterest', color: '#e60023' },
-    snapchat: { name: 'Snapchat', color: '#fffc00' },
-    klaviyo: { name: 'Klaviyo', color: '#2d2d2d' },
-    shopify: { name: 'Shopify', color: '#96bf48' },
-    webpixel: { name: 'Web Pixel', color: '#5c6ac4' },
-    datalayer: { name: 'DataLayer', color: '#f9ab00' },
-    custom: { name: 'Custom', color: '#9382ff' },
-  };
-
-  static STORAGE_KEY = 'tdt-analytics-events';
+  // Use providers from shared service
+  static get PROVIDERS() {
+    return ANALYTICS_PROVIDERS;
+  }
 
   constructor() {
     super();
     this.events = [];
-    this.dataLayerSnapshots = [];
     this.filter = '';
     this.activeFilter = 'all';
     this.expandedEvents = new Set();
     this.isPaused = false;
     this._detectedProviders = new Set();
+    this._unsubscribe = null;
   }
 
   connectedCallback() {
     super.connectedCallback();
-    this._loadPersistedEvents();
-    this._detectProviders();
-    this._interceptDataLayer();
-    this._interceptGtag();
-    this._interceptGaUniversal();
-    this._interceptFbPixel();
-    this._interceptTikTok();
-    this._interceptPinterest();
-    this._interceptSnapchat();
-    this._interceptKlaviyo();
-    this._interceptShopifyAnalytics();
-    this._interceptWebPixels();
-    this._interceptCustomEvents();
+    // Initialize the shared analytics service
+    analyticsService.init();
+
+    // Sync initial state
+    this.events = analyticsService.events.map(e => ({
+      ...e,
+      timestamp: new Date(e.timestamp),
+    }));
+    this._detectedProviders = new Set(analyticsService.detectedProviders);
+    this.isPaused = analyticsService.isPaused;
+
+    // Subscribe to changes
+    this._unsubscribe = analyticsService.subscribe(({ events, detectedProviders, isPaused }) => {
+      this.events = events.map(e => ({
+        ...e,
+        timestamp: new Date(e.timestamp),
+      }));
+      this._detectedProviders = new Set(detectedProviders);
+      this.isPaused = isPaused;
+    });
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this._restoreInterceptors();
-  }
-
-  _loadPersistedEvents() {
-    try {
-      const stored = sessionStorage.getItem(AnalyticsPanel.STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        this.events = parsed.map(e => ({
-          ...e,
-          timestamp: new Date(e.timestamp),
-          isLive: false
-        }));
-      }
-    } catch (err) {
-      console.warn('[TDT] Failed to load persisted events:', err);
-    }
-  }
-
-  _persistEvents() {
-    try {
-      const toStore = this.events.slice(-500).map(e => ({
-        id: e.id,
-        provider: e.provider,
-        eventName: e.eventName,
-        data: this._safeCloneData(e.data),
-        timestamp: e.timestamp.toISOString(),
-        isConversion: e.isConversion,
-        isLive: e.isLive,
-        count: e.count
-      }));
-      sessionStorage.setItem(AnalyticsPanel.STORAGE_KEY, JSON.stringify(toStore));
-    } catch (err) {
-      console.warn('[TDT] Failed to persist events:', err);
-    }
-  }
-
-  _safeCloneData(data, seen = new WeakSet()) {
-    if (data === null || typeof data !== 'object') {
-      return data;
-    }
-
-    // Handle circular references
-    if (seen.has(data)) {
-      return '[Circular]';
-    }
-
-    // Skip DOM elements and Lit elements
-    if (data instanceof Element || data instanceof Node) {
-      return '[DOM Element]';
-    }
-
-    // Skip functions
-    if (typeof data === 'function') {
-      return '[Function]';
-    }
-
-    seen.add(data);
-
-    if (Array.isArray(data)) {
-      return data.map(item => this._safeCloneData(item, seen));
-    }
-
-    const result = {};
-    for (const key of Object.keys(data)) {
-      try {
-        const value = data[key];
-        // Skip certain problematic keys
-        if (key === 'renderOptions' || key === 'host' || key.startsWith('__')) {
-          continue;
-        }
-        result[key] = this._safeCloneData(value, seen);
-      } catch {
-        result[key] = '[Unserializable]';
-      }
-    }
-    return result;
-  }
-
-  _detectProviders() {
-    if (window.dataLayer) this._detectedProviders.add('datalayer');
-    if (window.gtag) this._detectedProviders.add('ga4');
-    if (window.ga) this._detectedProviders.add('ga');
-    if (window.fbq) this._detectedProviders.add('fbpixel');
-    if (window.ttq) this._detectedProviders.add('tiktok');
-    if (window.pintrk) this._detectedProviders.add('pinterest');
-    if (window.snaptr) this._detectedProviders.add('snapchat');
-    if (window._learnq) this._detectedProviders.add('klaviyo');
-    if (window.Shopify?.analytics) this._detectedProviders.add('shopify');
-  }
-
-  _interceptDataLayer() {
-    if (!window.dataLayer) {
-      window.dataLayer = [];
-    }
-
-    const originalPush = window.dataLayer.push.bind(window.dataLayer);
-    const self = this;
-
-    window.dataLayer.push = function(...args) {
-      args.forEach(data => {
-        if (!self.isPaused && data && typeof data === 'object') {
-          self._addEvent('datalayer', data.event || 'push', data);
-        }
-      });
-      return originalPush(...args);
-    };
-
-    this._originalDataLayerPush = originalPush;
-
-    window.dataLayer.forEach(data => {
-      if (data && typeof data === 'object') {
-        this._addEvent('datalayer', data.event || 'push', data, false);
-      }
-    });
-  }
-
-  _interceptGtag() {
-    if (!window.gtag) return;
-
-    const originalGtag = window.gtag;
-    const self = this;
-
-    window.gtag = function(command, ...args) {
-      if (!self.isPaused) {
-        if (command === 'event') {
-          const [eventName, params] = args;
-          self._addEvent('ga4', eventName, params || {});
-          self._detectedProviders.add('ga4');
-        } else if (command === 'config') {
-          self._addEvent('ga4', 'config', { measurementId: args[0], ...args[1] });
-        }
-      }
-      return originalGtag.call(this, command, ...args);
-    };
-
-    this._originalGtag = originalGtag;
-  }
-
-  _interceptGaUniversal() {
-    if (!window.ga) return;
-
-    const originalGa = window.ga;
-    const self = this;
-
-    window.ga = function(command, ...args) {
-      if (!self.isPaused) {
-        if (command === 'send') {
-          const [hitType, ...rest] = args;
-          if (hitType === 'event') {
-            const [category, action, label, value] = rest;
-            self._addEvent('ga', action || 'event', { category, action, label, value });
-          } else if (hitType === 'pageview') {
-            self._addEvent('ga', 'pageview', { page: rest[0] });
-          }
-          self._detectedProviders.add('ga');
-        } else if (typeof command === 'function') {
-          // GA ready callback
-        } else if (command === 'create') {
-          self._addEvent('ga', 'create', { trackingId: args[0], ...args[1] });
-        }
-      }
-      return originalGa.call(this, command, ...args);
-    };
-
-    this._originalGa = originalGa;
-  }
-
-  _interceptFbPixel() {
-    if (!window.fbq) return;
-
-    const originalFbq = window.fbq;
-    const self = this;
-
-    window.fbq = function(command, ...args) {
-      if (!self.isPaused) {
-        if (command === 'track' || command === 'trackCustom') {
-          const [eventName, params] = args;
-          self._addEvent('fbpixel', eventName, params || {});
-          self._detectedProviders.add('fbpixel');
-        } else if (command === 'init') {
-          self._addEvent('fbpixel', 'init', { pixelId: args[0] });
-        }
-      }
-      return originalFbq.call(this, command, ...args);
-    };
-
-    this._originalFbq = originalFbq;
-  }
-
-  _interceptTikTok() {
-    if (!window.ttq) return;
-
-    const originalTtq = window.ttq;
-    const self = this;
-
-    // TikTok uses ttq.track() and ttq.page()
-    if (originalTtq.track) {
-      const originalTrack = originalTtq.track.bind(originalTtq);
-      originalTtq.track = function(eventName, params) {
-        if (!self.isPaused) {
-          self._addEvent('tiktok', eventName, params || {});
-          self._detectedProviders.add('tiktok');
-        }
-        return originalTrack(eventName, params);
-      };
-      this._originalTtqTrack = originalTrack;
-    }
-
-    if (originalTtq.page) {
-      const originalPage = originalTtq.page.bind(originalTtq);
-      originalTtq.page = function() {
-        if (!self.isPaused) {
-          self._addEvent('tiktok', 'PageView', {});
-          self._detectedProviders.add('tiktok');
-        }
-        return originalPage();
-      };
-      this._originalTtqPage = originalPage;
-    }
-  }
-
-  _interceptPinterest() {
-    if (!window.pintrk) return;
-
-    const originalPintrk = window.pintrk;
-    const self = this;
-
-    window.pintrk = function(command, ...args) {
-      if (!self.isPaused) {
-        if (command === 'track') {
-          const [eventName, params] = args;
-          self._addEvent('pinterest', eventName, params || {});
-          self._detectedProviders.add('pinterest');
-        } else if (command === 'load') {
-          self._addEvent('pinterest', 'load', { tagId: args[0] });
-        }
-      }
-      return originalPintrk.call(this, command, ...args);
-    };
-
-    this._originalPintrk = originalPintrk;
-  }
-
-  _interceptSnapchat() {
-    if (!window.snaptr) return;
-
-    const originalSnaptr = window.snaptr;
-    const self = this;
-
-    window.snaptr = function(command, ...args) {
-      if (!self.isPaused) {
-        if (command === 'track') {
-          const [eventName, params] = args;
-          self._addEvent('snapchat', eventName, params || {});
-          self._detectedProviders.add('snapchat');
-        } else if (command === 'init') {
-          self._addEvent('snapchat', 'init', { pixelId: args[0] });
-        }
-      }
-      return originalSnaptr.call(this, command, ...args);
-    };
-
-    this._originalSnaptr = originalSnaptr;
-  }
-
-  _interceptKlaviyo() {
-    if (!window._learnq) return;
-
-    const originalLearnq = window._learnq;
-    const self = this;
-
-    // Klaviyo uses _learnq.push(['track', 'Event Name', {...}])
-    if (Array.isArray(originalLearnq)) {
-      const originalPush = originalLearnq.push.bind(originalLearnq);
-      originalLearnq.push = function(item) {
-        if (!self.isPaused && Array.isArray(item)) {
-          const [command, ...args] = item;
-          if (command === 'track') {
-            const [eventName, params] = args;
-            self._addEvent('klaviyo', eventName, params || {});
-            self._detectedProviders.add('klaviyo');
-          } else if (command === 'identify') {
-            self._addEvent('klaviyo', 'identify', args[0] || {});
-          }
-        }
-        return originalPush(item);
-      };
-      this._originalLearnqPush = originalPush;
-    }
-  }
-
-  _interceptShopifyAnalytics() {
-    if (!window.Shopify?.analytics) return;
-
-    const analytics = window.Shopify.analytics;
-    const self = this;
-
-    if (analytics.publish) {
-      const originalPublish = analytics.publish.bind(analytics);
-      analytics.publish = function(eventName, data) {
-        if (!self.isPaused) {
-          self._addEvent('shopify', eventName, data || {});
-          self._detectedProviders.add('shopify');
-        }
-        return originalPublish(eventName, data);
-      };
-      this._originalShopifyPublish = originalPublish;
-    }
-  }
-
-  _interceptWebPixels() {
-    // Shopify Web Pixels API uses analytics.subscribe
-    if (!window.Shopify?.analytics?.subscribe) return;
-
-    const analytics = window.Shopify.analytics;
-    const self = this;
-    const originalSubscribe = analytics.subscribe.bind(analytics);
-
-    analytics.subscribe = function(eventName, callback) {
-      // Wrap the callback to capture events
-      const wrappedCallback = (event) => {
-        if (!self.isPaused) {
-          self._addEvent('webpixel', eventName, event || {});
-          self._detectedProviders.add('webpixel');
-        }
-        return callback(event);
-      };
-      return originalSubscribe(eventName, wrappedCallback);
-    };
-
-    this._originalWebPixelSubscribe = originalSubscribe;
-  }
-
-  _interceptCustomEvents() {
-    const self = this;
-
-    this._customEventHandler = (e) => {
-      if (!self.isPaused && e.detail) {
-        self._addEvent('custom', e.type, e.detail);
-      }
-    };
-
-    ['analytics', 'tracking', 'gtm', 'conversion'].forEach(eventType => {
-      document.addEventListener(eventType, this._customEventHandler);
-    });
-  }
-
-  _restoreInterceptors() {
-    if (this._originalDataLayerPush && window.dataLayer) {
-      window.dataLayer.push = this._originalDataLayerPush;
-    }
-    if (this._originalGtag) {
-      window.gtag = this._originalGtag;
-    }
-    if (this._originalFbq) {
-      window.fbq = this._originalFbq;
-    }
-
-    ['analytics', 'tracking', 'gtm', 'conversion'].forEach(eventType => {
-      document.removeEventListener(eventType, this._customEventHandler);
-    });
-  }
-
-  _getEventKey(provider, eventName, data) {
-    // Create a stable key for deduplication
-    const dataKey = JSON.stringify(data, Object.keys(data || {}).sort());
-    return `${provider}:${eventName}:${dataKey}`;
-  }
-
-  _addEvent(provider, eventName, data, isLive = true) {
-    const isConversion = AnalyticsPanel.CONVERSION_EVENTS.some(
-      ce => eventName.toLowerCase().includes(ce.toLowerCase())
-    );
-
-    const eventKey = this._getEventKey(provider, eventName, data);
-
-    // Check for duplicate within last 500ms (same event, same data)
-    const recentDuplicate = this.events.find(e => {
-      const timeDiff = Date.now() - e.timestamp.getTime();
-      return timeDiff < 500 && this._getEventKey(e.provider, e.eventName, e.data) === eventKey;
-    });
-
-    if (recentDuplicate) {
-      // Increment count instead of adding new event
-      recentDuplicate.count = (recentDuplicate.count || 1) + 1;
-      this.events = [...this.events]; // Trigger re-render
-      this._persistEvents();
-      return;
-    }
-
-    const event = {
-      id: Date.now() + Math.random(),
-      provider,
-      eventName,
-      data,
-      timestamp: new Date(),
-      isConversion,
-      isLive,
-      count: 1
-    };
-
-    if (isLive) {
-      this.events = [...this.events, event];
-    } else {
-      this.events = [event, ...this.events];
-    }
-
-    if (isLive) {
-      this._persistEvents();
+    if (this._unsubscribe) {
+      this._unsubscribe();
     }
   }
 
   _togglePause() {
-    this.isPaused = !this.isPaused;
+    analyticsService.setPaused(!this.isPaused);
   }
 
   _clearEvents() {
-    this.events = [];
-    sessionStorage.removeItem(AnalyticsPanel.STORAGE_KEY);
+    analyticsService.clearEvents();
   }
 
   _exportEvents() {
