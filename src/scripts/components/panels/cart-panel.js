@@ -705,6 +705,47 @@ export class CartPanel extends LitElement {
         margin-left: 8px;
       }
 
+      /* Nested/Child Line Items */
+      .item-row.child-item td:first-child {
+        padding-left: 20px;
+        padding-right: 20px;
+        border-left: 2px solid var(--tdt-accent);
+      }
+
+      .item-row.child-item td {
+        background: var(--tdt-bg-secondary);
+      }
+
+      .item-row.child-item:hover td {
+        background: var(--tdt-bg-hover);
+      }
+
+      .child-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 1px 5px;
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid var(--tdt-accent);
+        border-radius: var(--tdt-radius);
+        font-size: calc(8px * var(--tdt-scale, 1));
+        color: var(--tdt-accent);
+        margin-top: 2px;
+      }
+
+      .parent-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 1px 5px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid var(--tdt-success);
+        border-radius: var(--tdt-radius);
+        font-size: calc(8px * var(--tdt-scale, 1));
+        color: var(--tdt-success);
+        margin-top: 2px;
+      }
+
       /* Scenario Builder Styles */
       .scenario-panel {
         background: var(--tdt-bg-secondary);
@@ -2035,6 +2076,47 @@ export class CartPanel extends LitElement {
     return Math.round((1 - finalPrice / originalPrice) * 100);
   }
 
+  // Group cart items by parent relationship (for nested line items)
+  _getGroupedCartItems() {
+    if (!this.cart?.items) return [];
+
+    const items = this.cart.items;
+    const result = [];
+    const childrenMap = new Map(); // parent_key -> [child items]
+    const parentKeys = new Set();
+
+    // First pass: identify children and their parents
+    for (const item of items) {
+      if (item.parent_relationship?.parent_key) {
+        const parentKey = item.parent_relationship.parent_key;
+        if (!childrenMap.has(parentKey)) {
+          childrenMap.set(parentKey, []);
+        }
+        childrenMap.get(parentKey).push(item);
+        parentKeys.add(parentKey);
+      }
+    }
+
+    // Second pass: build grouped result
+    for (const item of items) {
+      // Skip if this is a child item (will be added after its parent)
+      if (item.parent_relationship?.parent_key) continue;
+
+      const isParent = parentKeys.has(item.key);
+      result.push({ item, isChild: false, isParent, childCount: childrenMap.get(item.key)?.length || 0 });
+
+      // Add children immediately after parent
+      const children = childrenMap.get(item.key);
+      if (children) {
+        for (const child of children) {
+          result.push({ item: child, isChild: true, isParent: false, parentKey: item.key });
+        }
+      }
+    }
+
+    return result;
+  }
+
   // ============ Cart Tests Methods ============
 
   _toggleTests() {
@@ -2711,6 +2793,28 @@ export class CartPanel extends LitElement {
           <span class="item-detail-label">Handle:</span>
           <span class="item-detail-value">${item.handle}</span>
         </div>
+        ${item.parent_relationship?.parent_key ? html`
+          <div class="item-detail-row">
+            <span class="item-detail-label">Parent Key:</span>
+            <span class="item-detail-value" style="color: var(--tdt-accent);">${item.parent_relationship.parent_key}</span>
+          </div>
+        ` : ''}
+        ${item.has_components ? html`
+          <div class="item-detail-row">
+            <span class="item-detail-label">Has Children:</span>
+            <span class="item-detail-value" style="color: var(--tdt-success);">Yes</span>
+          </div>
+        ` : ''}
+        ${item.instructions ? html`
+          <div class="item-detail-row">
+            <span class="item-detail-label">Can Remove:</span>
+            <span class="item-detail-value">${item.instructions.can_remove ? 'Yes' : 'No'}</span>
+          </div>
+          <div class="item-detail-row">
+            <span class="item-detail-label">Can Update Qty:</span>
+            <span class="item-detail-value">${item.instructions.can_update_quantity ? 'Yes' : 'No'}</span>
+          </div>
+        ` : ''}
         <div class="item-detail-row">
           <span class="item-detail-label">Unit Price:</span>
           <span class="item-detail-value">${this._formatMoney(item.price)}</span>
@@ -3633,7 +3737,7 @@ export class CartPanel extends LitElement {
               </tr>
             </thead>
             <tbody>
-              ${this.cart.items.map((item, index) => {
+              ${this._getGroupedCartItems().map(({ item, isChild, isParent, childCount }) => {
                 const isExpanded = this.expandedItems.has(item.key);
                 const hasComparePrice = item.original_line_price && item.original_line_price > item.line_price;
                 const discountPercent = this._getDiscountPercent(item.original_line_price, item.line_price);
@@ -3641,9 +3745,11 @@ export class CartPanel extends LitElement {
                 const hasSellingPlan = !!item.selling_plan_allocation;
                 const failedItemKeys = this._getFailedItemKeys();
                 const isTestFailed = failedItemKeys.has(item.key);
+                // Find the original index for cart operations
+                const originalIndex = this.cart.items.findIndex(i => i.key === item.key);
 
                 return html`
-                  <tr class="item-row ${isExpanded ? 'expanded' : ''} ${isTestFailed ? 'test-failed' : ''}" @click=${() => this._toggleItemExpand(item.key)}>
+                  <tr class="item-row ${isExpanded ? 'expanded' : ''} ${isTestFailed ? 'test-failed' : ''} ${isChild ? 'child-item' : ''}" @click=${() => this._toggleItemExpand(item.key)}>
                     <td class="col-img">
                       ${item.image
                         ? html`<img class="item-img" src="${item.image.replace(/(\.[^.]+)$/, '_60x60$1')}" alt="">`
@@ -3661,6 +3767,12 @@ export class CartPanel extends LitElement {
                           🔄 ${item.selling_plan_allocation?.selling_plan?.name || 'Subscription'}
                         </span>
                       ` : ''}
+                      ${isParent ? html`
+                        <span class="parent-badge">Parent (${childCount} child${childCount !== 1 ? 'ren' : ''})</span>
+                      ` : ''}
+                      ${isChild ? html`
+                        <span class="child-indicator">↳ Child item</span>
+                      ` : ''}
                       ${hasProperties ? html`
                         <div style="font-size: calc(9px * var(--tdt-scale, 1)); color: var(--tdt-text-muted); margin-top: 2px;">
                           ${Object.keys(item.properties).length} properties
@@ -3675,7 +3787,7 @@ export class CartPanel extends LitElement {
                         .value=${item.quantity}
                         min="0"
                         @click=${(e) => e.stopPropagation()}
-                        @change=${(e) => { e.stopPropagation(); this._updateQuantity(index, parseInt(e.target.value, 10)); }}
+                        @change=${(e) => { e.stopPropagation(); this._updateQuantity(originalIndex, parseInt(e.target.value, 10)); }}
                       >
                     </td>
                     <td class="item-price">
@@ -3688,11 +3800,11 @@ export class CartPanel extends LitElement {
                       ` : ''}
                     </td>
                     <td>
-                      <button class="remove-btn" @click=${(e) => { e.stopPropagation(); this._remove(index); }} title="Remove">×</button>
+                      <button class="remove-btn" @click=${(e) => { e.stopPropagation(); this._remove(originalIndex); }} title="Remove">×</button>
                     </td>
                   </tr>
                   ${isExpanded ? html`
-                    <tr>
+                    <tr class="${isChild ? 'child-item' : ''}">
                       <td colspan="6" style="padding: 0;">
                         ${this._renderItemExpanded(item)}
                       </td>
