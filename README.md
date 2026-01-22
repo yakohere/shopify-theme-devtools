@@ -24,13 +24,15 @@ A powerful in-browser developer tools panel for Shopify theme development. Inspe
 
 ### Core Panels
 
+- **AI Assistant** — GPT-powered theme debugging with full context access (cart, metafields, analytics, accessibility, and more)
 - **Objects Inspector** — Browse `shop`, `product`, `collection`, `customer`, `cart` and more with deep search and collapsible tree view
 - **Metafields Viewer** — Explore metafields across all resources and namespaces with type labels
 - **Cart Panel** — Real-time cart state with add/remove/quantity controls, cart history with restore, and attribute editing
 - **Console** — Chrome DevTools-style console with Liquid expression evaluator, and autocomplete
 - **Localization** — Markets, currencies, languages, and country data with quick switcher
 - **SEO Inspector** — Meta tags, Open Graph, Twitter Cards, and structured data (JSON-LD) validation
-- **Analytics Viewer** — Detects Google Analytics, Facebook Pixel, and other tracking codes
+- **Analytics Viewer** — Captures GA4, Facebook Pixel, TikTok, Pinterest, Snapchat, Klaviyo, Shopify Analytics, and dataLayer events
+- **Accessibility Scanner** — WCAG compliance checker with issue severity, suggested fixes, and score
 - **Storage Inspector** — Browse and edit localStorage, sessionStorage, and cookies
 - **Apps Panel** — Lists installed Shopify apps detected on the page
 - **Info Panel** — Theme details, template info, and request metadata
@@ -119,6 +121,50 @@ The Cart Tests feature lets you create custom validation rules to ensure cart it
 - **Import/Export** — Save and share test configurations as JSON
 - **Inline Results** — Pass/fail badges show test status at a glance
 
+### AI Assistant
+
+An intelligent GPT-powered assistant that understands your Shopify theme context. Ask questions, debug issues, and generate Liquid code with full access to your page data.
+
+**Setup:**
+1. Open the AI panel
+2. Enter your OpenAI API key (stored locally, never sent anywhere except OpenAI)
+3. Start asking questions
+
+**What AI Can Access:**
+- Page/template info, shop details, current resource (product/collection/page)
+- Customer data (if logged in)
+- Cart state and cart history
+- Metafields for all resources
+- Section schemas (from theme editor data)
+- HTML structure of the page
+- Network requests and responses
+- Cookies, localStorage, sessionStorage
+- Liquid errors detected on the page
+- Accessibility scan results
+- Analytics events (GA4, Facebook Pixel, TikTok, Pinterest, Snapchat, Klaviyo, Shopify, dataLayer)
+
+**Context Modes:**
+| Mode | Description |
+|------|-------------|
+| **Auto** | Smart detection - includes relevant context based on your question |
+| **Minimal** | Basic page info and cart only (faster responses) |
+| **Full** | Everything including cookies, storage, analytics, accessibility |
+| **Custom** | Pick exactly which context to include |
+
+**Example Questions:**
+- "What data is available on this page?"
+- "Help me write Liquid to display the product price with compare at price"
+- "Why isn't my add to cart button working?"
+- "What analytics events are firing on this page?"
+- "Are there any accessibility issues I should fix?"
+
+**Features:**
+- **Streaming responses** — See answers as they're generated
+- **Syntax highlighting** — Code blocks with Liquid, JavaScript, and JSON highlighting
+- **Conversation history** — Per-page conversations persist in session storage
+- **Search** — Find text across your conversation history
+- **Copy code** — One-click copy for any code block
+
 ### Liquid Error Detection
 
 Automatically scans the page for common Liquid issues:
@@ -128,6 +174,33 @@ Automatically scans the page for common Liquid issues:
 - Missing snippets and assets
 - Schema validation errors
 - Deprecation warnings
+
+### Analytics Panel
+
+Captures and inspects analytics events from multiple tracking providers in real-time.
+
+**Supported Providers:**
+| Provider | Detection |
+|----------|-----------|
+| **Google Analytics 4** | `gtag()` calls |
+| **Google Analytics Universal** | `ga()` calls |
+| **Facebook Pixel** | `fbq()` calls |
+| **TikTok Pixel** | `ttq.track()` calls |
+| **Pinterest Tag** | `pintrk()` calls |
+| **Snapchat Pixel** | `snaptr()` calls |
+| **Klaviyo** | `_learnq.push()` calls |
+| **Shopify Analytics** | `Shopify.analytics.publish()` |
+| **Shopify Web Pixels** | `analytics.subscribe()` |
+| **DataLayer** | `dataLayer.push()` |
+
+**Features:**
+- **Live capture** — Events appear as they fire
+- **Conversion tracking** — Highlights purchase, add_to_cart, and other conversion events
+- **Filtering** — Filter by provider or search event names/data
+- **Deduplication** — Groups duplicate events fired within 500ms
+- **Export** — Download captured events as JSON
+- **Pause/Resume** — Stop capturing to analyze current events
+- **Persistence** — Events persist across page navigations (session storage)
 
 ### Network Panel
 
@@ -232,11 +305,13 @@ The devtools panel automatically appears on **unpublished/development themes onl
 
 | Panel | Description |
 |-------|-------------|
+| **AI** | GPT-powered assistant with full theme context access |
 | **Objects** | Inspect all Liquid objects with search and tree navigation |
 | **Metafields** | Browse metafields by resource (product, collection, shop, etc.) |
 | **Cart** | Live cart state, history, scenarios, tests, and manipulation tools |
 | **Locale** | Markets, currencies, languages with locale switching |
-| **Analytics** | Detected tracking codes and analytics configuration |
+| **Analytics** | Live event capture for GA4, FB Pixel, TikTok, Pinterest, Klaviyo, Shopify |
+| **Accessibility** | WCAG compliance scanner with score and suggested fixes |
 | **SEO** | Meta tags, Open Graph, Twitter Cards, JSON-LD structured data |
 | **Apps** | Installed Shopify apps detected on the page |
 | **Network** | API request monitor with edit/replay, cart diffs, and error diagnosis |
@@ -316,13 +391,17 @@ src/
 │   ├── components/
 │   │   ├── theme-devtools.js         # Main component with tab management
 │   │   ├── object-inspector.js       # Tree view inspector
-│   │   └── panels/                   # Panel components
+│   │   └── panels/                   # Panel components (ai, cart, analytics, etc.)
 │   ├── lib/
 │   │   └── cart-test-templates.js    # Pre-built cart test templates
 │   ├── services/
+│   │   ├── ai.js                     # OpenAI API integration
+│   │   ├── analytics.js              # Analytics event interceptor
+│   │   ├── accessibility.js          # Accessibility scanning service
 │   │   ├── cart.js                   # Cart API with history
 │   │   ├── product.js                # Product API (variants/images)
 │   │   ├── context.js                # Liquid context parser
+│   │   ├── context-serializer.js     # AI context serialization
 │   │   ├── expression-evaluator.js   # Liquid expression engine
 │   │   ├── network-interceptor.js    # Fetch/XHR interceptor with persistence
 │   │   └── settings.js               # User preferences
