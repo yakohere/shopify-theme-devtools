@@ -850,6 +850,18 @@ export class ConsolePanel extends LitElement {
     this.showSuggestions = false;
   }
 
+  setExpression(expression) {
+    this.inputValue = expression;
+    this.updateComplete.then(() => {
+      const textarea = this.shadowRoot.querySelector('.console-input');
+      if (textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        this._autoGrowTextarea(textarea);
+      }
+    });
+  }
+
   async _evaluateExpression() {
     if (!this.inputValue.trim()) return;
 

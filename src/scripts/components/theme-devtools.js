@@ -535,6 +535,7 @@ export class ThemeDevtools extends LitElement {
     this._applySettings();
     this._subscribeToSettings();
     this._listenForSystemTheme();
+    this._listenForUseProperty();
   }
 
   updated(changedProps) {
@@ -562,6 +563,9 @@ export class ThemeDevtools extends LitElement {
     }
     if (this._mediaQueryListener) {
       this._systemThemeQuery?.removeEventListener('change', this._mediaQueryListener);
+    }
+    if (this._handleUseProperty) {
+      this.removeEventListener('use-property', this._handleUseProperty);
     }
     this._disconnectResizeObserver();
     cartAPI.stopPolling();
@@ -632,6 +636,22 @@ export class ThemeDevtools extends LitElement {
       }
     };
     this._systemThemeQuery.addEventListener('change', this._mediaQueryListener);
+  }
+
+  _listenForUseProperty() {
+    this._handleUseProperty = (e) => {
+      const { path } = e.detail;
+      if (path) {
+        this._setTab('console');
+        this.updateComplete.then(() => {
+          const consolePanel = this.shadowRoot.querySelector('tdt-console-panel');
+          if (consolePanel) {
+            consolePanel.setExpression(path);
+          }
+        });
+      }
+    };
+    this.addEventListener('use-property', this._handleUseProperty);
   }
 
   _applySettings() {

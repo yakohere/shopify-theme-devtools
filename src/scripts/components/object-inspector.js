@@ -160,6 +160,30 @@ export class ObjectInspector extends LitElement {
         opacity: 1 !important;
       }
 
+      .use-btn {
+        opacity: 0;
+        background: transparent;
+        border: 1px solid var(--tdt-border);
+        border-radius: 3px;
+        padding: 1px 4px;
+        font-size: calc(9px * var(--tdt-scale, 1));
+        color: var(--tdt-text-muted);
+        cursor: pointer;
+        margin-left: 4px;
+        transition: opacity 0.15s ease;
+      }
+
+      .node:hover > .use-btn,
+      .node:hover > .node-content > .use-btn {
+        opacity: 1;
+      }
+
+      .use-btn:hover {
+        background: var(--tdt-success);
+        border-color: var(--tdt-success);
+        color: white;
+      }
+
       .node-content {
         display: inline;
       }
@@ -424,6 +448,19 @@ export class ObjectInspector extends LitElement {
     }
   }
 
+  _useInConsole(path, e) {
+    e.stopPropagation();
+    const liquidPath = path
+      .replace(/^objects\./, '')
+      .replace(/^meta\./, '');
+
+    this.dispatchEvent(new CustomEvent('use-property', {
+      detail: { path: liquidPath },
+      bubbles: true,
+      composed: true
+    }));
+  }
+
   _openURL(url, e) {
     e.stopPropagation();
     // If it's a relative URL, make it absolute
@@ -580,6 +617,7 @@ export class ObjectInspector extends LitElement {
           }
           ${matchCount > 0 && !isExpanded ? html`<span class="match-count">${matchCount} match${matchCount > 1 ? 'es' : ''}</span>` : ''}
           <button class="copy-value-btn" @click=${(e) => this._copyValue(value, e)} title="Copy value">copy</button>
+          <button class="use-btn" @click=${(e) => this._useInConsole(currentPath, e)} title="Use in console">use</button>
         </span>
         ${expandable && isExpanded ? html`
           <div class="children">
