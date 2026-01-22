@@ -2914,21 +2914,45 @@ export class CartPanel extends LitElement {
     const name = prompt('Enter scenario name:', `Cart ${new Date().toLocaleDateString()}`);
     if (!name) return;
 
+    // Build a map of item keys to their index for parent relationship tracking
+    const keyToIndex = new Map();
+    this.cart.items.forEach((item, index) => {
+      keyToIndex.set(item.key, index);
+    });
+
     const scenario = {
       id: Date.now(),
       name,
-      items: this.cart.items.map(item => ({
-        variantId: String(item.variant_id),
-        quantity: item.quantity,
-        properties: item.properties || {},
-        // Store selling plan ID if present
-        sellingPlan: item.selling_plan_allocation?.selling_plan?.id || null,
-        // Store metadata for display
-        _title: item.product_title,
-        _variant: item.variant_title,
-        _sku: item.sku,
-        _sellingPlanName: item.selling_plan_allocation?.selling_plan?.name || null
-      })),
+      items: this.cart.items.map((item, index) => {
+        const scenarioItem = {
+          variantId: String(item.variant_id),
+          quantity: item.quantity,
+          properties: item.properties || {},
+          // Store selling plan ID if present
+          sellingPlan: item.selling_plan_allocation?.selling_plan?.id || null,
+          // Store metadata for display
+          _title: item.product_title,
+          _variant: item.variant_title,
+          _sku: item.sku,
+          _sellingPlanName: item.selling_plan_allocation?.selling_plan?.name || null,
+          // Store the item's own key (used as reference for children)
+          _itemKey: item.key,
+          // Store item index for ordering
+          _index: index
+        };
+
+        // If this item has a parent relationship, store the parent's key
+        if (item.parent_relationship?.parent_key) {
+          scenarioItem._parentItemKey = item.parent_relationship.parent_key;
+        }
+
+        // Store instructions if present (for child items)
+        if (item.instructions) {
+          scenarioItem._instructions = item.instructions;
+        }
+
+        return scenarioItem;
+      }),
       note: this.cart.note || '',
       attributes: this.cart.attributes || {},
       createdAt: new Date().toISOString()
@@ -3044,32 +3068,15 @@ export class CartPanel extends LitElement {
         await cartAPI.clear();
       }
 
-      const items = scenario.items.map(item => {
-        const cartItem = {
-          id: parseInt(item.variantId, 10),
-          quantity: item.quantity
-        };
-        if (item.properties && Object.keys(item.properties).length > 0) {
-          cartItem.properties = item.properties;
-        }
-        if (item.sellingPlan) {
-          cartItem.selling_plan = item.sellingPlan;
-        }
-        return cartItem;
-      });
+      // Check if this scenario has any parent-child relationships
+      const hasParentRelationships = scenario.items.some(item => item._parentItemKey);
 
-      const response = await fetch('/cart/add.js', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ items })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || error.description || 'Failed to add items');
+      if (hasParentRelationships) {
+        // Need to add items sequentially to preserve parent-child relationships
+        await this._loadScenarioWithRelationships(scenario);
+      } else {
+        // No relationships, can add all items at once (legacy behavior)
+        await this._loadScenarioSimple(scenario);
       }
 
       // Update note and attributes if present
@@ -3096,6 +3103,114 @@ export class CartPanel extends LitElement {
       this._showToast(`Loaded "${scenario.name}"`);
     } catch (err) {
       this._showToast(`Error: ${err.message}`);
+    }
+  }
+
+  // Load scenario without parent relationships (simple batch add)
+  async _loadScenarioSimple(scenario) {
+    const items = scenario.items.map(item => {
+      const cartItem = {
+        id: parseInt(item.variantId, 10),
+        quantity: item.quantity
+      };
+      if (item.properties && Object.keys(item.properties).length > 0) {
+        cartItem.properties = item.properties;
+      }
+      if (item.sellingPlan) {
+        cartItem.selling_plan = item.sellingPlan;
+      }
+      return cartItem;
+    });
+
+    const response = await fetch('/cart/add.js', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ items })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || error.description || 'Failed to add items');
+    }
+  }
+
+  // Load scenario with parent-child relationships (sequential group adds)
+  // Each group (parent + children) is added in one request using parent_id
+  // Groups are added sequentially to avoid same-variant conflicts
+  async _loadScenarioWithRelationships(scenario) {
+    // Separate items into parents and children
+    const parentItems = []; // Items without _parentItemKey
+    const childrenByParentKey = new Map(); // _parentItemKey -> [child items]
+
+    for (const item of scenario.items) {
+      if (item._parentItemKey) {
+        // This is a child item
+        if (!childrenByParentKey.has(item._parentItemKey)) {
+          childrenByParentKey.set(item._parentItemKey, []);
+        }
+        childrenByParentKey.get(item._parentItemKey).push(item);
+      } else {
+        // This is a parent item (or standalone item)
+        parentItems.push(item);
+      }
+    }
+
+    // Add each group (parent + its children) in a single request
+    // Groups are added sequentially to prevent same-variant conflicts
+    for (const parentItem of parentItems) {
+      const items = [];
+
+      // Build the parent cart item
+      const parentCartItem = {
+        id: parseInt(parentItem.variantId, 10),
+        quantity: parentItem.quantity
+      };
+      if (parentItem.properties && Object.keys(parentItem.properties).length > 0) {
+        parentCartItem.properties = parentItem.properties;
+      }
+      if (parentItem.sellingPlan) {
+        parentCartItem.selling_plan = parentItem.sellingPlan;
+      }
+      items.push(parentCartItem);
+
+      // Get children for this parent
+      const children = childrenByParentKey.get(parentItem._itemKey) || [];
+
+      // Add children with parent_id referencing the parent variant id
+      for (const childItem of children) {
+        const childCartItem = {
+          id: parseInt(childItem.variantId, 10),
+          quantity: childItem.quantity,
+          // Reference the parent by its variant id in this same request
+          parent_id: parseInt(parentItem.variantId, 10)
+        };
+        if (childItem.properties && Object.keys(childItem.properties).length > 0) {
+          childCartItem.properties = childItem.properties;
+        }
+        if (childItem.sellingPlan) {
+          childCartItem.selling_plan = childItem.sellingPlan;
+        }
+        items.push(childCartItem);
+      }
+
+      // Add this group (parent + children) in one request
+      const response = await fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ items })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.warn(`Failed to add group for ${parentItem._title || 'item'}:`, error.message || error.description);
+        // Continue with other groups even if one fails
+      }
     }
   }
 
